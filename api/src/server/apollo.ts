@@ -12,6 +12,7 @@ import { loadTypeDefs } from '../graphql/loadTypeDefs';
 import { loadResolvers } from '../graphql/loadResolvers';
 import type { Request, Response } from 'express';
 import { getAuthFromRequest } from '../services/firebaseAdmin';
+import { getPrisma } from '../services/prisma';
 
 function createLoggingPlugin() {
   return {
@@ -97,7 +98,8 @@ export async function applyApolloMiddleware({ app, httpServer }: ApplyApolloArgs
           res.setHeader('x-request-id', requestId);
         } catch {}
         const auth = await getAuthFromRequest(req);
-        return { requestId, req, res, user: auth?.user ?? null, auth: auth ?? null };
+        const prisma = getPrisma();
+        return { requestId, req, res, user: auth?.user ?? null, auth: auth ?? null, prisma };
       },
     })
   );
