@@ -1,0 +1,41 @@
+Cursor Rules: Mobile (React Native + TypeScript)
+
+Project shape
+- Type: React Native app using TypeScript
+- Entry: index.js -> App.tsx
+- Native projects: ios/ (Xcode), android/ (Gradle); avoid editing unless necessary
+- Package manager: npm only (package-lock.json present)
+
+How to run
+- iOS: npm run ios
+- Android: npm run android
+- Metro: npm start
+
+Conventions
+- Prefer functional components and hooks
+- Strongly type props and state; use .tsx/.ts
+- Platform-specific files (*.ios.tsx, *.android.tsx) only when required
+- Co-locate styles; use StyleSheet or existing styling system
+- Keep state simple; introduce global state only if requested
+
+Assets & modules
+- Use assets/ for images; import with require/URI
+- Avoid Node-only APIs; use RN-compatible libraries
+- For native modules, run pods in ios/ and ensure Android builds, but do not commit build outputs
+
+Boundaries
+- Scope changes to mobile/ only
+- Do not commit node_modules, ios/build, DerivedData, android/build, .metro-cache
+- Keep .env out of git; maintain .env.example
+- When given a task, focus only on that task and avoid unrelated changes
+
+Navigation & structure
+- If adding navigation, use React Navigation; keep navigators in navigation/
+- Place screens/ and components/ appropriately; share logic via hooks/ or services/
+
+Testing
+- Use Jest + @testing-library/react-native for tests under __tests__/ or alongside files
+
+Code style
+- Respect eslint/prettier; avoid unrelated formatting changes
+- Prioritize readability; avoid deep prop drilling (prefer context/hooks)
