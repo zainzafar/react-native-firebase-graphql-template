@@ -25,6 +25,7 @@ Boundaries
 - Do not commit dist/ or node_modules/
 - Do not rename scripts or alter tsconfig/nodemon config unless asked
 - When given a task, focus only on that task and avoid unrelated changes
+- If, while performing a task, these rules need updating to reflect the latest scenario, update this file as part of the task
 
 Dependencies
 - When adding libs (express, cors, helmet, morgan), install types: npm i -D @types/<pkg> if needed
