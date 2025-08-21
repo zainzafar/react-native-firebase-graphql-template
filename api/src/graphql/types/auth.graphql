@@ -1,0 +1,25 @@
+extend type Query {
+  me: User
+}
+
+extend type Mutation {
+  loginWithIdToken(idToken: String!, createSession: Boolean, sessionDays: Int): AuthPayload!
+  logout: Boolean!
+}
+
+type User {
+  uid: ID!
+  email: String
+  emailVerified: Boolean!
+  displayName: String
+  photoURL: String
+  phoneNumber: String
+  providerId: String
+}
+
+type AuthPayload {
+  user: User!
+  sessionCookie: String
+}
+
+

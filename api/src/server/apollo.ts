@@ -10,6 +10,8 @@ import { print } from 'graphql';
 import { randomUUID } from 'node:crypto';
 import { loadTypeDefs } from '../graphql/loadTypeDefs';
 import { loadResolvers } from '../graphql/loadResolvers';
+import type { Request, Response } from 'express';
+import { getAuthFromRequest } from '../services/firebaseAdmin';
 
 function createLoggingPlugin() {
   return {
@@ -88,13 +90,14 @@ export async function applyApolloMiddleware({ app, httpServer }: ApplyApolloArgs
     cors<cors.CorsRequest>(),
     express.json(),
     expressMiddleware(server, {
-      context: async ({ req, res }: any) => {
+      context: async ({ req, res }: { req: Request; res: Response }) => {
         const headerId = (req.headers?.['x-request-id'] as string | undefined) || undefined;
         const requestId = headerId ?? randomUUID();
         try {
           res.setHeader('x-request-id', requestId);
         } catch {}
-        return { requestId };
+        const auth = await getAuthFromRequest(req);
+        return { requestId, req, res, user: auth?.user ?? null, auth: auth ?? null };
       },
     })
   );

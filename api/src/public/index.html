@@ -1,0 +1,95 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DonationBox Auth Test</title>
+    <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/6.0.2/firebase-ui-auth.css" />
+    <style>
+      body { font-family: -apple-system, system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin: 20px; }
+      #log { white-space: pre-wrap; background: #f6f8fa; padding: 10px; border-radius: 6px; }
+      .row { margin: 8px 0; }
+      button { margin: 6px 4px; padding: 8px 12px; }
+    </style>
+    <script src="/config.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/ui/6.0.2/firebase-ui-auth.js"></script>
+  </head>
+  <body>
+    <h2>FirebaseUI (Drop-in)</h2>
+    <div id="firebaseui-auth-container"></div>
+    <div class="row">
+      <button id="btn-logout">Logout</button>
+      <button id="btn-me">Query me</button>
+    </div>
+    <h3>Output</h3>
+    <div id="log"></div>
+
+    <script>
+      const logEl = document.getElementById('log');
+      const log = (...args) => { logEl.textContent += args.map(a => typeof a === 'string' ? a : JSON.stringify(a, null, 2)).join(' ') + '\n'; };
+
+      const app = window.firebase.initializeApp(window.FIREBASE_CONFIG || {});
+      const auth = window.firebase.auth();
+
+      async function loginToGraphQL(idToken) {
+        const body = {
+          query: 'mutation Login($token: String!) { loginWithIdToken(idToken: $token, createSession: true) { user { uid email displayName providerId } sessionCookie } }',
+          variables: { token: idToken },
+        };
+        const resp = await fetch('/graphql', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(body),
+          credentials: 'include',
+        });
+        const json = await resp.json();
+        log('GraphQL login result:', json);
+      }
+
+      const uiConfig = {
+        signInOptions: [
+          { provider: 'google.com' },
+          { provider: 'apple.com' },
+          { provider: 'password' },
+          { provider: 'phone', recaptchaParameters: { size: 'invisible' } },
+        ],
+        callbacks: {
+          signInSuccessWithAuthResult: async (authResult) => {
+            try {
+              const idToken = await authResult.user.getIdToken();
+              await loginToGraphQL(idToken);
+            } catch (e) { log('GraphQL login error:', e?.message || e); }
+            return false;
+          },
+        },
+      };
+
+      const ui = new window.firebaseui.auth.AuthUI(auth);
+      ui.start('#firebaseui-auth-container', uiConfig);
+
+      document.getElementById('btn-logout').onclick = async () => {
+        try {
+          await auth.signOut();
+          await fetch('/graphql', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ query: 'mutation { logout }' }), credentials: 'include' });
+          log('Logged out.');
+        } catch (e) { log('Logout error:', e.message || e); }
+      };
+
+      document.getElementById('btn-me').onclick = async () => {
+        try {
+          const resp = await fetch('/graphql', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ query: 'query { me { uid email displayName emailVerified providerId } }' }), credentials: 'include' });
+          const json = await resp.json();
+          log('me:', json);
+        } catch (e) { log('me error:', e.message || e); }
+      };
+
+      auth.onAuthStateChanged((user) => {
+        log('auth state:', user ? { uid: user.uid } : 'signed out');
+      });
+    </script>
+  </body>
+</html>
+
+

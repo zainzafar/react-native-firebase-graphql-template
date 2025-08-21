@@ -1,7 +1,9 @@
+import 'dotenv/config';
 import express from 'express';
 import http from 'http';
 import cors from 'cors';
 import { applyApolloMiddleware } from './server/apollo';
+import { initRoutes } from './routes';
 
 const PORT: number = Number(process.env.PORT || 3000);
 
@@ -10,9 +12,7 @@ async function start() {
   const httpServer = http.createServer(app);
 
   app.use(cors());
-  app.get('/health', (_req, res) => {
-    res.json({ ok: true });
-  });
+  initRoutes(app);
 
   await applyApolloMiddleware({ app, httpServer });
 
