@@ -4,7 +4,9 @@ import type { Request } from 'express';
 let initialized = false;
 
 function getServiceAccountFromEnv(): admin.ServiceAccount | null {
-  const fromJson = process.env.FIREBASE_SERVICE_ACCOUNT;
+  const fromJson = process.env.FIREBASE_SERVICE_ACCOUNT
+    ? Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT, "base64").toString("utf8")
+    : null;
   if (fromJson) {
     try {
       const parsed = JSON.parse(fromJson);

@@ -22,12 +22,40 @@ export default {
       sessionCookie = await createSessionCookieSafe(idToken, maxAgeMs);
       const isProd = process.env.NODE_ENV === 'production';
       ctx.res.setHeader('Set-Cookie', `${COOKIE_NAME}=${sessionCookie}; Max-Age=${Math.floor(maxAgeMs / 1000)}; Path=/; HttpOnly; SameSite=Lax${isProd ? '; Secure' : ''}`);
+      console.log('[auth] session cookie set, maxAgeMs=', maxAgeMs);
     }
 
-    return {
-      user: normalizeUser(userRecord),
-      sessionCookie,
-    };
+    // Persist or update user in DB
+    const prisma = ctx?.prisma as any | undefined;
+    let dbUser: any | null = null;
+    if (!prisma) {
+      console.warn('[auth] prisma not available in context; skipping DB upsert');
+    } else {
+      dbUser = await prisma.user.upsert({
+        where: { uid: userRecord.uid },
+        create: {
+          uid: userRecord.uid,
+          email: userRecord.email ?? null,
+          emailVerified: userRecord.emailVerified ?? false,
+          displayName: userRecord.displayName ?? null,
+          photoURL: userRecord.photoURL ?? null,
+          phoneNumber: userRecord.phoneNumber ?? null,
+          providerId: userRecord.providerData?.[0]?.providerId ?? 'firebase',
+        },
+        update: {
+          email: userRecord.email ?? null,
+          emailVerified: userRecord.emailVerified ?? false,
+          displayName: userRecord.displayName ?? null,
+          photoURL: userRecord.photoURL ?? null,
+          phoneNumber: userRecord.phoneNumber ?? null,
+          providerId: userRecord.providerData?.[0]?.providerId ?? 'firebase',
+        },
+      });
+      console.log('[auth] upserted user in DB uid=', dbUser?.uid);
+    }
+
+    const userOut = dbUser ? normalizeDbUser(dbUser) : normalizeUser(userRecord);
+    return { user: userOut, sessionCookie };
   },
 
   logout: async (_parent: unknown, _args: unknown, ctx: any) => {
@@ -49,6 +77,18 @@ function normalizeUser(user: firebaseAuth.UserRecord) {
     photoURL: user.photoURL ?? null,
     phoneNumber: user.phoneNumber ?? null,
     providerId,
+  };
+}
+
+function normalizeDbUser(user: any) {
+  return {
+    uid: user.uid,
+    email: user.email,
+    emailVerified: user.emailVerified,
+    displayName: user.displayName,
+    photoURL: user.photoURL,
+    phoneNumber: user.phoneNumber,
+    providerId: user.providerId ?? 'firebase',
   };
 }
 

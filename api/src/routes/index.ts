@@ -15,6 +15,7 @@ export function initRoutes(app: Express): void {
     const configRaw = process.env.FIREBASE_WEB_CONFIG || '';
     let config: any = null;
     try { config = configRaw ? JSON.parse(configRaw) : null; } catch {}
+    res.setHeader('Cache-Control', 'no-store');
     res.setHeader('content-type', 'application/javascript; charset=utf-8');
     res.send(`window.FIREBASE_CONFIG = ${JSON.stringify(config)};`);
   });

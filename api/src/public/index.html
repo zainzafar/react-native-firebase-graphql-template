@@ -30,7 +30,11 @@
       const logEl = document.getElementById('log');
       const log = (...args) => { logEl.textContent += args.map(a => typeof a === 'string' ? a : JSON.stringify(a, null, 2)).join(' ') + '\n'; };
 
-      const app = window.firebase.initializeApp(window.FIREBASE_CONFIG || {});
+      if (!window.FIREBASE_CONFIG || !window.FIREBASE_CONFIG.apiKey) {
+        log('WARN: Missing FIREBASE_CONFIG. Try hard refresh or check /config.js');
+      }
+
+      const app = window.firebase.initializeApp(window.FIREBASE_CONFIG);
       const auth = window.firebase.auth();
 
       async function loginToGraphQL(idToken) {
@@ -49,6 +53,7 @@
       }
 
       const uiConfig = {
+        signInFlow: 'popup',        // credentialHelper: window.firebaseui.auth.CredentialHelper.NONE,
         signInOptions: [
           { provider: 'google.com' },
           { provider: 'apple.com' },
@@ -56,11 +61,17 @@
           { provider: 'phone', recaptchaParameters: { size: 'invisible' } },
         ],
         callbacks: {
-          signInSuccessWithAuthResult: async (authResult) => {
-            try {
-              const idToken = await authResult.user.getIdToken();
-              await loginToGraphQL(idToken);
-            } catch (e) { log('GraphQL login error:', e?.message || e); }
+          signInSuccessWithAuthResult: (authResult) => {
+            authResult.user.getIdToken()
+              .then((idToken) => {
+                console.log('idToken:', idToken);
+                return loginToGraphQL(idToken);
+              })
+              .then(() => {
+                log('login mutation called from callback');
+              })
+              .catch((e) => { log('GraphQL login error:', e?.message || e); });
+            // Return false synchronously to prevent redirect
             return false;
           },
         },
@@ -74,6 +85,7 @@
           await auth.signOut();
           await fetch('/graphql', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ query: 'mutation { logout }' }), credentials: 'include' });
           log('Logged out.');
+          window.location.reload();
         } catch (e) { log('Logout error:', e.message || e); }
       };
 
@@ -84,10 +96,6 @@
           log('me:', json);
         } catch (e) { log('me error:', e.message || e); }
       };
-
-      auth.onAuthStateChanged((user) => {
-        log('auth state:', user ? { uid: user.uid } : 'signed out');
-      });
     </script>
   </body>
 </html>
