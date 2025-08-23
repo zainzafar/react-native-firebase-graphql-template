@@ -1,5 +1,7 @@
 import admin from 'firebase-admin';
 import type { Request } from 'express';
+import { verifyAppJwt } from './appJwt';
+import { getPrisma } from './prisma';
 
 let initialized = false;
 
@@ -53,76 +55,18 @@ export async function verifyIdTokenSafe(idToken: string): Promise<admin.auth.Dec
   }
 }
 
-export async function verifySessionCookieSafe(cookie: string): Promise<admin.auth.DecodedIdToken | null> {
-  try {
-    const auth = getFirebaseAuth();
-    return await auth.verifySessionCookie(cookie, true);
-  } catch {
-    return null;
-  }
-}
-
-export async function createSessionCookieSafe(idToken: string, expiresInMs: number): Promise<string> {
-  const auth = getFirebaseAuth();
-  return auth.createSessionCookie(idToken, { expiresIn: expiresInMs });
-}
-
-function parseCookies(header: string | undefined): Record<string, string> {
-  const result: Record<string, string> = {};
-  if (!header) return result;
-  const parts = header.split(';');
-  for (const part of parts) {
-    const idx = part.indexOf('=');
-    if (idx === -1) continue;
-    const key = part.slice(0, idx).trim();
-    const val = part.slice(idx + 1).trim();
-    if (key) result[key] = decodeURIComponent(val);
-  }
-  return result;
-}
-
-const SESSION_COOKIE_NAME = 'session';
-
-export async function getAuthFromRequest(req: Request): Promise<
-  | { decoded: admin.auth.DecodedIdToken; user: any; tokenType: 'idToken' | 'sessionCookie'; raw: string }
-  | null
-> {
-  ensureFirebaseInitialized();
-  const auth = getFirebaseAuth();
-  // Priority 1: Authorization header Bearer <idToken>
-  const authz = req.headers['authorization'] || req.headers['Authorization' as any];
+export async function getAuthUserFromRequest(req: Request): Promise<any | null> {
+  const authz = req.headers['authorization'] || (req.headers['Authorization' as any] as any);
   if (typeof authz === 'string' && authz.toLowerCase().startsWith('bearer ')) {
     const token = authz.slice(7).trim();
-    const decoded = await verifyIdTokenSafe(token);
-    if (decoded) {
-      const userRecord = await auth.getUser(decoded.uid);
-      return { decoded, user: normalizeUser(userRecord), tokenType: 'idToken', raw: token };
-    }
-  }
-  // Priority 2: Session cookie
-  const cookies = parseCookies(req.headers['cookie'] as string | undefined);
-  const session = cookies[SESSION_COOKIE_NAME];
-  if (session) {
-    const decoded = await verifySessionCookieSafe(session);
-    if (decoded) {
-      const userRecord = await auth.getUser(decoded.uid);
-      return { decoded, user: normalizeUser(userRecord), tokenType: 'sessionCookie', raw: session };
+    const appPayload = verifyAppJwt(token);
+    if (appPayload?.id) {
+      const prisma = getPrisma();
+      const dbUser = await prisma.user.findUnique({ where: { id: appPayload.id } });
+      if (dbUser) {
+        return dbUser;
+      }
     }
   }
   return null;
 }
-
-export function normalizeUser(user: admin.auth.UserRecord) {
-  const providerId = user.providerData?.[0]?.providerId ?? 'firebase';
-  return {
-    uid: user.uid,
-    email: user.email ?? null,
-    emailVerified: user.emailVerified ?? false,
-    displayName: user.displayName ?? null,
-    photoURL: user.photoURL ?? null,
-    phoneNumber: user.phoneNumber ?? null,
-    providerId,
-  };
-}
-
-

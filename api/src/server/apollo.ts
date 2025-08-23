@@ -11,7 +11,7 @@ import { randomUUID } from 'node:crypto';
 import { loadTypeDefs } from '../graphql/loadTypeDefs';
 import { loadResolvers } from '../graphql/loadResolvers';
 import type { Request, Response } from 'express';
-import { getAuthFromRequest } from '../services/firebaseAdmin';
+import { getAuthUserFromRequest } from '../services/firebaseAdmin';
 import { getPrisma } from '../services/prisma';
 
 function createLoggingPlugin() {
@@ -88,7 +88,7 @@ export async function applyApolloMiddleware({ app, httpServer }: ApplyApolloArgs
 
   app.use(
     '/graphql',
-    cors<cors.CorsRequest>(),
+    cors<cors.CorsRequest>({ origin: true, credentials: true }),
     express.json(),
     expressMiddleware(server, {
       context: async ({ req, res }: { req: Request; res: Response }) => {
@@ -97,9 +97,9 @@ export async function applyApolloMiddleware({ app, httpServer }: ApplyApolloArgs
         try {
           res.setHeader('x-request-id', requestId);
         } catch {}
-        const auth = await getAuthFromRequest(req);
+        const user = await getAuthUserFromRequest(req);
         const prisma = getPrisma();
-        return { requestId, req, res, user: auth?.user ?? null, auth: auth ?? null, prisma };
+        return { requestId, req, res, user: user ?? null, prisma };
       },
     })
   );

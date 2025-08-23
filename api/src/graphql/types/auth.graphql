@@ -3,8 +3,7 @@ extend type Query {
 }
 
 extend type Mutation {
-  loginWithIdToken(idToken: String!, createSession: Boolean, sessionDays: Int): AuthPayload!
-  logout: Boolean!
+  loginWithIdToken(idToken: String!): AuthPayload!
 }
 
 type User {
@@ -19,7 +18,7 @@ type User {
 
 type AuthPayload {
   user: User!
-  sessionCookie: String
+  accessToken: String
 }
 
 

@@ -20,8 +20,8 @@
     <h2>FirebaseUI (Drop-in)</h2>
     <div id="firebaseui-auth-container"></div>
     <div class="row">
-      <button id="btn-logout">Logout</button>
       <button id="btn-me">Query me</button>
+      <button id="btn-logout" style="display:none">Logout</button>
     </div>
     <h3>Output</h3>
     <div id="log"></div>
@@ -37,19 +37,32 @@
       const app = window.firebase.initializeApp(window.FIREBASE_CONFIG);
       const auth = window.firebase.auth();
 
+      function updateUI() {
+        const hasToken = !!window.localStorage.getItem('app_access_token');
+        const btnLogout = document.getElementById('btn-logout');
+        if (btnLogout) btnLogout.style.display = hasToken ? 'inline-block' : 'none';
+      }
+
       async function loginToGraphQL(idToken) {
         const body = {
-          query: 'mutation Login($token: String!) { loginWithIdToken(idToken: $token, createSession: true) { user { uid email displayName providerId } sessionCookie } }',
+          query: 'mutation Login($token: String!) { loginWithIdToken(idToken: $token) { user { uid email displayName providerId } accessToken } }',
           variables: { token: idToken },
         };
         const resp = await fetch('/graphql', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify(body),
-          credentials: 'include',
         });
         const json = await resp.json();
         log('GraphQL login result:', json);
+        try {
+          const token = json?.data?.loginWithIdToken?.accessToken;
+          if (token) {
+            window.localStorage.setItem('app_access_token', token);
+            log('Saved accessToken to localStorage');
+            updateUI();
+          }
+        } catch {}
       }
 
       const uiConfig = {
@@ -82,16 +95,28 @@
 
       document.getElementById('btn-logout').onclick = async () => {
         try {
+          window.localStorage.removeItem('app_access_token');
+          updateUI();
           await auth.signOut();
-          await fetch('/graphql', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ query: 'mutation { logout }' }), credentials: 'include' });
-          log('Logged out.');
+          log('Logged out locally.');
           window.location.reload();
-        } catch (e) { log('Logout error:', e.message || e); }
+        } catch (e) { log('Logout error:', e?.message || e); }
       };
+
+      updateUI();
 
       document.getElementById('btn-me').onclick = async () => {
         try {
-          const resp = await fetch('/graphql', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ query: 'query { me { uid email displayName emailVerified providerId } }' }), credentials: 'include' });
+          const appToken = window.localStorage.getItem('app_access_token');
+          if (!appToken) { log('me: no app access token; login first.'); return; }
+          const resp = await fetch('/graphql', {
+            method: 'POST',
+            headers: {
+              'content-type': 'application/json',
+              'authorization': `Bearer ${appToken}`,
+            },
+            body: JSON.stringify({ query: 'query { me { uid email displayName emailVerified providerId } }' }),
+          });
           const json = await resp.json();
           log('me:', json);
         } catch (e) { log('me error:', e.message || e); }

@@ -1,29 +1,19 @@
 import { auth as firebaseAuth } from 'firebase-admin';
-import { verifyIdTokenSafe, createSessionCookieSafe } from '../../../services/firebaseAdmin';
-
-const COOKIE_NAME = 'session';
+import { verifyIdTokenSafe } from '../../../services/firebaseAdmin';
+import { signAppJwt } from '../../../services/appJwt';
 
 export default {
   loginWithIdToken: async (
     _parent: unknown,
-    args: { idToken: string; createSession?: boolean | null; sessionDays?: number | null },
+    args: { idToken: string; },
     ctx: any
   ) => {
-    const { idToken, createSession = false, sessionDays = 7 } = args;
+    const { idToken } = args;
     const decoded = await verifyIdTokenSafe(idToken);
     if (!decoded) {
       throw new Error('Invalid ID token');
     }
     const userRecord: firebaseAuth.UserRecord = await firebaseAuth().getUser(decoded.uid);
-
-    let sessionCookie: string | null = null;
-    if (createSession && ctx?.res) {
-      const maxAgeMs = Math.max(1, sessionDays || 7) * 24 * 60 * 60 * 1000;
-      sessionCookie = await createSessionCookieSafe(idToken, maxAgeMs);
-      const isProd = process.env.NODE_ENV === 'production';
-      ctx.res.setHeader('Set-Cookie', `${COOKIE_NAME}=${sessionCookie}; Max-Age=${Math.floor(maxAgeMs / 1000)}; Path=/; HttpOnly; SameSite=Lax${isProd ? '; Secure' : ''}`);
-      console.log('[auth] session cookie set, maxAgeMs=', maxAgeMs);
-    }
 
     // Persist or update user in DB
     const prisma = ctx?.prisma as any | undefined;
@@ -54,42 +44,12 @@ export default {
       console.log('[auth] upserted user in DB uid=', dbUser?.uid);
     }
 
-    const userOut = dbUser ? normalizeDbUser(dbUser) : normalizeUser(userRecord);
-    return { user: userOut, sessionCookie };
-  },
-
-  logout: async (_parent: unknown, _args: unknown, ctx: any) => {
-    if (ctx?.res) {
-      const isProd = process.env.NODE_ENV === 'production';
-      ctx.res.setHeader('Set-Cookie', `${COOKIE_NAME}=; Max-Age=0; Path=/; HttpOnly; SameSite=Lax${isProd ? '; Secure' : ''}`);
-    }
-    return true;
+    // For JWT, we encode our DB user id only
+    const accessToken = dbUser ? signAppJwt({ id: dbUser.id }, 60 * 60 * 24 * 7) : undefined;
+    return { user: dbUser, accessToken };
   },
 };
 
-function normalizeUser(user: firebaseAuth.UserRecord) {
-  const providerId = user.providerData?.[0]?.providerId ?? 'firebase';
-  return {
-    uid: user.uid,
-    email: user.email ?? null,
-    emailVerified: user.emailVerified ?? false,
-    displayName: user.displayName ?? null,
-    photoURL: user.photoURL ?? null,
-    phoneNumber: user.phoneNumber ?? null,
-    providerId,
-  };
-}
 
-function normalizeDbUser(user: any) {
-  return {
-    uid: user.uid,
-    email: user.email,
-    emailVerified: user.emailVerified,
-    displayName: user.displayName,
-    photoURL: user.photoURL,
-    phoneNumber: user.phoneNumber,
-    providerId: user.providerId ?? 'firebase',
-  };
-}
 
 
