@@ -15,6 +15,9 @@ if linkage != nil
 end
 
 target 'app' do
+  use_frameworks! :linkage => :static
+  $RNFirebaseAsStaticFramework = true
+
   config = use_native_modules!
 
   use_react_native!(
@@ -22,6 +25,8 @@ target 'app' do
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
+  
+  # No extra pods needed
 
   post_install do |installer|
     # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
