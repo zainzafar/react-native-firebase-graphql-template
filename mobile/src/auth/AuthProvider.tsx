@@ -9,6 +9,7 @@ import {
 } from '@react-native-firebase/auth';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { GoogleAuthProvider, signInWithCredential } from '@react-native-firebase/auth';
+import { googleWebClientId } from '../config/firebase';
 
 type AuthContextValue = {
   user: FirebaseAuthTypes.User | null;
@@ -48,7 +49,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = async () => {
     GoogleSignin.configure({
-      // iOS uses REVERSED_CLIENT_ID via URL scheme; Android will need webClientId if using offline access
+      webClientId: googleWebClientId,
+      forceCodeForRefreshToken: true,
     });
     await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
     const { idToken } = await GoogleSignin.signIn();
