@@ -1,4 +1,4 @@
-package com.donationbox.app.staging
+package com.donationbox.app
 
 import android.app.Application
 import com.facebook.react.PackageList

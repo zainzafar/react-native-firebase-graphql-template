@@ -3,9 +3,9 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "android": "ENVFILE=.env react-native run-android --verbose",
-    "android:staging": "ENVFILE=.env.staging react-native run-android --verbose",
-    "android:prod": "ENVFILE=.env.production react-native run-android --verbose",
+    "android": "ENVFILE=.env react-native run-android --mode=developmentDebug --appIdSuffix=staging --verbose",
+    "android:staging": "ENVFILE=.env.staging react-native run-android --variant stagingDebug --verbose",
+    "android:prod": "ENVFILE=.env.production react-native run-android --variant productionRelease --verbose",
     "ios": "ENVFILE=.env react-native run-ios --verbose",
     "ios:staging": "ENVFILE=.env.staging react-native run-ios --verbose",
     "ios:prod": "ENVFILE=.env.production react-native run-ios --verbose",
