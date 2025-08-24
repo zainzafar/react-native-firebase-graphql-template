@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Alert, View } from 'react-native';
 import { Body, Button, Card, Heading, Input, ScreenContainer } from '../components/ui';
 import { useAuth } from '../auth/AuthProvider';
+import { FontAwesome6 } from '@react-native-vector-icons/fontawesome6';
 
 export default function AuthScreen() {
   const { signInWithEmail, signInWithGoogle } = useAuth();
