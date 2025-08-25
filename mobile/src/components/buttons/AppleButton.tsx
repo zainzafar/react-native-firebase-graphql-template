@@ -9,8 +9,8 @@ type Props = Omit<ProviderButtonProps, 'icon' | 'label' | 'style' | 'labelStyle'
 };
 
 export default function AppleButton({ label = 'Sign in with Apple', onPress, disabled, loading }: Props) {
-  const { isDark } = useTheme();
-  const { containerStyle, labelStyle, iconColor } = getProviderButtonBaseStyles(isDark, ({} as any));
+  const { isDark, colors } = useTheme();
+  const { containerStyle, labelStyle, iconColor } = getProviderButtonBaseStyles(isDark, colors);
   return (
     <ProviderButton
       icon={<FontAwesome6 name="apple" iconStyle="brand" size={providerIconSize} color={iconColor} />}
