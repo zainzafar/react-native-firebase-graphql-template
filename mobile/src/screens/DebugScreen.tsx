@@ -209,7 +209,8 @@ function MeInfo() {
       <Body>UID: {me.uid}</Body>
       <Body>Email: {me.email || '(none)'}</Body>
       <Body>Name: {me.displayName || '(none)'}</Body>
-      <Body>Provider: {me.lastLoginProvider || '(none)'}</Body>
+      <Body>Providers: {Array.isArray(me.identities) && me.identities.length > 0 ? me.identities.map((p: any) => p.providerId).join(', ') : '(none)'}</Body>
+      <Body>Last Login Provider: {me.lastLoginProvider || '(none)'}</Body>
       <Body>Email Verified: {me.emailVerified ? 'yes' : 'no'}</Body>
     </>
   );

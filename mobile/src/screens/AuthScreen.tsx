@@ -90,7 +90,7 @@ export default function AuthScreen() {
             <View style={styles.buttonGroup}>
               <EmailButton onPress={() => goTo('email')} disabled={googleLoading || appleLoading} />
               <GoogleButton onPress={onSignInWithGoogle} disabled={googleLoading || appleLoading} loading={googleLoading} />
-              <AppleSignInButton onPress={onSignInWithApple} disabled={googleLoading || appleLoading} />
+              <AppleSignInButton onPress={onSignInWithApple} disabled={googleLoading || appleLoading} loading={appleLoading} />
               <PhoneButton onPress={() => goTo('phone')} disabled={googleLoading || appleLoading} />
             </View>
           )}
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
   centerText: { textAlign: 'center' },
 });
 
-function EmailForm({ onBack, onGoogleSignIn, googleLoading, onAppleSignIn: _onAppleSignIn, appleLoading: _appleLoading }: {
+function EmailForm({ onBack, onGoogleSignIn, googleLoading, onAppleSignIn, appleLoading }: {
   onBack: () => void;
   onGoogleSignIn?: () => Promise<void> | void;
   googleLoading?: boolean;
@@ -224,7 +224,18 @@ function EmailForm({ onBack, onGoogleSignIn, googleLoading, onAppleSignIn: _onAp
                 } catch {}
               }}
               loading={!!googleLoading}
-              disabled={!!googleLoading}
+              disabled={!!googleLoading || !!appleLoading}
+            />
+          )}
+          {_methods.includes('apple.com') && (
+            <AppleSignInButton
+              onPress={async () => {
+                try {
+                  if (onAppleSignIn) await onAppleSignIn();
+                } catch {}
+              }}
+              loading={!!appleLoading}
+              disabled={!!appleLoading || !!googleLoading}
             />
           )}
           <Button title="Back" onPress={onBack} variant="ghost" />
