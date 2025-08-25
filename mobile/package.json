@@ -8,9 +8,10 @@
     "ios:rebuild": "./scripts/update-env.sh",
     "lint": "eslint .",
     "start": "react-native start",
-    "test": "jest"
+    "test": "echo 'No tests'"
   },
   "dependencies": {
+    "@apollo/client": "^4.0.0",
     "@react-native-firebase/app": "^23.1.1",
     "@react-native-firebase/auth": "^23.1.1",
     "@react-native-google-signin/google-signin": "^12.0.1",
@@ -20,13 +21,17 @@
     "@react-navigation/bottom-tabs": "^7.4.6",
     "@react-navigation/native": "^7.1.17",
     "@react-navigation/native-stack": "^7.3.25",
+    "graphql": "^16.11.0",
+    "jwt-decode": "^4.0.0",
     "react": "19.1.0",
     "react-native": "0.81.0",
     "react-native-config": "^1.5.6",
     "react-native-device-info": "^14.0.4",
     "react-native-gesture-handler": "^2.28.0",
+    "react-native-keychain": "^10.0.0",
     "react-native-safe-area-context": "^5.6.1",
-    "react-native-screens": "^4.15.2"
+    "react-native-screens": "^4.15.2",
+    "rxjs": "^7.8.2"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

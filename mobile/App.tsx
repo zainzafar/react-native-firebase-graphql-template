@@ -10,6 +10,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Root from './src/Root';
+import { ApolloProvider } from '@apollo/client/react';
+import { apolloClient } from './src/graphql/client';
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
@@ -19,7 +21,9 @@ function App() {
       <SafeAreaProvider>
         <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
         <NavigationContainer theme={isDarkMode ? DarkTheme : DefaultTheme}>
-          <Root />
+          <ApolloProvider client={apolloClient}>
+            <Root />
+          </ApolloProvider>
         </NavigationContainer>
       </SafeAreaProvider>
     </GestureHandlerRootView>
