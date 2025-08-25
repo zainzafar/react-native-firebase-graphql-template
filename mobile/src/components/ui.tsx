@@ -28,9 +28,10 @@ type ButtonProps = {
   loading?: boolean;
   variant?: 'primary' | 'ghost';
   disabled?: boolean;
+  style?: any;
 };
 
-export function Button({ title, onPress, loading, variant = 'primary', disabled }: ButtonProps) {
+export function Button({ title, onPress, loading, variant = 'primary', disabled, style }: ButtonProps) {
   const { colors } = useTheme();
   const bg = variant === 'primary' ? colors.primary : 'transparent';
   const text = variant === 'primary' ? colors.primaryText : colors.text;
@@ -43,6 +44,7 @@ export function Button({ title, onPress, loading, variant = 'primary', disabled 
         { backgroundColor: bg, borderColor },
         pressed && { opacity: 0.9 },
         disabled && { opacity: 0.6 },
+        style,
       ]}
       disabled={disabled || loading}
     >

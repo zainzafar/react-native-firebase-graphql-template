@@ -4,8 +4,13 @@ import { onError } from '@apollo/client/link/error';
 import Config from 'react-native-config';
 import * as Keychain from 'react-native-keychain';
 import { refreshAppToken } from '../auth/session';
+import { Platform } from 'react-native';
 
-const graphqlUrl = (Config.GRAPHQL_API_URL || '').replace(/\/$/, '');
+const rawUrl = (Config.GRAPHQL_API_URL || '').replace(/\/$/, '');
+// Android emulator/device cannot reach host's localhost; remap to 10.0.2.2
+const graphqlUrl = Platform.OS === 'android'
+  ? rawUrl.replace('://localhost', '://10.0.2.2')
+  : rawUrl;
 if (!graphqlUrl) {
   // eslint-disable-next-line no-console
   console.warn('[Apollo] Config.GRAPHQL_API_URL is empty. Set GRAPHQL_API_URL in env to reach your backend.');
