@@ -6,6 +6,7 @@ import {
   signInWithEmailAndPassword,
   getIdToken,
   FirebaseAuthTypes,
+  updateProfile,
 } from '@react-native-firebase/auth';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { GoogleAuthProvider, AppleAuthProvider, signInWithCredential } from '@react-native-firebase/auth';
@@ -83,14 +84,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     GoogleSignin.configure({
       webClientId: googleWebClientId,
       forceCodeForRefreshToken: true,
+      scopes: ['profile', 'email'],
     });
     await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
-    const { idToken } = await GoogleSignin.signIn();
+    const { idToken, user: gUser } = await GoogleSignin.signIn();
     if (!idToken) throw new Error('Google Sign-In failed: no idToken returned');
     const app = getApp();
     const authInstance = getAuth(app);
     const credential = GoogleAuthProvider.credential(idToken);
     await signInWithCredential(authInstance, credential);
+    // Ensure Firebase profile has a display name; set from Google profile if missing
+    try {
+      const cur = authInstance.currentUser as any;
+      const existingName: string | undefined = cur?.displayName || undefined;
+      const candidateName: string | undefined = (gUser?.name as string | undefined) ||
+        (gUser?.givenName ? `${gUser.givenName} ${gUser?.familyName || ''}`.trim() : undefined);
+      if (cur && !existingName && candidateName) {
+        await updateProfile(cur, { displayName: candidateName });
+      }
+    } catch {}
     try {
       const freshIdToken = authInstance.currentUser ? await getIdToken(authInstance.currentUser, true) : undefined;
       if (freshIdToken) {
