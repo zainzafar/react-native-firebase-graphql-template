@@ -4,6 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import HomeScreen from '../screens/HomeScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import AuthScreen from '../screens/AuthScreen';
+import DebugScreen from '../screens/DebugScreen';
 import { useAuth } from '../auth/AuthProvider';
 import { Text, StyleSheet } from 'react-native';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
@@ -42,11 +43,17 @@ export default function RootNavigator() {
   }
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator key={user ? 'in' : 'out'} screenOptions={{ headerShown: false }}>
       {user ? (
-        <Stack.Screen name="Tabs" component={Tabs} />
+        <>
+          <Stack.Screen name="Tabs" component={Tabs} />
+          <Stack.Screen name="Debug" component={DebugScreen} options={{ headerShown: true, title: 'Debug' }} />
+        </>
       ) : (
-        <Stack.Screen name="Auth" component={AuthScreen} />
+        <>
+          <Stack.Screen name="Auth" component={AuthScreen} />
+          <Stack.Screen name="Debug" component={DebugScreen} options={{ headerShown: true, title: 'Debug' }} />
+        </>
       )}
     </Stack.Navigator>
   );
