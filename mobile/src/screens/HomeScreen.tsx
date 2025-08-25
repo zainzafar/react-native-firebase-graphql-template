@@ -12,7 +12,7 @@ export default function HomeScreen() {
         <Heading>
           {firstName ? `Hello ${firstName}` : 'Hello'}
         </Heading>
-        <Body>Welcome to Donation Box</Body>
+        <Body>Welcome!</Body>
       </Card>
     </ScreenContainer>
   );

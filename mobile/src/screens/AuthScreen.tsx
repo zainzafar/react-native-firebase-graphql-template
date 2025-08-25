@@ -1,7 +1,11 @@
-import React, { useState } from 'react';
-import { Alert, View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { Alert, View, Platform } from 'react-native';
+import DeviceInfo from 'react-native-device-info';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { Body, Button, Card, Heading, Input, ScreenContainer } from '../components/ui';
 import { useAuth } from '../auth/AuthProvider';
+import { googleWebClientId } from '../config/firebase';
+import Config from 'react-native-config';
 
 export default function AuthScreen() {
   const { signInWithEmail, signInWithGoogle } = useAuth();
@@ -9,6 +13,45 @@ export default function AuthScreen() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+
+  useEffect(() => {
+    const debugAppInfo = async () => {
+      // Log package name and bundle identifier
+      console.log('Platform:', Platform.OS);
+      console.log('Platform Constants:', Platform.constants);
+      
+      // Detailed package information
+      console.log('Bundle ID:', DeviceInfo.getBundleId());
+      console.log('App Version:', DeviceInfo.getVersion());
+      console.log('Build Number:', DeviceInfo.getBuildNumber());
+      console.log('App Name:', Config.APP_NAME || Config.APP_DISPLAY_NAME || DeviceInfo.getApplicationName());
+      console.log('Device ID:', DeviceInfo.getDeviceId());
+      console.log('System Version:', DeviceInfo.getSystemVersion());
+      
+      // Google Sign-In configuration debugging
+      console.log('=== Google Sign-In Debug Info ===');
+      console.log('🔍 Google Web Client ID from env:', googleWebClientId);
+      console.log('🔍 Raw GOOGLE_WEB_CLIENT_ID env var:', Config.GOOGLE_WEB_CLIENT_ID);
+      console.log(`Config.API_URL: ${Config.API_URL}`);
+      
+      // Full Config dump
+      console.log('=== Full Config Dump ===');
+      
+      try {
+        // Check if Google Sign-In is properly configured
+        const hasPlayServices = await GoogleSignin.hasPlayServices();
+        console.log('Play Services available:', hasPlayServices);
+        
+        // Check if user is signed in
+        const user = await GoogleSignin.getCurrentUser();
+        console.log('Current user:', user ? 'Signed in' : 'Not signed in');
+      } catch (error) {
+        console.log('Google Sign-In error:', error);
+      }
+    };
+    
+    debugAppInfo();
+  }, []);
 
   const onSignIn = async () => {
     try {

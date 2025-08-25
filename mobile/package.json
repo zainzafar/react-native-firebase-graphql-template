@@ -3,12 +3,9 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "android": "ENVFILE=.env react-native run-android --mode=developmentDebug --appIdSuffix=staging --verbose",
-    "android:staging": "ENVFILE=.env.staging react-native run-android --variant stagingDebug --verbose",
-    "android:prod": "ENVFILE=.env.production react-native run-android --variant productionRelease --verbose",
-    "ios": "ENVFILE=.env react-native run-ios --verbose",
-    "ios:staging": "ENVFILE=.env.staging react-native run-ios --verbose",
-    "ios:prod": "ENVFILE=.env.production react-native run-ios --verbose",
+    "android": "./scripts/run-android.sh",
+    "ios": "react-native run-ios --verbose",
+    "ios:rebuild": "./scripts/update-env.sh",
     "lint": "eslint .",
     "start": "react-native start",
     "test": "jest"
@@ -26,6 +23,7 @@
     "react": "19.1.0",
     "react-native": "0.81.0",
     "react-native-config": "^1.5.6",
+    "react-native-device-info": "^14.0.4",
     "react-native-gesture-handler": "^2.28.0",
     "react-native-safe-area-context": "^5.6.1",
     "react-native-screens": "^4.15.2"
@@ -34,7 +32,7 @@
     "@babel/core": "^7.25.2",
     "@babel/preset-env": "^7.25.3",
     "@babel/runtime": "^7.25.0",
-    "@react-native-community/cli": "20.0.0",
+    "@react-native-community/cli": "^20.0.0",
     "@react-native-community/cli-platform-android": "20.0.0",
     "@react-native-community/cli-platform-ios": "20.0.0",
     "@react-native/babel-preset": "0.81.0",

@@ -79,14 +79,15 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.donationbox.app"
+    namespace "com.app"
     defaultConfig {
-        applicationId "com.donationbox.app"
+        applicationId (project.env.get("ANDROID_APPLICATION_ID") ?: "com.app")
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
-        resValue "string", "build_config_package", "com.donationbox.app"
+        resValue "string", "build_config_package", "com.app"
+        resValue "string", "app_name", (project.env.get("APP_DISPLAY_NAME") ?: "Template App")
     }
     signingConfigs {
         debug {
@@ -113,17 +114,12 @@ android {
     productFlavors {
         development {
             dimension "env"
-            applicationIdSuffix ".staging"
-            resValue "string", "app_name", "Donation Box Development"
         }
         staging {
             dimension "env"
-            applicationIdSuffix ".staging"
-            resValue "string", "app_name", "Donation Box Staging"
         }
         production {
             dimension "env"
-            resValue "string", "app_name", "Donation Box"
         }
     }
 }

@@ -42,6 +42,7 @@ ios/DerivedData/
 ios/*.xcworkspace/xcuserdata/
 ios/*.xcodeproj/xcuserdata/
 ios/Pods/
+ios/tmp.xcconfig
 
 # Ruby / Bundler
 vendor/

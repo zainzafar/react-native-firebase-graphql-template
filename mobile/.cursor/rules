@@ -40,3 +40,6 @@ Testing
 Code style
 - Respect eslint/prettier; avoid unrelated formatting changes
 - Prioritize readability; avoid deep prop drilling (prefer context/hooks)
+
+App build
+- After making changes, don't build the app.
