@@ -21,5 +21,23 @@ model User {
   displayName   String?
   photoURL      String?
   phoneNumber   String?
-  providerId    String?
+  lastLoginProvider String?
+
+  identities    UserIdentity[]
+}
+
+model UserIdentity {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+
+  providerId  String
+  providerUid String
+  lastUsedAt  DateTime?
+
+  @@unique([providerId, providerUid])
+  @@index([userId])
 }

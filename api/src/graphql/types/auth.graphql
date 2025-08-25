@@ -13,12 +13,19 @@ type User {
   displayName: String
   photoURL: String
   phoneNumber: String
-  providerId: String
+  lastLoginProvider: String
+  identities: [UserIdentity!]!
 }
 
 type AuthPayload {
   user: User!
   accessToken: String
+}
+
+type UserIdentity {
+  providerId: String!
+  providerUid: String!
+  lastUsedAt: String
 }
 
 

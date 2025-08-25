@@ -62,7 +62,7 @@ export async function getAuthUserFromRequest(req: Request): Promise<any | null> 
     const appPayload = verifyAppJwt(token);
     if (appPayload?.id) {
       const prisma = getPrisma();
-      const dbUser = await prisma.user.findUnique({ where: { id: appPayload.id } });
+      const dbUser = await prisma.user.findUnique({ where: { id: appPayload.id }, include: { identities: true } });
       if (dbUser) {
         return dbUser;
       }

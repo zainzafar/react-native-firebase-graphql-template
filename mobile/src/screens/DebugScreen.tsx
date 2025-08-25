@@ -209,7 +209,7 @@ function MeInfo() {
       <Body>UID: {me.uid}</Body>
       <Body>Email: {me.email || '(none)'}</Body>
       <Body>Name: {me.displayName || '(none)'}</Body>
-      <Body>Provider: {me.providerId || '(none)'}</Body>
+      <Body>Provider: {me.lastLoginProvider || '(none)'}</Body>
       <Body>Email Verified: {me.emailVerified ? 'yes' : 'no'}</Body>
     </>
   );
