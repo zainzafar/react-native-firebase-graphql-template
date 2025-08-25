@@ -24,8 +24,9 @@ import { saveAccessToken } from '../auth/tokenStorage';
 type Mode = 'methods' | 'email' | 'phone';
 
 export default function AuthScreen() {
-  const { signInWithGoogle } = useAuth();
+  const { signInWithGoogle, signInWithApple } = useAuth();
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [appleLoading, setAppleLoading] = useState(false);
   const navigation = useNavigation<any>();
   const [mode, setMode] = useState<Mode>('methods');
   const appear = useRef(new Animated.Value(1)).current;
@@ -66,6 +67,18 @@ export default function AuthScreen() {
     }
   };
 
+  const onSignInWithApple = async () => {
+    try {
+      setAppleLoading(true);
+      await signInWithApple();
+    } catch (e: any) {
+      const msg = e?.message || 'Apple Sign-In failed';
+      Alert.alert('Apple Sign-In', msg);
+    } finally {
+      setAppleLoading(false);
+    }
+  };
+
   return (
     <ScreenContainer>
       <View style={styles.header}>
@@ -75,14 +88,20 @@ export default function AuthScreen() {
         <Animated.View style={{ opacity: appear, transform: [{ translateY: appear.interpolate({ inputRange: [0, 1], outputRange: [8, 0] }) }] }}>
           {mode === 'methods' && (
             <View style={styles.buttonGroup}>
-              <EmailButton onPress={() => goTo('email')} disabled={googleLoading} />
-              <GoogleButton onPress={onSignInWithGoogle} disabled={googleLoading} loading={googleLoading} />
-              <AppleSignInButton onPress={() => Alert.alert('Coming soon', 'Wire sign-in flow next')} disabled={googleLoading} />
-              <PhoneButton onPress={() => goTo('phone')} disabled={googleLoading} />
+              <EmailButton onPress={() => goTo('email')} disabled={googleLoading || appleLoading} />
+              <GoogleButton onPress={onSignInWithGoogle} disabled={googleLoading || appleLoading} loading={googleLoading} />
+              <AppleSignInButton onPress={onSignInWithApple} disabled={googleLoading || appleLoading} />
+              <PhoneButton onPress={() => goTo('phone')} disabled={googleLoading || appleLoading} />
             </View>
           )}
           {mode === 'email' && (
-            <EmailForm onBack={() => goTo('methods')} onGoogleSignIn={onSignInWithGoogle} googleLoading={googleLoading} />
+            <EmailForm
+              onBack={() => goTo('methods')}
+              onGoogleSignIn={onSignInWithGoogle}
+              googleLoading={googleLoading}
+              onAppleSignIn={onSignInWithApple}
+              appleLoading={appleLoading}
+            />
           )}
           {mode === 'phone' && (
             <PhoneForm onBack={() => goTo('methods')} />
@@ -106,7 +125,13 @@ const styles = StyleSheet.create({
   centerText: { textAlign: 'center' },
 });
 
-function EmailForm({ onBack, onGoogleSignIn, googleLoading }: { onBack: () => void; onGoogleSignIn?: () => Promise<void> | void; googleLoading?: boolean }) {
+function EmailForm({ onBack, onGoogleSignIn, googleLoading, onAppleSignIn: _onAppleSignIn, appleLoading: _appleLoading }: {
+  onBack: () => void;
+  onGoogleSignIn?: () => Promise<void> | void;
+  googleLoading?: boolean;
+  onAppleSignIn?: () => Promise<void> | void;
+  appleLoading?: boolean;
+}) {
   const { signInWithGoogle } = useAuth();
   const [stage, setStage] = useState<'email' | 'signin' | 'signup' | 'useProvider'>('email');
   const [email, setEmail] = useState('');

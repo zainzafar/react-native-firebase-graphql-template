@@ -8,18 +8,20 @@ import {
   FirebaseAuthTypes,
 } from '@react-native-firebase/auth';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import { GoogleAuthProvider, signInWithCredential } from '@react-native-firebase/auth';
+import { GoogleAuthProvider, AppleAuthProvider, signInWithCredential } from '@react-native-firebase/auth';
 import { googleWebClientId } from '../config/firebase';
 import { apolloClient } from '../graphql/client';
 import { MUTATION_LOGIN_WITH_ID_TOKEN, QUERY_ME } from '../graphql/operations';
 import { saveAccessToken, clearAccessToken, getAccessToken } from './tokenStorage';
 import { handleHardSignOut } from './session';
+import AppleAuth from '@invertase/react-native-apple-authentication';
 
 type AuthContextValue = {
   user: FirebaseAuthTypes.User | null;
   initializing: boolean;
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
+  signInWithApple: () => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -109,7 +111,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const value = useMemo(() => ({ user, initializing, signInWithEmail, signInWithGoogle, signOut }), [user, initializing]);
+  const signInWithApple = async () => {
+    // If not supported (e.g., Android), silently return
+    if (!AppleAuth?.isSupported) {
+      throw new Error('Apple Sign-In not supported on this device');
+    }
+    // Generate a nonce and include it on the request, per Firebase docs
+    const rawNonce = Array.from({ length: 32 })
+      .map(() => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'.charAt(Math.floor(Math.random() * 62)))
+      .join('');
+    // Request Apple credential (identity token)
+    const response = await AppleAuth.performRequest({
+      requestedOperation: AppleAuth.Operation.LOGIN,
+      requestedScopes: [AppleAuth.Scope.EMAIL, AppleAuth.Scope.FULL_NAME],
+      nonce: rawNonce,
+    });
+    const { identityToken } = response;
+    if (!identityToken) throw new Error('Apple Sign-In failed: no identity token');
+    const app = getApp();
+    const authInstance = getAuth(app);
+    const credential = AppleAuthProvider.credential(identityToken, rawNonce);
+    await signInWithCredential(authInstance, credential);
+    try {
+      const freshIdToken = authInstance.currentUser ? await getIdToken(authInstance.currentUser, true) : undefined;
+      if (freshIdToken) {
+        console.log('[Auth] Exchanging Apple Firebase ID token for app JWT via mutation');
+        const { data } = await apolloClient.mutate({
+          mutation: MUTATION_LOGIN_WITH_ID_TOKEN,
+          variables: { idToken: freshIdToken },
+        });
+        const accessToken = (data as any)?.loginWithIdToken?.accessToken as string | undefined;
+        if (accessToken) await saveAccessToken(accessToken);
+      }
+    } catch (e) {
+      console.log('[Auth] loginWithIdToken mutation failed after Apple sign-in', e);
+    }
+  };
+
+  const value = useMemo(() => ({ user, initializing, signInWithEmail, signInWithGoogle, signInWithApple, signOut }), [user, initializing]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

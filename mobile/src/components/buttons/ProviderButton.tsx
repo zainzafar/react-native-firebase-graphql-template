@@ -28,10 +28,10 @@ export default function ProviderButton({ icon, label, onPress, disabled, style, 
 }
 
 const styles = StyleSheet.create({
-  rowBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12, paddingHorizontal: 14, borderRadius: 24, borderWidth: 1, height: 48 },
+  rowBtn: { position: 'relative', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 24, borderWidth: 1, height: 48 },
   pressed: { opacity: 0.9 },
   disabled: { opacity: 0.6 },
-  iconWrap: { width: 22, alignItems: 'center', marginRight: 8 },
+  iconWrap: { position: 'absolute', left: 16, width: 22, alignItems: 'center', justifyContent: 'center' },
   btnLabel: { fontSize: 16, fontWeight: '600', textAlign: 'center' },
 });
 
