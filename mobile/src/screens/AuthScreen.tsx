@@ -20,6 +20,7 @@ import {
 import { apolloClient } from '../graphql/client';
 import { MUTATION_LOGIN_WITH_ID_TOKEN } from '../graphql/operations';
 import { saveAccessToken } from '../auth/tokenStorage';
+import AppleAuth from '@invertase/react-native-apple-authentication';
 
 type Mode = 'methods' | 'email' | 'phone';
 
@@ -30,6 +31,7 @@ export default function AuthScreen() {
   const navigation = useNavigation<any>();
   const [mode, setMode] = useState<Mode>('methods');
   const appear = useRef(new Animated.Value(1)).current;
+  const appleSupported = AppleAuth?.isSupported === true && Platform.OS === 'ios';
 
   const goTo = (next: Mode) => {
     if (Platform.OS === 'android') {
@@ -90,7 +92,9 @@ export default function AuthScreen() {
             <View style={styles.buttonGroup}>
               <EmailButton onPress={() => goTo('email')} disabled={googleLoading || appleLoading} />
               <GoogleButton onPress={onSignInWithGoogle} disabled={googleLoading || appleLoading} loading={googleLoading} />
-              <AppleSignInButton onPress={onSignInWithApple} disabled={googleLoading || appleLoading} loading={appleLoading} />
+              {appleSupported && (
+                <AppleSignInButton onPress={onSignInWithApple} disabled={googleLoading || appleLoading} loading={appleLoading} />
+              )}
               <PhoneButton onPress={() => goTo('phone')} disabled={googleLoading || appleLoading} />
             </View>
           )}
@@ -101,6 +105,7 @@ export default function AuthScreen() {
               googleLoading={googleLoading}
               onAppleSignIn={onSignInWithApple}
               appleLoading={appleLoading}
+              appleSupported={appleSupported}
             />
           )}
           {mode === 'phone' && (
@@ -125,12 +130,13 @@ const styles = StyleSheet.create({
   centerText: { textAlign: 'center' },
 });
 
-function EmailForm({ onBack, onGoogleSignIn, googleLoading, onAppleSignIn, appleLoading }: {
+function EmailForm({ onBack, onGoogleSignIn, googleLoading, onAppleSignIn, appleLoading, appleSupported }: {
   onBack: () => void;
   onGoogleSignIn?: () => Promise<void> | void;
   googleLoading?: boolean;
   onAppleSignIn?: () => Promise<void> | void;
   appleLoading?: boolean;
+  appleSupported?: boolean;
 }) {
   const { signInWithGoogle } = useAuth();
   const [stage, setStage] = useState<'email' | 'signin' | 'signup' | 'useProvider'>('email');
@@ -227,7 +233,7 @@ function EmailForm({ onBack, onGoogleSignIn, googleLoading, onAppleSignIn, apple
               disabled={!!googleLoading || !!appleLoading}
             />
           )}
-          {_methods.includes('apple.com') && (
+          {_methods.includes('apple.com') && appleSupported && (
             <AppleSignInButton
               onPress={async () => {
                 try {
