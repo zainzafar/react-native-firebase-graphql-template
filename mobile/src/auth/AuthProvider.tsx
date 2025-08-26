@@ -118,29 +118,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signInWithGoogle = useCallback(async () => {
-    GoogleSignin.configure({
-      webClientId: googleWebClientId,
-      forceCodeForRefreshToken: true,
-      scopes: ['profile', 'email'],
-    });
-    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
-    const { idToken, user: gUser } = await GoogleSignin.signIn();
-    if (!idToken) throw new Error('Google Sign-In failed: no idToken returned');
-    const app = getApp();
-    const authInstance = getAuth(app);
-    const credential = GoogleAuthProvider.credential(idToken);
-    await signInWithCredential(authInstance, credential);
-    // Ensure Firebase profile has a display name; set from Google profile if missing
     try {
-      const cur = authInstance.currentUser as any;
-      const existingName: string | undefined = cur?.displayName || undefined;
-      const candidateName: string | undefined = (gUser?.name as string | undefined) ||
-        (gUser?.givenName ? `${gUser.givenName} ${gUser?.familyName || ''}`.trim() : undefined);
-      if (cur && !existingName && candidateName) {
-        await updateProfile(cur, { displayName: candidateName });
+      GoogleSignin.configure({
+        webClientId: googleWebClientId,
+        forceCodeForRefreshToken: true,
+        scopes: ['profile', 'email'],
+      });
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      const { idToken, user: gUser } = await GoogleSignin.signIn();
+      if (!idToken) throw new Error('Google Sign-In failed: no idToken returned');
+      const app = getApp();
+      const authInstance = getAuth(app);
+      const credential = GoogleAuthProvider.credential(idToken);
+      await signInWithCredential(authInstance, credential);
+      // Ensure Firebase profile has a display name; set from Google profile if missing
+      try {
+        const cur = authInstance.currentUser as any;
+        const existingName: string | undefined = cur?.displayName || undefined;
+        const candidateName: string | undefined = (gUser?.name as string | undefined) ||
+          (gUser?.givenName ? `${gUser.givenName} ${gUser?.familyName || ''}`.trim() : undefined);
+        if (cur && !existingName && candidateName) {
+          await updateProfile(cur, { displayName: candidateName });
+        }
+      } catch {}
+      await exchangeIdTokenForAppJWT('Google');
+    } catch (e: any) {
+      // Handle user cancellation gracefully
+      if (e?.code === 'SIGN_IN_CANCELLED' || 
+          e?.code === 'SIGN_IN_REQUIRED' ||
+          e?.message?.includes('cancelled') ||
+          e?.message?.includes('canceled') ||
+          e?.message?.includes('user_cancelled') ||
+          e?.message?.includes('user_canceled')) {
+        // User cancelled the Google Sign-In flow - this is not an error
+        console.log('[Auth] Google Sign-In cancelled by user');
+        return; // Silently return without throwing an error
       }
-    } catch {}
-    await exchangeIdTokenForAppJWT('Google');
+      // Re-throw other errors
+      throw e;
+    }
   }, []);
 
   const signInWithApple = useCallback(async () => {
@@ -148,23 +164,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!AppleAuth?.isSupported) {
       throw new Error('Apple Sign-In not supported on this device');
     }
-    // Generate a nonce and include it on the request, per Firebase docs
-    const rawNonce = Array.from({ length: 32 })
-      .map(() => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'.charAt(Math.floor(Math.random() * 62)))
-      .join('');
-    // Request Apple credential (identity token)
-    const response = await AppleAuth.performRequest({
-      requestedOperation: AppleAuth.Operation.LOGIN,
-      requestedScopes: [AppleAuth.Scope.EMAIL, AppleAuth.Scope.FULL_NAME],
-      nonce: rawNonce,
-    });
-    const { identityToken } = response;
-    if (!identityToken) throw new Error('Apple Sign-In failed: no identity token');
-    const app = getApp();
-    const authInstance = getAuth(app);
-    const credential = AppleAuthProvider.credential(identityToken, rawNonce);
-    await signInWithCredential(authInstance, credential);
-    await exchangeIdTokenForAppJWT('Apple');
+    try {
+      // Generate a nonce and include it on the request, per Firebase docs
+      const rawNonce = Array.from({ length: 32 })
+        .map(() => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'.charAt(Math.floor(Math.random() * 62)))
+        .join('');
+      // Request Apple credential (identity token)
+      const response = await AppleAuth.performRequest({
+        requestedOperation: AppleAuth.Operation.LOGIN,
+        requestedScopes: [AppleAuth.Scope.EMAIL, AppleAuth.Scope.FULL_NAME],
+        nonce: rawNonce,
+      });
+      const { identityToken } = response;
+      if (!identityToken) throw new Error('Apple Sign-In failed: no identity token');
+      const app = getApp();
+      const authInstance = getAuth(app);
+      const credential = AppleAuthProvider.credential(identityToken, rawNonce);
+      await signInWithCredential(authInstance, credential);
+      await exchangeIdTokenForAppJWT('Apple');
+    } catch (e: any) {
+      // Handle user cancellation gracefully
+      if (e?.code === 1001 || e?.message?.includes('1001')) {
+        // User cancelled the Apple Sign-In flow - this is not an error
+        console.log('[Auth] Apple Sign-In cancelled by user');
+        return; // Silently return without throwing an error
+      }
+      // Re-throw other errors
+      throw e;
+    }
   }, []);
 
   const signInWithPhone = useCallback(async (phoneNumber: string) => {
