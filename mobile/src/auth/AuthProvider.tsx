@@ -18,6 +18,9 @@ import { apolloClient } from '../graphql/client';
 import { MUTATION_LOGIN_WITH_ID_TOKEN, QUERY_ME } from '../graphql/operations';
 import { saveAccessToken, clearAccessToken, getAccessToken } from './tokenStorage';
 import { handleHardSignOut } from './session';
+import { useAppDispatch } from '../store/hooks';
+import { logout, setUser as setUserAction } from '../features/auth/authSlice';
+import { persistor } from '../store';
 import AppleAuth from '@invertase/react-native-apple-authentication';
 
 type AuthContextValue = {
@@ -39,15 +42,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
   const [initializing, setInitializing] = useState(true);
 
+  const dispatch = useAppDispatch();
+
   useEffect(() => {
     const app = getApp();
     const authInstance = getAuth(app);
     const unsubscribe = onAuthStateChanged(authInstance, (u) => {
       setUser(u);
+      if (u) {
+        const profile = {
+          id: u.uid,
+          email: u.email ?? undefined,
+          displayName: u.displayName ?? undefined,
+          photoURL: u.photoURL ?? undefined,
+        };
+        dispatch(setUserAction(profile));
+      } else {
+        dispatch(logout());
+      }
       if (initializing) setInitializing(false);
     });
     return unsubscribe;
-  }, [initializing]);
+  }, [initializing, dispatch]);
 
   // Validate existing app JWT on boot; if invalid, clear it
   useEffect(() => {
@@ -115,7 +131,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = useCallback(async () => {
     await handleHardSignOut();
-  }, []);
+    dispatch(logout());
+    await persistor.purge();
+  }, [dispatch]);
 
   const signInWithGoogle = useCallback(async () => {
     try {

@@ -6,7 +6,8 @@ import SettingsScreen from '../screens/SettingsScreen';
 import AuthScreen from '../screens/AuthScreen';
 import DebugScreen from '../screens/DebugScreen';
 
-import { useAuth } from '../auth/AuthProvider';
+import { useAppSelector } from '../store/hooks';
+import { selectAuthInitialized, selectIsAuthenticated } from '../features/auth/selectors';
 import { Text, StyleSheet } from 'react-native';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import { useTheme } from '../theme/ThemeProvider';
@@ -43,16 +44,17 @@ function Tabs() {
 }
 
 export default function RootNavigator() {
-  const { user, initializing } = useAuth();
+  const isAuthenticated = useAppSelector(selectIsAuthenticated);
+  const initialized = useAppSelector(selectAuthInitialized);
   const { colors } = useTheme();
 
-  if (initializing) {
+  if (!initialized) {
     return <Text style={styles.loading}>Loading...</Text>;
   }
 
   return (
     <Stack.Navigator
-      key={user ? 'in' : 'out'}
+      key={isAuthenticated ? 'in' : 'out'}
       screenOptions={{
         headerShown: false,
         headerStyle: { backgroundColor: colors.card },
@@ -61,7 +63,7 @@ export default function RootNavigator() {
         headerShadowVisible: true,
       }}
     >
-      {user ? (
+      {isAuthenticated ? (
         <>
           <Stack.Screen name="Tabs" component={Tabs} />
           <Stack.Screen name="Debug" component={DebugScreen} options={{ headerShown: true, title: 'Debug' }} />
