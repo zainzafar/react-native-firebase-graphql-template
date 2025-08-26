@@ -17,7 +17,7 @@
 
 /* Begin PBXFileReference section */
 		000000000000000000000001 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
-		13B07F961A680F5B00A75B9A /* Donation Box Dev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Donation Box Dev.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		13B07F961A680F5B00A75B9A /* Your App Name.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Your App Name.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = app/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = app/Info.plist; sourceTree = "<group>"; };
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = app/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
@@ -92,7 +92,7 @@
 		83CBBA001A601CBA00E9B192 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				13B07F961A680F5B00A75B9A /* Donation Box Dev.app */,
+				13B07F961A680F5B00A75B9A /* Your App Name.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -135,7 +135,7 @@
 			);
 			name = app;
 			productName = app;
-			productReference = 13B07F961A680F5B00A75B9A /* Donation Box Dev.app */;
+			productReference = 13B07F961A680F5B00A75B9A /* Your App Name.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
