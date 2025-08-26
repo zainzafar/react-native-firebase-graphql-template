@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { Alert, View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Text, Pressable, ActivityIndicator } from 'react-native';
 import { Body, Button, Input } from '../../components/ui';
 import { GoogleButton, AppleButton as AppleSignInButton } from '../../components/buttons';
 import { useAuth } from '../../auth/AuthProvider';
+import { getAuth, sendPasswordResetEmail } from '@react-native-firebase/auth';
 
 type EmailFormProps = {
   onBack: () => void;
@@ -21,6 +22,10 @@ export default function EmailForm({ onBack, onGoogleSignIn, googleLoading, onApp
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
   const [_methods, setMethodsList] = useState<string[]>([]);
   
   const readableProviders = useMemo(() => {
@@ -29,9 +34,48 @@ export default function EmailForm({ onBack, onGoogleSignIn, googleLoading, onApp
       .join(', ');
   }, [_methods]);
 
+  const getErrorMessage = (errorCode: string) => {
+    switch (errorCode) {
+      case 'auth/wrong-password':
+        return 'Incorrect password. Please try again.';
+      case 'auth/user-not-found':
+        return 'No account found with this email address.';
+      case 'auth/invalid-email':
+        return 'Please enter a valid email address.';
+      case 'auth/weak-password':
+        return 'Password should be at least 6 characters long.';
+      case 'auth/email-already-in-use':
+        return 'An account with this email already exists.';
+      case 'auth/too-many-requests':
+        return 'Too many failed attempts. Please try again later.';
+      case 'auth/network-request-failed':
+        return 'Network error. Please check your connection and try again.';
+      default:
+        return 'Something went wrong. Please try again.';
+    }
+  };
+
+  const handleResetPassword = async () => {
+    try {
+      setResetLoading(true);
+      setError(null);
+      const auth = getAuth();
+      await sendPasswordResetEmail(auth, email.trim());
+      setResetSent(true);
+    } catch (e: any) {
+      const errorMessage = getErrorMessage(e?.code || e?.message);
+      setError(errorMessage);
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
   const proceed = async () => {
     try {
       setLoading(true);
+      setError(null);
+      setErrorCode(null);
+      setResetSent(false); // Reset the reset sent state when trying again
       if (stage === 'email') {
         const arr = await getSignInMethodsForEmail(email.trim());
         setMethodsList(arr);
@@ -45,7 +89,10 @@ export default function EmailForm({ onBack, onGoogleSignIn, googleLoading, onApp
         await createUserWithEmail(email.trim(), password, displayName);
       }
     } catch (e: any) {
-      Alert.alert('Email Auth', e?.message || 'Something went wrong');
+      const code = e?.code || e?.message;
+      const errorMessage = getErrorMessage(code);
+      setError(errorMessage);
+      setErrorCode(code);
     } finally {
       setLoading(false);
     }
@@ -56,6 +103,7 @@ export default function EmailForm({ onBack, onGoogleSignIn, googleLoading, onApp
       {stage === 'email' && (
         <>
           <Input value={email} onChangeText={setEmail} placeholder="Email" autoCapitalize="none" keyboardType="email-address" />
+          {error ? <Body style={styles.errorText}>{error}</Body> : null}
           <Button title="Continue" onPress={proceed} loading={loading} />
           <Button title="Back" onPress={onBack} variant="ghost" />
         </>
@@ -64,7 +112,26 @@ export default function EmailForm({ onBack, onGoogleSignIn, googleLoading, onApp
         <>
           <Input value={email} onChangeText={setEmail} placeholder="Email" autoCapitalize="none" keyboardType="email-address" />
           <Input value={password} onChangeText={setPassword} placeholder="Password" secureTextEntry />
-          <Button title="Sign In" onPress={proceed} loading={loading} />
+          {error && !resetSent && (
+            <View>
+              <Body style={styles.errorText}>{error}</Body>
+              {errorCode === 'auth/wrong-password' && (
+                <Pressable onPress={handleResetPassword} style={styles.resetLink}>
+                  <Text style={styles.resetLinkText}>Reset password</Text>
+                </Pressable>
+              )}
+            </View>
+          )}
+          {resetLoading && (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color="#6B7280" />
+              <Body style={styles.loadingText}>Sending reset email...</Body>
+            </View>
+          )}
+          {resetSent && (
+            <Body style={styles.successText}>Please check your email, reset the password and then try again.</Body>
+          )}
+          <Button title="Sign In" onPress={proceed} loading={loading} disabled={resetLoading} />
           <Button title="Back" onPress={onBack} variant="ghost" />
         </>
       )}
@@ -74,6 +141,7 @@ export default function EmailForm({ onBack, onGoogleSignIn, googleLoading, onApp
           <Input value={firstName} onChangeText={setFirstName} placeholder="First name" />
           <Input value={lastName} onChangeText={setLastName} placeholder="Last name" />
           <Input value={password} onChangeText={setPassword} placeholder="Password" secureTextEntry />
+          {error ? <Body style={styles.errorText}>{error}</Body> : null}
           <Button title="Create Account" onPress={proceed} loading={loading} />
           <Button title="Back" onPress={onBack} variant="ghost" />
         </>
@@ -113,4 +181,10 @@ export default function EmailForm({ onBack, onGoogleSignIn, googleLoading, onApp
 const styles = StyleSheet.create({
   formContainer: { gap: 12 },
   centerText: { textAlign: 'center' },
+  errorText: { color: '#EF4444' },
+  resetLink: { marginTop: 4 },
+  resetLinkText: { color: '#2563EB', textDecorationLine: 'underline' },
+  loadingContainer: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  loadingText: { color: '#6B7280', fontStyle: 'italic' },
+  successText: { color: '#059669' },
 });
