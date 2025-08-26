@@ -34,7 +34,6 @@ android/app/build/
 android/app/.cxx/
 android/build/
 android/.cxx/
-android/app/debug.keystore
 
 # iOS
 ios/build/
