@@ -5,11 +5,11 @@
  * @format
  */
 
-import { StatusBar, useColorScheme } from 'react-native';
+import { StatusBar } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { ThemeProvider } from './src/theme/ThemeProvider';
+import { ThemeProvider, useTheme } from './src/theme/ThemeProvider';
 import { AuthProvider } from './src/auth/AuthProvider';
 import RootNavigator from './src/navigation/RootNavigator';
 import { ApolloProvider } from '@apollo/client/react';
@@ -18,26 +18,24 @@ import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { persistor, store } from './src/store';
 
-function App() {
-  const isDarkMode = useColorScheme() === 'dark';
+function AppContent() {
+  const { isDark } = useTheme();
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <StatusBar 
-          barStyle={isDarkMode ? 'light-content' : 'dark-content'} 
-          backgroundColor={isDarkMode ? '#000000' : '#ffffff'}
+          barStyle={isDark ? 'light-content' : 'dark-content'} 
+          backgroundColor={isDark ? '#000000' : '#ffffff'}
           translucent={false}
         />
-        <NavigationContainer theme={isDarkMode ? DarkTheme : DefaultTheme}>
+        <NavigationContainer theme={isDark ? DarkTheme : DefaultTheme}>
           <Provider store={store}>
             <PersistGate loading={null} persistor={persistor}>
               <ApolloProvider client={apolloClient}>
-                <ThemeProvider>
-                  <AuthProvider>
-                    <RootNavigator />
-                  </AuthProvider>
-                </ThemeProvider>
+                <AuthProvider>
+                  <RootNavigator />
+                </AuthProvider>
               </ApolloProvider>
             </PersistGate>
           </Provider>
@@ -47,4 +45,12 @@ function App() {
   );
 }
 
+function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
+  );
+}
 export default App;
+
