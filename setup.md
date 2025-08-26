@@ -99,6 +99,8 @@ GOOGLE_WEB_CLIENT_ID=your-web-client-id.apps.googleusercontent.com    # Google O
 
 ```bash
 npm install
+cd ios && pod install
+cd ..
 npm run ios     # For iOS
 npm run android # For Android
 ```
