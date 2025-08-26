@@ -1,12 +1,15 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
 import { getApp } from '@react-native-firebase/app';
 import {
   getAuth,
   onAuthStateChanged,
   signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  fetchSignInMethodsForEmail,
   getIdToken,
   FirebaseAuthTypes,
   updateProfile,
+  signInWithPhoneNumber,
 } from '@react-native-firebase/auth';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { GoogleAuthProvider, AppleAuthProvider, signInWithCredential } from '@react-native-firebase/auth';
@@ -21,8 +24,12 @@ type AuthContextValue = {
   user: FirebaseAuthTypes.User | null;
   initializing: boolean;
   signInWithEmail: (email: string, password: string) => Promise<void>;
+  createUserWithEmail: (email: string, password: string, displayName?: string) => Promise<void>;
+  getSignInMethodsForEmail: (email: string) => Promise<string[]>;
   signInWithGoogle: () => Promise<void>;
   signInWithApple: () => Promise<void>;
+  signInWithPhone: (phoneNumber: string) => Promise<any>;
+  confirmPhoneCode: (confirmation: any, code: string) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -56,31 +63,61 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })();
   }, []);
 
-  const signInWithEmail = async (email: string, password: string) => {
+  const exchangeIdTokenForAppJWT = async (authMethod: string) => {
     const app = getApp();
     const authInstance = getAuth(app);
-    await signInWithEmailAndPassword(authInstance, email.trim(), password);
-    const idToken = authInstance.currentUser ? await getIdToken(authInstance.currentUser, true) : undefined;
-    if (idToken) {
+    const freshIdToken = authInstance.currentUser ? await getIdToken(authInstance.currentUser, true) : undefined;
+    if (freshIdToken) {
       try {
-        console.log('[Auth] Exchanging Firebase ID token for app JWT via mutation');
+        console.log(`[Auth] Exchanging ${authMethod} Firebase ID token for app JWT via mutation`);
         const { data } = await apolloClient.mutate({
           mutation: MUTATION_LOGIN_WITH_ID_TOKEN,
-          variables: { idToken },
+          variables: { idToken: freshIdToken },
         });
         const accessToken = (data as any)?.loginWithIdToken?.accessToken as string | undefined;
-        if (accessToken) await saveAccessToken(accessToken);
+        if (accessToken) {
+          await saveAccessToken(accessToken);
+        }
       } catch (e) {
-        console.log('[Auth] loginWithIdToken mutation failed', e);
+        console.log(`[Auth] loginWithIdToken mutation failed after ${authMethod} sign-in`, e);
+        throw e;
       }
+    } else {
+      console.log(`[Auth] No fresh Firebase ID token after ${authMethod} sign-in`);
     }
   };
 
-  const signOut = async () => {
-    await handleHardSignOut();
-  };
+  const signInWithEmail = useCallback(async (email: string, password: string) => {
+    const app = getApp();
+    const authInstance = getAuth(app);
+    await signInWithEmailAndPassword(authInstance, email.trim(), password);
+    await exchangeIdTokenForAppJWT('Email');
+  }, []);
 
-  const signInWithGoogle = async () => {
+  const createUserWithEmail = useCallback(async (email: string, password: string, displayName?: string) => {
+    const app = getApp();
+    const authInstance = getAuth(app);
+    await createUserWithEmailAndPassword(authInstance, email.trim(), password);
+    if (displayName && authInstance.currentUser) {
+      try {
+        await updateProfile(authInstance.currentUser, { displayName });
+      } catch {}
+    }
+    await exchangeIdTokenForAppJWT('Email');
+  }, []);
+
+  const getSignInMethodsForEmail = useCallback(async (email: string) => {
+    const app = getApp();
+    const authInstance = getAuth(app);
+    const list = await fetchSignInMethodsForEmail(authInstance as any, email.trim());
+    return Array.isArray(list) ? list : [];
+  }, []);
+
+  const signOut = useCallback(async () => {
+    await handleHardSignOut();
+  }, []);
+
+  const signInWithGoogle = useCallback(async () => {
     GoogleSignin.configure({
       webClientId: googleWebClientId,
       forceCodeForRefreshToken: true,
@@ -103,27 +140,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await updateProfile(cur, { displayName: candidateName });
       }
     } catch {}
-    try {
-      const freshIdToken = authInstance.currentUser ? await getIdToken(authInstance.currentUser, true) : undefined;
-      if (freshIdToken) {
-        console.log('[Auth] Exchanging Google Firebase ID token for app JWT via mutation');
-        const { data } = await apolloClient.mutate({
-          mutation: MUTATION_LOGIN_WITH_ID_TOKEN,
-          variables: { idToken: freshIdToken },
-        });
-        const accessToken = (data as any)?.loginWithIdToken?.accessToken as string | undefined;
-        if (accessToken) {
-          await saveAccessToken(accessToken);
-        }
-      } else {
-        console.log('[Auth] No fresh Firebase ID token after Google sign-in');
-      }
-    } catch (e) {
-      console.log('[Auth] loginWithIdToken mutation failed after Google sign-in', e);
-    }
-  };
+    await exchangeIdTokenForAppJWT('Google');
+  }, []);
 
-  const signInWithApple = async () => {
+  const signInWithApple = useCallback(async () => {
     // If not supported (e.g., Android), silently return
     if (!AppleAuth?.isSupported) {
       throw new Error('Apple Sign-In not supported on this device');
@@ -144,23 +164,59 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const authInstance = getAuth(app);
     const credential = AppleAuthProvider.credential(identityToken, rawNonce);
     await signInWithCredential(authInstance, credential);
-    try {
-      const freshIdToken = authInstance.currentUser ? await getIdToken(authInstance.currentUser, true) : undefined;
-      if (freshIdToken) {
-        console.log('[Auth] Exchanging Apple Firebase ID token for app JWT via mutation');
-        const { data } = await apolloClient.mutate({
-          mutation: MUTATION_LOGIN_WITH_ID_TOKEN,
-          variables: { idToken: freshIdToken },
-        });
-        const accessToken = (data as any)?.loginWithIdToken?.accessToken as string | undefined;
-        if (accessToken) await saveAccessToken(accessToken);
-      }
-    } catch (e) {
-      console.log('[Auth] loginWithIdToken mutation failed after Apple sign-in', e);
-    }
-  };
+    await exchangeIdTokenForAppJWT('Apple');
+  }, []);
 
-  const value = useMemo(() => ({ user, initializing, signInWithEmail, signInWithGoogle, signInWithApple, signOut }), [user, initializing]);
+  const signInWithPhone = useCallback(async (phoneNumber: string) => {
+    try {
+      const app = getApp();
+      const authInstance = getAuth(app);
+      const confirmation = await signInWithPhoneNumber(authInstance, phoneNumber);
+      return confirmation;
+    } catch (e: any) {
+      console.error('Phone auth error:', e);
+      let errorMessage = 'Failed to send code';
+      
+      if (e?.code === 'auth/invalid-multi-factor-session') {
+        errorMessage = 'Phone authentication not properly configured. Please check Firebase settings.';
+      } else if (e?.code === 'auth/invalid-phone-number') {
+        errorMessage = 'Invalid phone number format';
+      } else if (e?.code === 'auth/too-many-requests') {
+        errorMessage = 'Too many attempts. Please try again later.';
+      } else if (e?.code === 'auth/quota-exceeded') {
+        errorMessage = 'SMS quota exceeded. Please try again later.';
+      } else if (e?.message) {
+        errorMessage = e.message;
+      }
+      
+      throw new Error(errorMessage);
+    }
+  }, []);
+
+  const confirmPhoneCode = useCallback(async (confirmation: any, code: string) => {
+    try {
+      const result = await confirmation.confirm(code);
+      console.log('Sign in result:', result);
+      await exchangeIdTokenForAppJWT('Phone');
+    } catch (e: any) {
+      console.error('Code confirmation error:', e);
+      let errorMessage = 'Failed to confirm code';
+      
+      if (e?.code === 'auth/invalid-verification-code') {
+        errorMessage = 'Invalid verification code. Please check the code and try again.';
+      } else if (e?.code === 'auth/code-expired') {
+        errorMessage = 'Verification code has expired. Please request a new code.';
+      } else if (e?.code === 'auth/too-many-requests') {
+        errorMessage = 'Too many attempts. Please try again later.';
+      } else if (e?.message) {
+        errorMessage = e.message;
+      }
+      
+      throw new Error(errorMessage);
+    }
+  }, []);
+
+  const value = useMemo(() => ({ user, initializing, signInWithEmail, createUserWithEmail, getSignInMethodsForEmail, signInWithGoogle, signInWithApple, signInWithPhone, confirmPhoneCode, signOut }), [user, initializing, signInWithEmail, createUserWithEmail, getSignInMethodsForEmail, signInWithGoogle, signInWithApple, signInWithPhone, confirmPhoneCode, signOut]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

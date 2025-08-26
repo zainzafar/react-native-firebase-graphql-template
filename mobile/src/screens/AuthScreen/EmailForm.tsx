@@ -3,20 +3,6 @@ import { Alert, View, StyleSheet } from 'react-native';
 import { Body, Button, Input } from '../../components/ui';
 import { GoogleButton, AppleButton as AppleSignInButton } from '../../components/buttons';
 import { useAuth } from '../../auth/AuthProvider';
-import { getApp } from '@react-native-firebase/app';
-import {
-  fetchSignInMethodsForEmail,
-  getAuth,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  updateProfile,
-  getIdToken,
-} from '@react-native-firebase/auth';
-import { apolloClient } from '../../graphql/client';
-import { MUTATION_LOGIN_WITH_ID_TOKEN } from '../../graphql/operations';
-import { saveAccessToken } from '../../auth/tokenStorage';
-import { Platform } from 'react-native';
-import AppleAuth from '@invertase/react-native-apple-authentication';
 
 type EmailFormProps = {
   onBack: () => void;
@@ -28,7 +14,7 @@ type EmailFormProps = {
 };
 
 export default function EmailForm({ onBack, onGoogleSignIn, googleLoading, onAppleSignIn, appleLoading, appleSupported }: EmailFormProps) {
-  const { signInWithGoogle } = useAuth();
+  const { signInWithEmail, createUserWithEmail, getSignInMethodsForEmail, signInWithGoogle } = useAuth();
   const [stage, setStage] = useState<'email' | 'signin' | 'signup' | 'useProvider'>('email');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -47,34 +33,16 @@ export default function EmailForm({ onBack, onGoogleSignIn, googleLoading, onApp
     try {
       setLoading(true);
       if (stage === 'email') {
-        const auth = getAuth(getApp());
-        const list = await fetchSignInMethodsForEmail(auth as any, email.trim());
-        const arr = Array.isArray(list) ? list : [];
+        const arr = await getSignInMethodsForEmail(email.trim());
         setMethodsList(arr);
         if (arr.includes('password')) setStage('signin');
         else if (arr.length > 0) setStage('useProvider');
         else setStage('signup');
       } else if (stage === 'signin') {
-        const auth = getAuth(getApp());
-        await signInWithEmailAndPassword(auth, email.trim(), password);
-        const idToken = auth.currentUser ? await getIdToken(auth.currentUser, true) : undefined;
-        if (idToken) {
-          const { data } = await apolloClient.mutate({ mutation: MUTATION_LOGIN_WITH_ID_TOKEN, variables: { idToken } });
-          const accessToken = (data as any)?.loginWithIdToken?.accessToken as string | undefined;
-          if (accessToken) await saveAccessToken(accessToken);
-        }
+        await signInWithEmail(email.trim(), password);
       } else if (stage === 'signup') {
-        const auth = getAuth(getApp());
-        await createUserWithEmailAndPassword(auth, email.trim(), password);
-        if (auth.currentUser) {
-          try { await updateProfile(auth.currentUser as any, { displayName: `${firstName} ${lastName}`.trim() }); } catch {}
-        }
-        const idToken = auth.currentUser ? await getIdToken(auth.currentUser, true) : undefined;
-        if (idToken) {
-          const { data } = await apolloClient.mutate({ mutation: MUTATION_LOGIN_WITH_ID_TOKEN, variables: { idToken } });
-          const accessToken = (data as any)?.loginWithIdToken?.accessToken as string | undefined;
-          if (accessToken) await saveAccessToken(accessToken);
-        }
+        const displayName = `${firstName} ${lastName}`.trim();
+        await createUserWithEmail(email.trim(), password, displayName);
       }
     } catch (e: any) {
       Alert.alert('Email Auth', e?.message || 'Something went wrong');
