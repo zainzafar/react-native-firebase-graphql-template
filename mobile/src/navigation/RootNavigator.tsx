@@ -5,8 +5,7 @@ import HomeScreen from '../screens/HomeScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import AuthScreen from '../screens/AuthScreen';
 import DebugScreen from '../screens/DebugScreen';
-import EmailAuthScreen from '../screens/EmailAuthScreen';
-import PhoneAuthScreen from '../screens/PhoneAuthScreen';
+
 import { useAuth } from '../auth/AuthProvider';
 import { Text, StyleSheet } from 'react-native';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
@@ -70,8 +69,6 @@ export default function RootNavigator() {
       ) : (
         <>
           <Stack.Screen name="Auth" component={AuthScreen} />
-          <Stack.Screen name="EmailAuth" component={EmailAuthScreen} options={{ headerShown: true, title: 'Email' }} />
-          <Stack.Screen name="PhoneAuth" component={PhoneAuthScreen} options={{ headerShown: true, title: 'Phone' }} />
           <Stack.Screen name="Debug" component={DebugScreen} options={{ headerShown: true, title: 'Debug' }} />
         </>
       )}
