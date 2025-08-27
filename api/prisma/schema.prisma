@@ -24,6 +24,11 @@ model User {
   lastLoginProvider String?
 
   identities    UserIdentity[]
+  roles         UserRole[]
+
+  @@index([createdAt])
+  @@index([displayName])
+  @@index([phoneNumber])
 }
 
 model UserIdentity {
@@ -39,5 +44,20 @@ model UserIdentity {
   lastUsedAt  DateTime?
 
   @@unique([providerId, providerUid])
+  @@index([userId])
+}
+
+enum Role {
+  SUPER_ADMIN
+}
+
+model UserRole {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  role      Role
+
+  @@unique([userId, role])
   @@index([userId])
 }

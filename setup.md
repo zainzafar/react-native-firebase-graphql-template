@@ -139,6 +139,17 @@ npx prisma migrate dev
 npm run dev
 ```
 
+## 4. Promote a Super Admin (optional)
+
+Grant `SUPER_ADMIN` to an existing user (the user must have logged in at least once so they exist in the DB):
+
+```bash
+cd api
+SEED_SUPER_ADMIN_EMAIL="admin@example.com" npm run prisma:seed
+```
+
+You can re-run the command with a different email to grant additional super admins.
+
 ## ⚠️ Common Setup Issues
 
 1. **Firebase Configuration Not Found**: Make sure you've replaced all dummy Firebase files

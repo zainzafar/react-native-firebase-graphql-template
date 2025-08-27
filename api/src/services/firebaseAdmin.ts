@@ -2,6 +2,14 @@ import admin from 'firebase-admin';
 import type { Request } from 'express';
 import { verifyAppJwt } from './appJwt';
 import { getPrisma } from './prisma';
+import type { Role, User as PrismaUser, UserIdentity } from '@prisma/client';
+
+type AuthContextUser = PrismaUser & {
+  roles: Role[];
+  identities: UserIdentity[];
+};
+
+export { AuthContextUser };
 
 let initialized = false;
 
@@ -55,16 +63,18 @@ export async function verifyIdTokenSafe(idToken: string): Promise<admin.auth.Dec
   }
 }
 
-export async function getAuthUserFromRequest(req: Request): Promise<any | null> {
+export async function getAuthUserFromRequest(req: Request): Promise<AuthContextUser | null> {
   const authz = req.headers['authorization'] || (req.headers['Authorization' as any] as any);
   if (typeof authz === 'string' && authz.toLowerCase().startsWith('bearer ')) {
     const token = authz.slice(7).trim();
     const appPayload = verifyAppJwt(token);
     if (appPayload?.id) {
       const prisma = getPrisma();
-      const dbUser = await prisma.user.findUnique({ where: { id: appPayload.id }, include: { identities: true } });
+      const dbUser = await prisma.user.findUnique({ where: { id: appPayload.id }, include: { identities: true, roles: true } });
       if (dbUser) {
-        return dbUser;
+        // Map roles relation to enum list for GraphQL convenience
+        const roleEnums = Array.isArray((dbUser as any).roles) ? (dbUser as any).roles.map((r: any) => r.role) : [];
+        return { ...dbUser, roles: roleEnums } as AuthContextUser;
       }
     }
   }
