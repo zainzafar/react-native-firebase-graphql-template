@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { View, StyleSheet, Text, Pressable, ActivityIndicator } from 'react-native';
-import { Body, Button, Input } from '../../components/ui';
-import { GoogleButton, AppleButton as AppleSignInButton } from '../../components/buttons';
+import { Body, Button, Input } from '../../components';
+import { GoogleButton, AppleButton as AppleSignInButton } from '../../components/auth-buttons';
 import { useAuth } from '../../auth/AuthProvider';
 import { getAuth, sendPasswordResetEmail } from '@react-native-firebase/auth';
 
@@ -102,7 +102,15 @@ export default function EmailForm({ onBack, onGoogleSignIn, googleLoading, onApp
     <View style={styles.formContainer}>
       {stage === 'email' && (
         <>
-          <Input value={email} onChangeText={setEmail} placeholder="Email" autoCapitalize="none" keyboardType="email-address" />
+          <Input 
+            value={email} 
+            onChangeText={setEmail} 
+            placeholder="Email" 
+            autoCapitalize="none" 
+            keyboardType="email-address"
+            textContentType="emailAddress"
+            autoComplete="email"
+          />
           {error ? <Body style={styles.errorText}>{error}</Body> : null}
           <Button title="Continue" onPress={proceed} loading={loading} />
           <Button title="Back" onPress={onBack} variant="ghost" />
@@ -110,8 +118,23 @@ export default function EmailForm({ onBack, onGoogleSignIn, googleLoading, onApp
       )}
       {stage === 'signin' && (
         <>
-          <Input value={email} onChangeText={setEmail} placeholder="Email" autoCapitalize="none" keyboardType="email-address" />
-          <Input value={password} onChangeText={setPassword} placeholder="Password" secureTextEntry />
+          <Input 
+            value={email} 
+            onChangeText={setEmail} 
+            placeholder="Email" 
+            autoCapitalize="none" 
+            keyboardType="email-address"
+            textContentType="emailAddress"
+            autoComplete="email"
+          />
+          <Input 
+            value={password} 
+            onChangeText={setPassword} 
+            placeholder="Password" 
+            secureTextEntry
+            textContentType="password"
+            autoComplete="password"
+          />
           {error && !resetSent && (
             <View>
               <Body style={styles.errorText}>{error}</Body>
@@ -137,10 +160,37 @@ export default function EmailForm({ onBack, onGoogleSignIn, googleLoading, onApp
       )}
       {stage === 'signup' && (
         <>
-          <Input value={email} onChangeText={setEmail} placeholder="Email" autoCapitalize="none" keyboardType="email-address" />
-          <Input value={firstName} onChangeText={setFirstName} placeholder="First name" />
-          <Input value={lastName} onChangeText={setLastName} placeholder="Last name" />
-          <Input value={password} onChangeText={setPassword} placeholder="Password" secureTextEntry />
+          <Input 
+            value={email} 
+            onChangeText={setEmail} 
+            placeholder="Email" 
+            autoCapitalize="none" 
+            keyboardType="email-address"
+            textContentType="emailAddress"
+            autoComplete="email"
+          />
+          <Input 
+            value={firstName} 
+            onChangeText={setFirstName} 
+            placeholder="First name"
+            textContentType="givenName"
+            autoComplete="given-name"
+          />
+          <Input 
+            value={lastName} 
+            onChangeText={setLastName} 
+            placeholder="Last name"
+            textContentType="familyName"
+            autoComplete="family-name"
+          />
+          <Input 
+            value={password} 
+            onChangeText={setPassword} 
+            placeholder="Password" 
+            secureTextEntry
+            textContentType="newPassword"
+            autoComplete="new-password"
+          />
           {error ? <Body style={styles.errorText}>{error}</Body> : null}
           <Button title="Create Account" onPress={proceed} loading={loading} />
           <Button title="Back" onPress={onBack} variant="ghost" />

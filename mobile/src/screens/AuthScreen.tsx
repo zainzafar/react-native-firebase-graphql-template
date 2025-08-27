@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, View, Pressable, StyleSheet, LayoutAnimation, Platform, UIManager, Animated, Easing } from 'react-native';
 //
-import { Body, Card, Heading, ScreenContainer } from '../components/ui';
-import { GoogleButton, EmailButton, PhoneButton, AppleButton as AppleSignInButton } from '../components/buttons';
+import { Body, Card, Heading, ScreenContainer } from '../components';
+import { GoogleButton, EmailButton, PhoneButton, AppleButton as AppleSignInButton } from '../components/auth-buttons';
 import { useAuth } from '../auth/AuthProvider';
 import { useNavigation } from '@react-navigation/native';
 import AppleAuth from '@invertase/react-native-apple-authentication';
