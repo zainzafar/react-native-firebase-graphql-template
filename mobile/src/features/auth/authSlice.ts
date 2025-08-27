@@ -5,6 +5,7 @@ export type AuthUser = {
   email?: string;
   displayName?: string;
   photoURL?: string;
+  lastLoginProvider?: string;
 };
 
 export type AuthState = {

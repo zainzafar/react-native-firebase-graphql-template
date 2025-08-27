@@ -15,7 +15,7 @@ import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { GoogleAuthProvider, AppleAuthProvider, signInWithCredential } from '@react-native-firebase/auth';
 import { googleWebClientId } from '../config/firebase';
 import { apolloClient } from '../graphql/client';
-import { MUTATION_LOGIN_WITH_ID_TOKEN, QUERY_ME } from '../graphql/operations';
+import { MUTATION_LOGIN_WITH_ID_TOKEN, MUTATION_UPDATE_PROFILE, QUERY_ME } from '../graphql/operations';
 import { saveAccessToken, clearAccessToken, getAccessToken } from './tokenStorage';
 import { handleHardSignOut } from './session';
 import { useAppDispatch } from '../store/hooks';
@@ -33,6 +33,8 @@ type AuthContextValue = {
   signInWithApple: () => Promise<void>;
   signInWithPhone: (phoneNumber: string) => Promise<any>;
   confirmPhoneCode: (confirmation: any, code: string) => Promise<void>;
+  updateUserProfile: (displayName?: string, photoURL?: string) => Promise<void>;
+  updatePassword: (newPassword: string) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -47,16 +49,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const app = getApp();
     const authInstance = getAuth(app);
-    const unsubscribe = onAuthStateChanged(authInstance, (u) => {
+    const unsubscribe = onAuthStateChanged(authInstance, async (u) => {
       setUser(u);
       if (u) {
-        const profile = {
-          id: u.uid,
-          email: u.email ?? undefined,
-          displayName: u.displayName ?? undefined,
-          photoURL: u.photoURL ?? undefined,
-        };
-        dispatch(setUserAction(profile));
+        // Get fresh ID token and exchange for app JWT to get database user data
+        try {
+          const freshIdToken = await getIdToken(u, true);
+          if (freshIdToken) {
+            const { data } = await apolloClient.mutate({
+              mutation: MUTATION_LOGIN_WITH_ID_TOKEN,
+              variables: { idToken: freshIdToken },
+            });
+            const accessToken = (data as any)?.loginWithIdToken?.accessToken as string | undefined;
+            const userData = (data as any)?.loginWithIdToken?.user;
+            if (accessToken) {
+              await saveAccessToken(accessToken);
+            }
+            if (userData) {
+              // Update Redux state with database user data only
+              const profile = {
+                id: userData.uid,
+                email: userData.email ?? undefined,
+                displayName: userData.displayName ?? undefined,
+                photoURL: userData.photoURL ?? undefined,
+                lastLoginProvider: userData.lastLoginProvider ?? undefined,
+              };
+              dispatch(setUserAction(profile));
+            }
+          }
+        } catch (e) {
+          console.log('[Auth] Failed to get database user data on auth state change:', e);
+          // Fallback to logout if we can't get database data
+          dispatch(logout());
+        }
       } else {
         dispatch(logout());
       }
@@ -71,7 +96,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const token = await getAccessToken();
       if (token) {
         try {
-          await apolloClient.query({ query: QUERY_ME, fetchPolicy: 'network-only' });
+          const { data } = await apolloClient.query({ 
+            query: QUERY_ME, 
+            fetchPolicy: 'network-only' 
+          });
+          const userData = (data as any)?.me;
+          if (userData) {
+            // Update Redux state with database user data
+            const profile = {
+              id: userData.uid,
+              email: userData.email ?? undefined,
+              displayName: userData.displayName ?? undefined,
+              photoURL: userData.photoURL ?? undefined,
+              lastLoginProvider: userData.lastLoginProvider ?? undefined,
+            };
+            dispatch(setUserAction(profile));
+          }
         } catch {
           await clearAccessToken();
         }
@@ -91,8 +131,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           variables: { idToken: freshIdToken },
         });
         const accessToken = (data as any)?.loginWithIdToken?.accessToken as string | undefined;
+        const userData = (data as any)?.loginWithIdToken?.user;
         if (accessToken) {
           await saveAccessToken(accessToken);
+        }
+        if (userData) {
+          // Update Redux state with user data from GraphQL (includes lastLoginProvider)
+          const profile = {
+            id: userData.uid,
+            email: userData.email ?? undefined,
+            displayName: userData.displayName ?? undefined,
+            photoURL: userData.photoURL ?? undefined,
+            lastLoginProvider: userData.lastLoginProvider ?? undefined,
+          };
+          dispatch(setUserAction(profile));
         }
       } catch (e) {
         console.log(`[Auth] loginWithIdToken mutation failed after ${authMethod} sign-in`, e);
@@ -120,7 +172,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch {}
     }
     await exchangeIdTokenForAppJWT('Email');
-  }, []);
+  });
 
   const getSignInMethodsForEmail = useCallback(async (email: string) => {
     const app = getApp();
@@ -261,7 +313,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const value = useMemo(() => ({ user, initializing, signInWithEmail, createUserWithEmail, getSignInMethodsForEmail, signInWithGoogle, signInWithApple, signInWithPhone, confirmPhoneCode, signOut }), [user, initializing, signInWithEmail, createUserWithEmail, getSignInMethodsForEmail, signInWithGoogle, signInWithApple, signInWithPhone, confirmPhoneCode, signOut]);
+  const updateUserProfile = useCallback(async (displayName?: string, photoURL?: string) => {
+    try {
+      // Call GraphQL mutation to update profile
+      const { data } = await apolloClient.mutate({
+        mutation: MUTATION_UPDATE_PROFILE,
+        variables: { displayName, photoURL },
+      });
+
+      const updatedUser = (data as any)?.updateProfile;
+      if (!updatedUser) {
+        throw new Error('Failed to update profile');
+      }
+
+      // Update Redux state with the updated user data
+      const profile = {
+        id: updatedUser.uid,
+        email: updatedUser.email ?? undefined,
+        displayName: updatedUser.displayName ?? undefined,
+        photoURL: updatedUser.photoURL ?? undefined,
+        lastLoginProvider: updatedUser.lastLoginProvider ?? undefined,
+      };
+      dispatch(setUserAction(profile));
+    } catch (e: any) {
+      console.error('Profile update error:', e);
+      throw e;
+    }
+  }, [dispatch]);
+
+  const updatePassword = useCallback(async (newPassword: string) => {
+    try {
+      const app = getApp();
+      const authInstance = getAuth(app);
+      const currentUser = authInstance.currentUser;
+      
+      if (!currentUser) {
+        throw new Error('No user is currently signed in');
+      }
+
+      await currentUser.updatePassword(newPassword);
+    } catch (e: any) {
+      console.error('Password update error:', e);
+      throw e;
+    }
+  }, []);
+
+  const value = useMemo(() => ({ user, initializing, signInWithEmail, createUserWithEmail, getSignInMethodsForEmail, signInWithGoogle, signInWithApple, signInWithPhone, confirmPhoneCode, updateUserProfile, updatePassword, signOut }), [user, initializing, signInWithEmail, createUserWithEmail, getSignInMethodsForEmail, signInWithGoogle, signInWithApple, signInWithPhone, confirmPhoneCode, updateUserProfile, updatePassword, signOut]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

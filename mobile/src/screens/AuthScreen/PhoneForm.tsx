@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Body, Button, Input } from '../../components/ui';
+import { Body, Button, Input } from '../../components';
 import PhoneNumberInput, { PhoneNumberValue } from '../../components/PhoneNumberInput';
 import { useAuth } from '../../auth/AuthProvider';
 

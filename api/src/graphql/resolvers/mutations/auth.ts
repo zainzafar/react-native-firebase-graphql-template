@@ -1,20 +1,20 @@
-import { auth as firebaseAuth } from 'firebase-admin';
-import { verifyIdTokenSafe } from '../../../services/firebaseAdmin';
+import { verifyIdTokenSafe, getFirebaseAuth } from '../../../services/firebaseAdmin';
+import type { auth as firebaseAuth } from 'firebase-admin';
 import { signAppJwt } from '../../../services/appJwt';
-import { User } from '@prisma/client';
+import { User, PrismaClient } from '@prisma/client';
 
 export default {
   loginWithIdToken: async (
     _parent: unknown,
     args: { idToken: string; },
-    ctx: any
+    ctx: { prisma: PrismaClient }
   ) => {
     const { idToken } = args;
     const decoded = await verifyIdTokenSafe(idToken);
     if (!decoded) {
       throw new Error('Invalid ID token');
     }
-    const userRecord: firebaseAuth.UserRecord = await firebaseAuth().getUser(decoded.uid);
+    const userRecord: firebaseAuth.UserRecord = await getFirebaseAuth().getUser(decoded.uid);
 
     // Persist or update user in DB
     const prisma = ctx?.prisma as any | undefined;
@@ -63,6 +63,38 @@ export default {
     const accessToken = dbUser ? signAppJwt({ id: dbUser.id }, 60 * 60 * 24 * 7) : undefined;
     return { user: dbUser, accessToken };
   },
+
+  updateProfile: async (
+    _parent: unknown,
+    args: { displayName?: string; photoURL?: string; },
+    ctx: { user: User; prisma: PrismaClient }
+  ) => {
+    const user = ctx.user;
+    const prisma = ctx.prisma;
+
+    // Update Firebase Auth user profile
+    try {
+      await getFirebaseAuth().updateUser(user.uid, {
+        displayName: args.displayName || user.displayName,
+        photoURL: args.photoURL || user.photoURL,
+      });
+    } catch (error) {
+      console.error('Firebase profile update error:', error);
+      throw new Error('Failed to update profile in authentication service');
+    }
+
+    // Update database
+    const updatedUser = await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        displayName: args.displayName || user.displayName,
+        photoURL: args.photoURL || user.photoURL,
+      },
+      include: { identities: true },
+    });
+
+    return updatedUser;
+  }
 };
 
 

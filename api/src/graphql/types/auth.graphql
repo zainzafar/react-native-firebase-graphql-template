@@ -4,6 +4,7 @@ extend type Query {
 
 extend type Mutation {
   loginWithIdToken(idToken: String!): AuthPayload!
+  updateProfile(displayName: String, photoURL: String): User!
 }
 
 type User {

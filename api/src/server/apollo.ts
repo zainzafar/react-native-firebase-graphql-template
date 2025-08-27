@@ -13,6 +13,21 @@ import { loadResolvers } from '../graphql/loadResolvers';
 import type { Request, Response } from 'express';
 import { getAuthUserFromRequest } from '../services/firebaseAdmin';
 import { getPrisma } from '../services/prisma';
+import type { User, PrismaClient } from '@prisma/client';
+
+// Whitelist of operations that don't require authentication
+const UNAUTHENTICATED_OPERATIONS = [
+  'loginWithIdToken',
+  'IntrospectionQuery'
+  // Add other operations that don't need auth here
+];
+
+// Convert all operation names to lowercase for case-insensitive comparison
+const UNAUTHENTICATED_OPERATIONS_LOWERCASE = UNAUTHENTICATED_OPERATIONS.map(op => op.toLowerCase());
+
+function requiresAuthentication(operationName: string): boolean {
+  return !UNAUTHENTICATED_OPERATIONS_LOWERCASE.includes(operationName.toLowerCase());
+}
 
 function createLoggingPlugin() {
   return {
@@ -69,6 +84,14 @@ function createLoggingPlugin() {
   } as any;
 }
 
+type GraphQLContext = {
+  requestId: string;
+  req: Request;
+  res: Response;
+  user: User | null;
+  prisma: PrismaClient;
+};
+
 type ApplyApolloArgs = {
   app: Express;
   httpServer: http.Server;
@@ -78,7 +101,7 @@ export async function applyApolloMiddleware({ app, httpServer }: ApplyApolloArgs
   const typeDefs = await loadTypeDefs();
   const resolvers = await loadResolvers();
 
-  const server = new ApolloServer({
+  const server = new ApolloServer<GraphQLContext>({
     typeDefs,
     resolvers,
     plugins: [ApolloServerPluginDrainHttpServer({ httpServer }), createLoggingPlugin()],
@@ -97,9 +120,21 @@ export async function applyApolloMiddleware({ app, httpServer }: ApplyApolloArgs
         try {
           res.setHeader('x-request-id', requestId);
         } catch {}
+        
         const user = await getAuthUserFromRequest(req);
         const prisma = getPrisma();
-        return { requestId, req, res, user: user ?? null, prisma };
+        
+        // Get operation name for authentication check
+        const operationName = (req.body?.operationName as string) || '';
+
+        console.log('operationName', operationName);
+        
+        // Check if operation requires authentication
+        if (requiresAuthentication(operationName) && !user) {
+          throw new Error('Unauthorized');
+        }
+        
+        return { requestId, req, res, user: user ?? null, prisma } as GraphQLContext;
       },
     })
   );

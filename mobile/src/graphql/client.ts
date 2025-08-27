@@ -2,8 +2,8 @@ import { ApolloClient, InMemoryCache, createHttpLink, from } from '@apollo/clien
 import { setContext } from '@apollo/client/link/context';
 import { onError } from '@apollo/client/link/error';
 import Config from 'react-native-config';
-import * as Keychain from 'react-native-keychain';
 import { refreshAppToken } from '../auth/session';
+import { getAccessToken } from '../auth/tokenStorage';
 import { Platform } from 'react-native';
 
 const rawUrl = (Config.GRAPHQL_API_URL || '').replace(/\/$/, '');
@@ -19,8 +19,7 @@ const httpLink = createHttpLink({ uri: graphqlUrl });
 
 const authLink = setContext(async (_, { headers }) => {
   try {
-    const creds = await Keychain.getGenericPassword({ service: 'app.accessToken' });
-    const token = creds ? creds.password : undefined;
+    const token = await getAccessToken();
     return {
       headers: {
         ...headers,

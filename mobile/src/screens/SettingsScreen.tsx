@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
-import { Alert, Pressable, StyleSheet, View, Switch, SafeAreaView, ScrollView, StatusBar, Platform } from 'react-native';
-import { Body, Button, Card, Heading } from '../components/ui';
+import { Alert, Pressable, StyleSheet, View, Switch, ScrollView } from 'react-native';
+import { Body, Button, Card, Heading, useTopInset } from '../components';
 import { useTheme } from '../theme/ThemeProvider';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../auth/AuthProvider';
+import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 
 export default function SettingsScreen() {
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation<any>();
   const { isDark, setDarkMode, colors } = useTheme();
+  const topInset = useTopInset();
 
   const onLogout = async () => {
     try {
@@ -25,15 +27,30 @@ export default function SettingsScreen() {
     }
   };
 
-  const topInset = Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 8 : 8;
-  return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}> 
+
+    return (
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={[styles.scrollContent, { paddingTop: topInset, paddingBottom: 24 }]}> 
         <View style={styles.header}><Heading>Settings</Heading></View>
 
-        <Card>
-          <View style={styles.row}>
-            <Body style={styles.rowLabel}>Dark mode</Body>
+        {/* Account */}
+        <Card style={styles.compactCard}>
+          <Pressable onPress={() => navigation.navigate('Account' as never)} style={styles.menuItem}>
+            <View style={styles.menuItemLeft}>
+              <FontAwesome6 name="user" iconStyle="solid" size={20} color={colors.text} />
+              <Body style={styles.menuItemText}>Account</Body>
+            </View>
+            <FontAwesome6 name="chevron-right" iconStyle="solid" size={16} color={colors.mutedText} />
+          </Pressable>
+        </Card>
+
+        {/* Dark Mode */}
+        <Card style={styles.compactCard}>
+          <View style={styles.menuItem}>
+            <View style={styles.menuItemLeft}>
+              <FontAwesome6 name="moon" iconStyle="solid" size={20} color={colors.text} />
+              <Body style={styles.menuItemText}>Dark mode</Body>
+            </View>
             <Switch value={isDark} onValueChange={setDarkMode} />
           </View>
         </Card>
@@ -42,22 +59,39 @@ export default function SettingsScreen() {
 
         <Button title="Log out" onPress={onLogout} loading={loading} variant="ghost" />
 
-        <Pressable onPress={() => navigation.navigate('Debug')} hitSlop={8}>
+        <Pressable onPress={() => navigation.navigate('Debug' as never)} hitSlop={8}>
           <Body style={styles.debugText}>Debug</Body>
         </Pressable>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1 },
-  scrollContent: { flexGrow: 1, paddingHorizontal: 16, gap: 12 },
+  container: { flex: 1 },
+  scrollContent: { flexGrow: 1, paddingHorizontal: 16, gap: 20 },
   header: { paddingBottom: 8, paddingLeft: 5 },
-  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  rowLabel: { },
   grow: { flex: 1 },
   debugText: { textAlign: 'center', marginTop: 8 },
+  menuItem: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    paddingHorizontal: 4
+  },
+  menuItemLeft: { 
+    flexDirection: 'row', 
+    alignItems: 'center',
+    gap: 10
+  },
+  menuItemText: { 
+    fontSize: 16, 
+    fontWeight: '500'
+  },
+  compactCard: {
+    padding: 12,
+  },
 });
 
 

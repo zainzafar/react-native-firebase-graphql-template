@@ -5,7 +5,7 @@ import Config from 'react-native-config';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { getApp } from '@react-native-firebase/app';
 import { getAuth, getIdToken } from '@react-native-firebase/auth';
-import { Card, ScreenContainer } from '../components/ui';
+import { Card, ScreenContainer } from '../components';
 import Clipboard from '@react-native-clipboard/clipboard';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import { QUERY_ME } from '../graphql/operations';
@@ -27,7 +27,7 @@ export default function DebugScreen() {
   const [googleHasPlayServices, setGoogleHasPlayServices] = useState<boolean | null>(null);
   const [googleUserPresent, setGoogleUserPresent] = useState<boolean | null>(null);
   const [tokenInfo, setTokenInfo] = useState<TokenInfo>({ present: false });
-  const [firebaseUser, setFirebaseUser] = useState<{ uid: string | null; email: string | null }>({ uid: null, email: null });
+  const [firebaseUser, setFirebaseUser] = useState<{ uid: string | null; email: string | null; providers: string[] }>({ uid: null, email: null, providers: [] });
   const [reduxState, setReduxState] = useState<string | null>(null);
   const [showReduxState, setShowReduxState] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['app'])); // Start with app expanded
@@ -52,7 +52,16 @@ export default function DebugScreen() {
       const app = getApp();
       const auth = getAuth(app);
       const u = auth.currentUser;
-      setFirebaseUser({ uid: u?.uid ?? null, email: u?.email ?? null });
+      const providers = u?.providerData?.map(provider => {
+        switch (provider.providerId) {
+          case 'google.com': return 'Google';
+          case 'apple.com': return 'Apple';
+          case 'password': return 'Email/Password';
+          case 'phone': return 'Phone';
+          default: return provider.providerId;
+        }
+      }) || [];
+      setFirebaseUser({ uid: u?.uid ?? null, email: u?.email ?? null, providers });
 
       const tok = await getAccessToken();
       if (tok) {
@@ -88,23 +97,27 @@ export default function DebugScreen() {
 
   const onFetchAppToken = async () => {
     try {
+      console.log('[Debug] Fetching app token...');
       const app = getApp();
       const auth = getAuth(app);
       const freshIdToken = auth.currentUser ? await getIdToken(auth.currentUser, true) : undefined;
-      if (!freshIdToken) return;
+      if (!freshIdToken) {
+        console.log('[Debug] No fresh ID token available');
+        return;
+      }
+      console.log('[Debug] Got fresh ID token, calling GraphQL mutation...');
       const { data } = await apolloClient.mutate({
         mutation: MUTATION_LOGIN_WITH_ID_TOKEN,
         variables: { idToken: freshIdToken },
       });
       const accessToken = (data as any)?.loginWithIdToken?.accessToken as string | undefined;
       if (accessToken) {
+        console.log('[Debug] Got access token, saving...');
         await saveAccessToken(accessToken);
-        try {
-          const payload = jwtDecode<{ exp?: number }>(accessToken);
-          setTokenInfo({ present: true, exp: payload?.exp, raw: accessToken });
-        } catch {
-          setTokenInfo({ present: true, raw: accessToken });
-        }
+        console.log('[Debug] Access token saved, refreshing token info...');
+        await refreshTokenInfo();
+      } else {
+        console.log('[Debug] No access token in response');
       }
     } catch (e) {
       console.log('[Debug] Fetch app token failed', e);
@@ -115,6 +128,24 @@ export default function DebugScreen() {
     const state = JSON.stringify(authState, null, 2);
     setReduxState(state);
     setShowReduxState(true);
+  };
+
+  const refreshTokenInfo = async () => {
+    console.log('[Debug] Refreshing token info...');
+    const tok = await getAccessToken();
+    if (tok) {
+      try {
+        const payload = jwtDecode<{ exp?: number }>(tok);
+        setTokenInfo({ present: true, exp: payload?.exp, raw: tok });
+        console.log('[Debug] Token info refreshed: present=true');
+      } catch {
+        setTokenInfo({ present: true, raw: tok });
+        console.log('[Debug] Token info refreshed: present=true (without exp)');
+      }
+    } else {
+      setTokenInfo({ present: false });
+      console.log('[Debug] Token info refreshed: present=false');
+    }
   };
 
   const toggleSection = (sectionId: string) => {
@@ -175,6 +206,7 @@ export default function DebugScreen() {
         <>
           <InfoRow label="UID" value={firebaseUser.uid || '(none)'} />
           <InfoRow label="Email" value={firebaseUser.email || '(none)'} />
+          <InfoRow label="Auth Providers" value={firebaseUser.providers.length > 0 ? firebaseUser.providers.join(', ') : '(none)'} />
         </>
       ),
     },
@@ -186,6 +218,7 @@ export default function DebugScreen() {
           <InfoRow label="Authenticated" value={authState.isAuthenticated ? 'yes' : 'no'} />
           <InfoRow label="Initialized" value={authState.initialized ? 'yes' : 'no'} />
           <InfoRow label="User ID" value={authState.user?.id || '(none)'} />
+          <InfoRow label="Last Login Provider" value={authState.user?.lastLoginProvider || '(none)'} />
           <View style={[styles.horizontalRule, { backgroundColor: colors.border }]} />
           <Pressable style={styles.fetchButton} onPress={onFetchReduxState}>
             <Text style={styles.fetchButtonText}>Fetch State</Text>
@@ -219,6 +252,7 @@ export default function DebugScreen() {
         <>
           <InfoRow label="Present" value={tokenInfo.present ? 'yes' : 'no'} />
           <InfoRow label="Expires" value={tokenInfo.exp ? new Date(tokenInfo.exp * 1000).toISOString() : '(unknown)'} />
+          <InfoRow label="Last Login Provider" value={authState.user?.lastLoginProvider || '(not set)'} />
           {tokenInfo.present && tokenInfo.raw && (
             <InfoRow label="JWT Token" value={tokenInfo.raw} />
           )}
@@ -376,6 +410,7 @@ function CompactMeInfo() {
       <InfoRow label="Email" value={me.email || '(none)'} />
       <InfoRow label="Name" value={me.displayName || '(none)'} />
       <InfoRow label="Providers" value={Array.isArray(me.identities) && me.identities.length > 0 ? me.identities.map((p: any) => p.providerId).join(', ') : '(none)'} />
+      <InfoRow label="Last Login Provider" value={me.lastLoginProvider || '(not set)'} />
     </>
   );
 }
