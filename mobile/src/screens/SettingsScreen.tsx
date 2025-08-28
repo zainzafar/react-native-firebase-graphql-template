@@ -4,10 +4,13 @@ import { Body, Button, Card, Heading, useTopInset } from '../components';
 import { useTheme } from '../theme/ThemeProvider';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../auth/AuthProvider';
+import { useAppSelector } from '../store/hooks';
+import { selectIsSuperAdmin } from '../features/auth/selectors';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 
 export default function SettingsScreen() {
   const { signOut, user } = useAuth();
+  const isSuperAdmin = useAppSelector(selectIsSuperAdmin);
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation<any>();
   const { isDark, setDarkMode, colors } = useTheme();
@@ -32,6 +35,22 @@ export default function SettingsScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={[styles.scrollContent, { paddingTop: topInset, paddingBottom: 24 }]}> 
         <View style={styles.header}><Heading>Settings</Heading></View>
+
+        {/* Admin - only visible to super-admins */}
+        {isSuperAdmin && (
+          <>
+            <Card style={styles.compactCard}>
+              <Pressable onPress={() => navigation.navigate('AdminHome' as never)} style={styles.menuItem}>
+                <View style={styles.menuItemLeft}>
+                  <FontAwesome6 name="shield-halved" iconStyle="solid" size={20} color={colors.text} />
+                  <Body style={styles.menuItemText}>Admin</Body>
+                </View>
+                <FontAwesome6 name="chevron-right" iconStyle="solid" size={16} color={colors.mutedText} />
+              </Pressable>
+            </Card>
+            <View style={[styles.divider, { backgroundColor: colors.border }]} />
+          </>
+        )}
 
         {/* Account */}
         <Card style={styles.compactCard}>
@@ -58,10 +77,6 @@ export default function SettingsScreen() {
         <View style={styles.grow} />
 
         <Button title="Log out" onPress={onLogout} loading={loading} variant="ghost" />
-
-        <Pressable onPress={() => navigation.navigate('Debug' as never)} hitSlop={8}>
-          <Body style={styles.debugText}>Debug</Body>
-        </Pressable>
       </ScrollView>
     </View>
   );
@@ -72,7 +87,7 @@ const styles = StyleSheet.create({
   scrollContent: { flexGrow: 1, paddingHorizontal: 16, gap: 20 },
   header: { paddingBottom: 8, paddingLeft: 5 },
   grow: { flex: 1 },
-  debugText: { textAlign: 'center', marginTop: 8 },
+
   menuItem: { 
     flexDirection: 'row', 
     alignItems: 'center', 
@@ -91,6 +106,10 @@ const styles = StyleSheet.create({
   },
   compactCard: {
     padding: 12,
+  },
+  divider: {
+    height: 1,
+    marginVertical: 8,
   },
 });
 

@@ -6,6 +6,10 @@ import SettingsScreen from '../screens/SettingsScreen';
 import AccountScreen from '../screens/AccountScreen';
 import AuthScreen from '../screens/AuthScreen';
 import DebugScreen from '../screens/DebugScreen';
+import AdminHomeScreen from '../screens/Admin/AdminHomeScreen';
+import AdminManageUsersScreen from '../screens/Admin/AdminManageUsersScreen';
+import AdminEditUserScreen from '../screens/Admin/AdminEditUserScreen';
+import AdminDeleteUserScreen from '../screens/Admin/AdminDeleteUserScreen';
 
 import { useAppSelector } from '../store/hooks';
 import { selectAuthInitialized, selectIsAuthenticated } from '../features/auth/selectors';
@@ -58,7 +62,12 @@ function SettingsStack() {
     >
       <Stack.Screen name="Settings" component={SettingsScreen} />
       <Stack.Screen name="Account" component={AccountScreen} options={{ headerShown: true, title: 'Account' }} />
-      <Stack.Screen name="Debug" component={DebugScreen} options={{ headerShown: true, title: 'Debug' }} />
+      {/* Admin screens */}
+      <Stack.Screen name="AdminHome" component={AdminHomeScreen} options={{ headerShown: true, title: 'Admin' }} />
+      <Stack.Screen name="AdminManageUsers" component={AdminManageUsersScreen} options={{ headerShown: true, title: 'Manage Users' }} />
+      <Stack.Screen name="AdminEditUser" component={AdminEditUserScreen} options={{ headerShown: true, title: 'Edit User' }} />
+      <Stack.Screen name="AdminDeleteUser" component={AdminDeleteUserScreen} options={{ headerShown: true, title: 'Delete User' }} />
+      <Stack.Screen name="AdminDebug" component={DebugScreen} options={{ headerShown: true, title: 'Debug' }} />
     </Stack.Navigator>
   );
 }
@@ -115,7 +124,6 @@ export default function RootNavigator() {
       ) : (
         <>
           <Stack.Screen name="Auth" component={AuthScreen} />
-          <Stack.Screen name="Debug" component={DebugScreen} options={{ headerShown: true, title: 'Debug' }} />
         </>
       )}
     </Stack.Navigator>

@@ -14,6 +14,7 @@ import type { Request, Response } from 'express';
 import { getAuthUserFromRequest } from '../services/firebaseAdmin';
 import { getPrisma } from '../services/prisma';
 import type { User, PrismaClient } from '@prisma/client';
+import type { AuthContextUser } from '../services/firebaseAdmin';
 
 // Whitelist of operations that don't require authentication
 const UNAUTHENTICATED_OPERATIONS = [
@@ -88,7 +89,7 @@ type GraphQLContext = {
   requestId: string;
   req: Request;
   res: Response;
-  user: User | null;
+  user: AuthContextUser | null;
   prisma: PrismaClient;
 };
 

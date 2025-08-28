@@ -1,4 +1,4 @@
-import type { PrismaClient, Role } from '@prisma/client';
+import type { User, PrismaClient, Role } from '@prisma/client';
 import type { AuthContextUser } from '../services/firebaseAdmin';
 
 type Ctx = { user: AuthContextUser | null; prisma: PrismaClient };

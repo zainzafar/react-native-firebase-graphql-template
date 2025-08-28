@@ -56,7 +56,7 @@ export function Input(props: InputProps) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, padding: 16, gap: 16, justifyContent: 'center' },
-  card: { borderWidth: 1, borderRadius: 16, padding: 20, gap: 12, shadowOpacity: 0.06, shadowRadius: 8, shadowOffset: { width: 0, height: 4 } },
+  card: { borderWidth: 1, borderRadius: 16, padding: 20, gap: 12, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 2 },
   heading: { fontSize: 24, fontWeight: '700', letterSpacing: 0.3 },
   body: { fontSize: 14 },
   input: { borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 16 },

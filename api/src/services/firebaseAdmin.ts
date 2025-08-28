@@ -4,12 +4,10 @@ import { verifyAppJwt } from './appJwt';
 import { getPrisma } from './prisma';
 import type { Role, User as PrismaUser, UserIdentity } from '@prisma/client';
 
-type AuthContextUser = PrismaUser & {
+export type AuthContextUser = PrismaUser & {
   roles: Role[];
   identities: UserIdentity[];
 };
-
-export { AuthContextUser };
 
 let initialized = false;
 

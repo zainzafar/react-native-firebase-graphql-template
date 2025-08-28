@@ -1,54 +1,66 @@
 import type { PrismaClient, User } from '@prisma/client';
 import { Role } from '@prisma/client';
-import { getFirebaseAuth } from '../../../services/firebaseAdmin';
+import { getFirebaseAuth, AuthContextUser } from '../../../services/firebaseAdmin';
 import { requireRole } from '../../rbac';
 
 export default {
   adminUpdateUser: async (
     _parent: unknown,
-    args: { id: string; input: { displayName?: string; photoURL?: string; phoneNumber?: string } },
-    ctx: { prisma: PrismaClient; user: User }
+    args: { uid: string; input: { email?: string; emailVerified?: boolean; phoneNumber?: string; password?: string; displayName?: string; photoURL?: string; disabled?: boolean } },
+    ctx: { prisma: PrismaClient; user: AuthContextUser }
   ) => {
     const prisma = ctx.prisma;
     await requireRole({ user: ctx.user, prisma }, Role.SUPER_ADMIN);
 
-    const updated = await prisma.user.update({
-      where: { id: args.id },
-      data: {
+    // First update Firebase Auth so it's the source of truth
+    try {
+      await getFirebaseAuth().updateUser(args.uid, {
+        email: args.input.email ?? undefined,
+        emailVerified: args.input.emailVerified ?? undefined,
+        phoneNumber:
+          args.input.phoneNumber !== undefined
+            ? (args.input.phoneNumber?.trim() === '' ? (null as any) : args.input.phoneNumber)
+            : undefined,
+        password: args.input.password ?? undefined,
         displayName: args.input.displayName ?? undefined,
         photoURL: args.input.photoURL ?? undefined,
-        phoneNumber: args.input.phoneNumber ?? undefined,
+        disabled: args.input.disabled ?? undefined,
+      });
+    } catch (e: any) {
+      // Bubble up the error so the client can react and DB stays unchanged
+      throw new Error(e?.message || 'Failed to update authentication profile');
+    }
+
+    // Only after Firebase succeeds, persist to DB
+    const updated = await prisma.user.update({
+      where: { uid: args.uid },
+      data: {
+        email: args.input.email ?? undefined,
+        emailVerified: args.input.emailVerified ?? undefined,
+        phoneNumber:
+          args.input.phoneNumber !== undefined
+            ? (args.input.phoneNumber?.trim() === '' ? null : args.input.phoneNumber)
+            : undefined,
+        displayName: args.input.displayName ?? undefined,
+        photoURL: args.input.photoURL ?? undefined,
+        // Optionally mirror disabled if you add a DB field later
       },
       include: { identities: true, roles: true },
     });
 
-    // Mirror changes to Firebase where applicable
-    try {
-      await getFirebaseAuth().updateUser(updated.uid, {
-        displayName: updated.displayName ?? undefined,
-        photoURL: updated.photoURL ?? undefined,
-        phoneNumber: updated.phoneNumber ?? undefined,
-      });
-    } catch (e) {
-      console.warn('[adminUpdateUser] Firebase update warning:', e);
-    }
-
-    return updated
+    return updated;
   },
 
   adminDeleteUser: async (
     _parent: unknown,
-    args: { id: string; confirm: string },
-    ctx: { prisma: PrismaClient; user: User }
+    args: { uid: string },
+    ctx: { prisma: PrismaClient; user: AuthContextUser }
   ) => {
     const prisma = ctx.prisma;
     await requireRole({ user: ctx.user, prisma }, Role.SUPER_ADMIN);
 
-    const target = await prisma.user.findUnique({ where: { id: args.id } });
+    const target = await prisma.user.findUnique({ where: { uid: args.uid } });
     if (!target) throw new Error('User not found');
-    if (!target.email || target.email !== args.confirm) {
-      throw new Error('Confirmation does not match user email');
-    }
 
     // Delete from Firebase Auth first
     try {
@@ -58,19 +70,19 @@ export default {
     }
 
     // Delete from our DB (cascade removes identities and roles)
-    await prisma.user.delete({ where: { id: args.id } });
+    await prisma.user.delete({ where: { uid: args.uid } });
     return true;
   },
 
   adminResetPassword: async (
     _parent: unknown,
-    args: { id: string },
-    ctx: { prisma: PrismaClient; user: User }
+    args: { uid: string },
+    ctx: { prisma: PrismaClient; user: AuthContextUser }
   ) => {
     const prisma = ctx.prisma;
     await requireRole({ user: ctx.user, prisma }, Role.SUPER_ADMIN);
 
-    const target = await prisma.user.findUnique({ where: { id: args.id } });
+    const target = await prisma.user.findUnique({ where: { uid: args.uid } });
     if (!target) throw new Error('User not found');
     if (!target.email) return false;
 

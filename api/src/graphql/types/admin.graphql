@@ -1,10 +1,4 @@
-enum Role {
-  SUPER_ADMIN
-}
-
-extend type User {
-  roles: [Role!]!
-}
+ 
 
 enum UserSort {
   CREATED_AT_DESC
@@ -28,19 +22,23 @@ type UserConnection {
 
 extend type Query {
   adminListUsers(query: String, sortBy: UserSort = CREATED_AT_DESC, first: Int = 20, after: String): UserConnection!
-  adminGetUser(id: ID!): User
+  adminGetUser(uid: ID!): User
 }
 
 input AdminUpdateUserInput {
+  email: String
+  emailVerified: Boolean
+  phoneNumber: String
+  password: String
   displayName: String
   photoURL: String
-  phoneNumber: String
+  disabled: Boolean
 }
 
 extend type Mutation {
-  adminUpdateUser(id: ID!, input: AdminUpdateUserInput!): User!
-  adminDeleteUser(id: ID!, confirm: String!): Boolean!
-  adminResetPassword(id: ID!): Boolean!
+  adminUpdateUser(uid: ID!, input: AdminUpdateUserInput!): User!
+  adminDeleteUser(uid: ID!): Boolean!
+  adminResetPassword(uid: ID!): Boolean!
 }
 
 

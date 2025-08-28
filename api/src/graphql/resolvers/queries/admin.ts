@@ -1,13 +1,16 @@
 import type { PrismaClient, User } from '@prisma/client';
 import { Role } from '@prisma/client';
 import { requireRole } from '../../rbac';
+import { AuthContextUser } from '../../../services/firebaseAdmin';
 
 export default {
   adminListUsers: async (
     _parent: unknown,
     args: { query?: string; sortBy?: 'CREATED_AT_DESC' | 'CREATED_AT_ASC'; first?: number; after?: string },
-    ctx: { prisma: PrismaClient; user: User }
+    ctx: { prisma: PrismaClient; user: AuthContextUser }
   ) => {
+    // sleep for 5 seconds
+    await new Promise((resolve) => setTimeout(resolve, 2000));
     const prisma = ctx.prisma;
     // Load roles for the current user to enforce policy
     await requireRole({ user: ctx.user, prisma }, Role.SUPER_ADMIN);
@@ -32,7 +35,7 @@ export default {
       take: take + 1,
       ...(cursor ? { skip: 1, cursor } : {}),
       orderBy: { createdAt: sortDesc ? 'desc' : 'asc' },
-      include: { roles: true },
+      include: { roles: true, identities: true },
     });
 
     const hasNextPage = users.length > take;
@@ -45,13 +48,12 @@ export default {
 
   adminGetUser: async (
     _parent: unknown,
-    args: { id: string },
-    ctx: { prisma: PrismaClient; user: User }
+    args: { uid: string },
+    ctx: { prisma: PrismaClient; user: AuthContextUser }
   ) => {
     const prisma = ctx.prisma;
     await requireRole({ user: ctx.user, prisma }, Role.SUPER_ADMIN);
-
-    const user = await prisma.user.findUnique({ where: { id: args.id }, include: { identities: true, roles: true } });
+    const user = await prisma.user.findUnique({ where: { uid: args.uid }, include: { identities: true, roles: true } });
     if (!user) return null;
     return user;
   },

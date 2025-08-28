@@ -18,6 +18,7 @@ type ButtonProps = {
   style?: any;
   icon?: any;
   iconStyle?: 'solid' | 'regular' | 'brand';
+  textColor?: string;
 };
 
 export function Button({ 
@@ -34,12 +35,18 @@ export function Button({
   disabled, 
   style,
   icon,
-  iconStyle = 'solid'
+  iconStyle = 'solid',
+  textColor,
 }: ButtonProps) {
-  const { colors } = useTheme();
-  const bg = variant === 'primary' ? colors.primary : 'transparent';
+  const { colors, isDark } = useTheme();
+  // Subtle default background for ghost buttons so they look like buttons
+  const isGhost = variant !== 'primary';
+  const ghostBg = isDark ? 'rgba(255,255,255,0.06)' : colors.card;
+  const bg = variant === 'primary' ? colors.primary : ghostBg;
   const text = variant === 'primary' ? colors.primaryText : colors.text;
-  const borderColor = variant === 'primary' ? colors.primary : colors.border;
+  const textColorFinal = textColor ?? text;
+  const ghostBorder = isDark ? 'rgba(255,255,255,0.14)' : colors.border;
+  const borderColor = variant === 'primary' ? colors.primary : ghostBorder;
   
   // Success and error state styling
   const successBg = success ? '#059669' : bg;
@@ -116,23 +123,30 @@ export function Button({
       style={({ pressed }) => [
         styles.button,
         { backgroundColor: finalBg, borderColor: finalBorderColor },
-        pressed && { opacity: 0.9 },
+        // Light shadow/elevation to give subtle button affordance
+        !isDark && styles.buttonShadow,
+        isGhost && (isDark ? { borderWidth: 1.5 } : styles.ghostEmphasis),
+        pressed && (isGhost ? styles.ghostPressed : { opacity: 0.9 }),
         disabled && { opacity: 0.6 },
         style,
       ]}
       disabled={disabled || loading || success || error}
     >
       {loading ? (
-        <ActivityIndicator color={text} />
+        <ActivityIndicator color={textColorFinal} />
       ) : success ? (
         <View style={styles.successContainer}>
           <FontAwesome6 name="check" iconStyle="solid" size={16} color="white" />
-          <Text style={[styles.buttonText, { color: 'white', marginLeft: 8 }]}>{successText || title}</Text>
+          <Text style={[styles.buttonText, { color: 'white', marginLeft: 8 }]} numberOfLines={1} ellipsizeMode="tail" allowFontScaling={false}>
+            {successText || title}
+          </Text>
         </View>
       ) : error ? (
         <View style={styles.errorContainer}>
           <FontAwesome6 name="triangle-exclamation" iconStyle="solid" size={16} color="white" />
-          <Text style={[styles.buttonText, { color: 'white', marginLeft: 8 }]}>{errorText || 'Error occurred'}</Text>
+          <Text style={[styles.buttonText, { color: 'white', marginLeft: 8 }]} numberOfLines={1} ellipsizeMode="tail" allowFontScaling={false}>
+            {errorText || 'Error occurred'}
+          </Text>
         </View>
       ) : (
         <View style={styles.contentContainer}>
@@ -141,11 +155,13 @@ export function Button({
               name={icon} 
               iconStyle={iconStyle} 
               size={16} 
-              color={text} 
+              color={textColorFinal} 
               style={styles.icon}
             />
           )}
-          <Text style={[styles.buttonText, { color: text }]}>{title}</Text>
+          <Text style={[styles.buttonText, { color: textColorFinal }]} numberOfLines={1} ellipsizeMode="tail" allowFontScaling={false}>
+            {title}
+          </Text>
         </View>
       )}
       
@@ -171,7 +187,10 @@ export function Button({
 }
 
 const styles = StyleSheet.create({
-  button: { borderWidth: 1, borderRadius: 12, paddingVertical: 12, alignItems: 'center', overflow: 'hidden' },
+  button: { borderWidth: 1, borderRadius: 12, paddingVertical: 12, paddingHorizontal: 16, alignItems: 'center', overflow: 'hidden' },
+  buttonShadow: { shadowColor: '#000', shadowOpacity: 0.02, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 0 },
+  ghostEmphasis: { borderWidth: 1.5, shadowOpacity: 0.03, shadowRadius: 6, shadowOffset: { width: 0, height: 1 }, elevation: 0.5 },
+  ghostPressed: { opacity: 0.95, transform: [{ scale: 0.995 }] },
   buttonText: { fontSize: 16, fontWeight: '600' },
   contentContainer: { flexDirection: 'row', alignItems: 'center' },
   successContainer: { flexDirection: 'row', alignItems: 'center' },

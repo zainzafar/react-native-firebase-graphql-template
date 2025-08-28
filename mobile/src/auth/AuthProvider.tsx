@@ -73,6 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 displayName: userData.displayName ?? undefined,
                 photoURL: userData.photoURL ?? undefined,
                 lastLoginProvider: userData.lastLoginProvider ?? undefined,
+                roles: Array.isArray(userData.roles) ? userData.roles : [],
               };
               dispatch(setUserAction(profile));
             }
@@ -109,6 +110,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               displayName: userData.displayName ?? undefined,
               photoURL: userData.photoURL ?? undefined,
               lastLoginProvider: userData.lastLoginProvider ?? undefined,
+              roles: Array.isArray(userData.roles) ? userData.roles : [],
             };
             dispatch(setUserAction(profile));
           }
@@ -143,6 +145,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             displayName: userData.displayName ?? undefined,
             photoURL: userData.photoURL ?? undefined,
             lastLoginProvider: userData.lastLoginProvider ?? undefined,
+            roles: Array.isArray(userData.roles) ? userData.roles : [],
           };
           dispatch(setUserAction(profile));
         }

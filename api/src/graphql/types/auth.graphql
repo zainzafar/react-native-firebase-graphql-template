@@ -7,6 +7,10 @@ extend type Mutation {
   updateProfile(displayName: String, photoURL: String): User!
 }
 
+enum Role {
+  SUPER_ADMIN
+}
+
 type User {
   uid: ID!
   email: String
@@ -16,6 +20,8 @@ type User {
   phoneNumber: String
   lastLoginProvider: String
   identities: [UserIdentity!]!
+  createdAt: Timestamp!
+  roles: [Role!]!
 }
 
 type AuthPayload {
@@ -26,7 +32,7 @@ type AuthPayload {
 type UserIdentity {
   providerId: String!
   providerUid: String!
-  lastUsedAt: String
+  lastUsedAt: Timestamp
 }
 
 

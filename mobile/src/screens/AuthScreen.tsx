@@ -100,9 +100,7 @@ export default function AuthScreen() {
           )}
         </Animated.View>
       </Card>
-      <Pressable style={styles.debugLink} onPress={() => navigation.navigate('Debug')} hitSlop={8}>
-        <Body style={styles.debugText}>Debug</Body>
-      </Pressable>
+
     </ScreenContainer>
   );
 }
@@ -110,8 +108,7 @@ export default function AuthScreen() {
 const styles = StyleSheet.create({
   header: { alignItems: 'center', gap: 6 },
   subheading: { textAlign: 'center' },
-  debugLink: { position: 'absolute', bottom: 24, left: 0, right: 0, alignItems: 'center' },
-  debugText: { textAlign: 'center' },
+
   buttonGroup: { gap: 12 },
 });
 

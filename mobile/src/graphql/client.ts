@@ -48,7 +48,38 @@ const errorLink = onError((ctx: any) => {
 
 export const apolloClient = new ApolloClient({
   link: from([errorLink, authLink, httpLink]),
-  cache: new InMemoryCache(),
+  cache: new InMemoryCache({
+    typePolicies: {
+      Query: {
+        fields: {
+          adminListUsers: {
+            // Keep separate caches per search query; pagination uses 'after'
+            keyArgs: ['query'],
+            merge(existing, incoming) {
+              if (!existing) return incoming;
+              const existingEdges = Array.isArray(existing.edges) ? existing.edges : [];
+              const incomingEdges = Array.isArray(incoming?.edges) ? incoming.edges : [];
+              // Deduplicate by cursor
+              const seen = new Set<string>();
+              const mergedEdges = [] as any[];
+              for (const e of [...existingEdges, ...incomingEdges]) {
+                const c = e?.cursor;
+                if (c && !seen.has(c)) {
+                  seen.add(c);
+                  mergedEdges.push(e);
+                }
+              }
+              return {
+                ...incoming,
+                edges: mergedEdges,
+                pageInfo: incoming?.pageInfo ?? existing?.pageInfo,
+              };
+            },
+          },
+        },
+      },
+    },
+  }),
 });
 
 export async function resetApollo(): Promise<void> {
