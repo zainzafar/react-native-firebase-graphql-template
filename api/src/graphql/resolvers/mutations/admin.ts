@@ -1,7 +1,7 @@
 import type { PrismaClient, User } from '@prisma/client';
-import { Role } from '@prisma/client';
+import { Permission } from '@prisma/client';
 import { getFirebaseAuth, AuthContextUser } from '../../../services/firebaseAdmin';
-import { requireRole } from '../../rbac';
+import { requirePermission } from '../../rbac';
 
 export default {
   adminUpdateUser: async (
@@ -10,7 +10,7 @@ export default {
     ctx: { prisma: PrismaClient; user: AuthContextUser }
   ) => {
     const prisma = ctx.prisma;
-    await requireRole({ user: ctx.user, prisma }, Role.SUPER_ADMIN);
+    await requirePermission({ user: ctx.user, prisma }, Permission.ADMIN_USERS_EDIT);
 
     // First update Firebase Auth so it's the source of truth
     try {
@@ -37,15 +37,11 @@ export default {
       data: {
         email: args.input.email ?? undefined,
         emailVerified: args.input.emailVerified ?? undefined,
-        phoneNumber:
-          args.input.phoneNumber !== undefined
-            ? (args.input.phoneNumber?.trim() === '' ? null : args.input.phoneNumber)
-            : undefined,
+        phoneNumber: args.input.phoneNumber ?? undefined,
         displayName: args.input.displayName ?? undefined,
         photoURL: args.input.photoURL ?? undefined,
-        // Optionally mirror disabled if you add a DB field later
       },
-      include: { identities: true, roles: true },
+      include: { roles: true, identities: true },
     });
 
     return updated;
@@ -57,19 +53,16 @@ export default {
     ctx: { prisma: PrismaClient; user: AuthContextUser }
   ) => {
     const prisma = ctx.prisma;
-    await requireRole({ user: ctx.user, prisma }, Role.SUPER_ADMIN);
+    await requirePermission({ user: ctx.user, prisma }, Permission.ADMIN_USERS_DELETE);
 
-    const target = await prisma.user.findUnique({ where: { uid: args.uid } });
-    if (!target) throw new Error('User not found');
-
-    // Delete from Firebase Auth first
+    // First delete from Firebase Auth
     try {
-      await getFirebaseAuth().deleteUser(target.uid);
-    } catch (e) {
-      console.warn('[adminDeleteUser] Firebase delete warning:', e);
+      await getFirebaseAuth().deleteUser(args.uid);
+    } catch (e: any) {
+      throw new Error(e?.message || 'Failed to delete user from authentication');
     }
 
-    // Delete from our DB (cascade removes identities and roles)
+    // Only after Firebase succeeds, delete from DB
     await prisma.user.delete({ where: { uid: args.uid } });
     return true;
   },
@@ -80,22 +73,15 @@ export default {
     ctx: { prisma: PrismaClient; user: AuthContextUser }
   ) => {
     const prisma = ctx.prisma;
-    await requireRole({ user: ctx.user, prisma }, Role.SUPER_ADMIN);
-
-    const target = await prisma.user.findUnique({ where: { uid: args.uid } });
-    if (!target) throw new Error('User not found');
-    if (!target.email) return false;
+    await requirePermission({ user: ctx.user, prisma }, Permission.ADMIN_USERS_EDIT);
 
     try {
-      const link = await getFirebaseAuth().generatePasswordResetLink(target.email);
-      // In a template we rely on Firebase to send the email; link available for custom handlers
-      console.log('[adminResetPassword] Generated password reset link:', link);
+      await getFirebaseAuth().generatePasswordResetLink(args.uid);
       return true;
-    } catch (e) {
-      console.error('[adminResetPassword] Failed generating reset link', e);
-      return false;
+    } catch (e: any) {
+      throw new Error(e?.message || 'Failed to generate password reset link');
     }
-  },
+  }
 };
 
 

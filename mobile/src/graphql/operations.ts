@@ -3,7 +3,7 @@ import { gql } from '@apollo/client';
 export const MUTATION_LOGIN_WITH_ID_TOKEN = gql`
   mutation LoginWithIdToken($idToken: String!) {
     loginWithIdToken(idToken: $idToken) {
-      user { uid email displayName emailVerified lastLoginProvider roles identities { providerId providerUid lastUsedAt } }
+      user { uid email displayName emailVerified lastLoginProvider permissions identities { providerId providerUid lastUsedAt } }
       accessToken
     }
   }
@@ -11,7 +11,7 @@ export const MUTATION_LOGIN_WITH_ID_TOKEN = gql`
 
 export const QUERY_ME = gql`
   query Me {
-    me { uid email displayName emailVerified lastLoginProvider roles identities { providerId providerUid lastUsedAt } }
+    me { uid email displayName emailVerified lastLoginProvider permissions identities { providerId providerUid lastUsedAt } }
   }
 `;
 
@@ -46,7 +46,6 @@ export const QUERY_ADMIN_LIST_USERS = gql`
           lastLoginProvider
           createdAt
           identities { providerId }
-          roles
         }
       }
       pageInfo { hasNextPage endCursor }
@@ -64,7 +63,6 @@ export const QUERY_ADMIN_GET_USER = gql`
       photoURL
       lastLoginProvider
       createdAt
-      roles
       identities { providerId providerUid lastUsedAt }
     }
   }
@@ -80,7 +78,6 @@ export const QUERY_ADMIN_GET_USER_BY_UID = gql`
       photoURL
       lastLoginProvider
       createdAt
-      roles
       identities { providerId providerUid lastUsedAt }
     }
   }
@@ -96,7 +93,6 @@ export const MUTATION_ADMIN_UPDATE_USER = gql`
       photoURL
       lastLoginProvider
       createdAt
-      roles
     }
   }
 `;

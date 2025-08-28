@@ -1,7 +1,7 @@
-import type { User } from '@prisma/client';
+import type { AuthContextUser } from '../../../services/firebaseAdmin';
 
 export default {
-  me: async (_parent: unknown, _args: unknown, { user }: { user: User }) => {
+  me: async (_parent: unknown, _args: unknown, { user }: { user: AuthContextUser }) => {
     return user;
   },
 };

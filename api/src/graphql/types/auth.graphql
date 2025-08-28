@@ -11,6 +11,16 @@ enum Role {
   SUPER_ADMIN
 }
 
+enum Permission {
+  ADMIN_ACCESS
+  ADMIN_USERS_VIEW
+  ADMIN_USERS_SEARCH
+  ADMIN_USERS_EDIT
+  ADMIN_USERS_DELETE
+  ADMIN_USERS_IMPERSONATE
+  ADMIN_DEBUG
+}
+
 type User {
   uid: ID!
   email: String
@@ -22,6 +32,7 @@ type User {
   identities: [UserIdentity!]!
   createdAt: Timestamp!
   roles: [Role!]!
+  permissions: [Permission!]!
 }
 
 type AuthPayload {

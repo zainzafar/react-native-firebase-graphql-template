@@ -25,6 +25,7 @@ model User {
 
   identities    UserIdentity[]
   roles         UserRole[]
+  permissions   UserPermission[]
 
   @@index([createdAt])
   @@index([displayName])
@@ -51,6 +52,16 @@ enum Role {
   SUPER_ADMIN
 }
 
+enum Permission {
+  ADMIN_ACCESS
+  ADMIN_USERS_VIEW
+  ADMIN_USERS_SEARCH
+  ADMIN_USERS_EDIT
+  ADMIN_USERS_DELETE
+  ADMIN_USERS_IMPERSONATE
+  ADMIN_DEBUG
+}
+
 model UserRole {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
@@ -59,5 +70,26 @@ model UserRole {
   role      Role
 
   @@unique([userId, role])
+  @@index([userId])
+}
+
+model RolePermission {
+  id           String     @id @default(cuid())
+  createdAt    DateTime   @default(now())
+  role         Role
+  permission   Permission
+
+  @@unique([role, permission])
+  @@index([role])
+}
+
+model UserPermission {
+  id           String     @id @default(cuid())
+  createdAt    DateTime   @default(now())
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  permission   Permission
+
+  @@unique([userId, permission])
   @@index([userId])
 }

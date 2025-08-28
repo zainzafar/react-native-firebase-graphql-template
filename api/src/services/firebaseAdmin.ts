@@ -2,10 +2,12 @@ import admin from 'firebase-admin';
 import type { Request } from 'express';
 import { verifyAppJwt } from './appJwt';
 import { getPrisma } from './prisma';
-import type { Role, User as PrismaUser, UserIdentity } from '@prisma/client';
+import type { Role, User as PrismaUser, UserIdentity, Permission } from '@prisma/client';
+import { resolveUserPermissions } from '../graphql/rbac';
 
 export type AuthContextUser = PrismaUser & {
   roles: Role[];
+  permissions: Permission[];
   identities: UserIdentity[];
 };
 
@@ -68,11 +70,25 @@ export async function getAuthUserFromRequest(req: Request): Promise<AuthContextU
     const appPayload = verifyAppJwt(token);
     if (appPayload?.id) {
       const prisma = getPrisma();
-      const dbUser = await prisma.user.findUnique({ where: { id: appPayload.id }, include: { identities: true, roles: true } });
+      const dbUser = await prisma.user.findUnique({ 
+        where: { id: appPayload.id }, 
+        include: { 
+          identities: true, 
+          roles: true
+        } 
+      });
       if (dbUser) {
         // Map roles relation to enum list for GraphQL convenience
         const roleEnums = Array.isArray((dbUser as any).roles) ? (dbUser as any).roles.map((r: any) => r.role) : [];
-        return { ...dbUser, roles: roleEnums } as AuthContextUser;
+        
+        // Resolve all permissions for this user
+        const resolvedPermissions = await resolveUserPermissions(prisma, dbUser.id);
+        
+        return { 
+          ...dbUser, 
+          roles: roleEnums, 
+          permissions: resolvedPermissions 
+        } as AuthContextUser;
       }
     }
   }

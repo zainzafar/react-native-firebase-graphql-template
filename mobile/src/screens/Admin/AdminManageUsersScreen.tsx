@@ -7,6 +7,8 @@ import { QUERY_ADMIN_LIST_USERS } from '../../graphql/operations';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import { useNavigation } from '@react-navigation/native';
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
+import { useAppSelector } from '../../store/hooks';
+import { selectCanEditUsers, selectCanDeleteUsers, selectCanImpersonateUsers, selectCanSearchUsers } from '../../features/auth/selectors';
 
 type Edge = { cursor: string; node: { uid: string; email?: string; phoneNumber?: string; displayName?: string; lastLoginProvider?: string; createdAt?: string; identities?: { providerId: string }[] } };
 type AdminListUsersQuery = {
@@ -15,6 +17,8 @@ type AdminListUsersQuery = {
     pageInfo: { hasNextPage: boolean; endCursor: string | null };
   };
 };
+
+const USERS_PER_PAGE = 20;
 
 export default function AdminManageUsersScreen() {
   const { colors } = useTheme();
@@ -25,8 +29,14 @@ export default function AdminManageUsersScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const debounceRef = useRef<any>(null);
 
+  // Permission checks
+  const canEditUsers = useAppSelector(selectCanEditUsers);
+  const canDeleteUsers = useAppSelector(selectCanDeleteUsers);
+  const canImpersonateUsers = useAppSelector(selectCanImpersonateUsers);
+  const canSearchUsers = useAppSelector(selectCanSearchUsers);
+
   const { data, loading, fetchMore, refetch } = useQuery<AdminListUsersQuery>(QUERY_ADMIN_LIST_USERS, {
-    variables: { query: debounced || undefined, first: 20, after: null },
+    variables: { query: debounced || undefined, first: USERS_PER_PAGE, after: null },
     notifyOnNetworkStatusChange: true,
   });
 
@@ -43,14 +53,14 @@ export default function AdminManageUsersScreen() {
   const onEndReached = useCallback(() => {
     if (loading || loadingMore || !hasNextPage) return;
     setLoadingMore(true);
-    fetchMore({ variables: { query: debounced || undefined, first: 20, after: endCursor } })
+    fetchMore({ variables: { query: debounced || undefined, first: USERS_PER_PAGE, after: endCursor } })
       .finally(() => setLoadingMore(false));
   }, [loading, loadingMore, hasNextPage, fetchMore, debounced, endCursor]);
 
   const onRefresh = useCallback(() => {
     if (refreshing) return;
     setRefreshing(true);
-    refetch({ query: debounced || undefined, first: 3, after: null })
+    refetch({ query: debounced || undefined, first: USERS_PER_PAGE, after: null })
       .finally(() => setRefreshing(false));
   }, [refetch, debounced, refreshing]);
 
@@ -98,9 +108,11 @@ export default function AdminManageUsersScreen() {
               {u.email || formatPhone(u.phoneNumber) || u.uid}
             </Text>
           </View>
-          <Pressable onPress={() => navigation.navigate('AdminDeleteUser', { id: u.uid })} hitSlop={8} style={styles.deleteIconButton}>
-            <FontAwesome6 name="trash-can" iconStyle="regular" size={16} color="#EF4444" />
-          </Pressable>
+          {canDeleteUsers && (
+            <Pressable onPress={() => navigation.navigate('AdminDeleteUser', { id: u.uid })} hitSlop={8} style={styles.deleteIconButton}>
+              <FontAwesome6 name="trash-can" iconStyle="regular" size={16} color="#EF4444" />
+            </Pressable>
+          )}
         </View>
         <View style={styles.meta}>
           {u.displayName ? <Body style={styles.metaText}>{u.displayName}</Body> : null}
@@ -110,8 +122,8 @@ export default function AdminManageUsersScreen() {
         </View>
         <View style={styles.rowActions}>
           {[
-            { key: 'imp', title: 'Impersonate', onPress: () => {} },
-            { key: 'edit', title: 'Edit', onPress: () => navigation.navigate('AdminEditUser', { id: u.uid }) },
+            ...(canImpersonateUsers ? [{ key: 'imp', title: 'Impersonate', onPress: () => {} }] : []),
+            ...(canEditUsers ? [{ key: 'edit', title: 'Edit', onPress: () => navigation.navigate('AdminEditUser', { id: u.uid }) }] : []),
           ].map((action) => (
             <View key={action.key} style={styles.actionCol}>
               <Button
@@ -129,31 +141,37 @@ export default function AdminManageUsersScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}> 
-      <Card style={styles.searchCard}>
-        <View style={styles.searchRow}>
-          <FontAwesome6 name="magnifying-glass" iconStyle="solid" size={16} color={colors.mutedText} />
-          <TextInput
-            value={search}
-            onChangeText={setSearch}
-            placeholder="Enter user email or ID"
-            placeholderTextColor={colors.mutedText}
-            style={[styles.searchInput, { color: colors.text }]}
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-          {search.length > 0 ? (
-            <Pressable onPress={() => setSearch('')} hitSlop={8}>
-              <FontAwesome6 name="circle-xmark" iconStyle="regular" size={18} color={colors.mutedText} />
-            </Pressable>
-          ) : null}
-        </View>
-      </Card>
+      {canSearchUsers && (
+        <Card style={styles.searchCard}>
+          <View style={styles.searchRow}>
+            <FontAwesome6 name="magnifying-glass" iconStyle="solid" size={16} color={colors.mutedText} />
+            <TextInput
+              value={search}
+              onChangeText={setSearch}
+              placeholder="Enter user email or ID"
+              placeholderTextColor={colors.mutedText}
+              style={[styles.searchInput, { color: colors.text }]}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            {search.length > 0 ? (
+              <Pressable onPress={() => setSearch('')} hitSlop={8}>
+                <FontAwesome6 name="circle-xmark" iconStyle="regular" size={18} color={colors.mutedText} />
+              </Pressable>
+            ) : null}
+          </View>
+        </Card>
+      )}
 
       <FlatList
         data={edges}
         keyExtractor={(e) => e.cursor}
         renderItem={renderItem}
-        contentContainerStyle={{ padding: 16, paddingTop: 0, gap: 12 }}
+        contentContainerStyle={{ 
+          padding: 16, 
+          paddingTop: canSearchUsers ? 0 : 16, // Add top padding when search is hidden
+          gap: 12 
+        }}
         onEndReached={onEndReached}
         onEndReachedThreshold={0.5}
         refreshControl={

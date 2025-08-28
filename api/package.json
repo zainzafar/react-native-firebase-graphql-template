@@ -8,9 +8,10 @@
     "build": "tsc && node scripts/copy-graphql.js",
     "start": "node dist/index.js",
     "dev": "nodemon",
-    "prisma:generate": "prisma generate",
-    "prisma:seed": "ts-node prisma/seed.ts",
     "import:firebase-users": "ts-node scripts/import-firebase-users.ts"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
   },
   "keywords": [],
   "author": "",

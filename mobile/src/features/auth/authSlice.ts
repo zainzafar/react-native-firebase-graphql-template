@@ -7,6 +7,7 @@ export type AuthUser = {
   photoURL?: string;
   lastLoginProvider?: string;
   roles?: string[];
+  permissions?: string[];
 };
 
 export type AuthState = {
