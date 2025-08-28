@@ -1,38 +1,43 @@
-import { RootState } from '../../store';
+import { createSelector } from '@reduxjs/toolkit';
+import type { RootState } from '../../store';
 
-export const selectAuthInitialized = (state: RootState) => state.auth.initialized;
-export const selectIsAuthenticated = (state: RootState) => !!state.auth.user;
+// Base selectors
 export const selectUser = (state: RootState) => state.auth.user;
+export const selectIsAuthenticated = (state: RootState) => state.auth.isAuthenticated;
+export const selectAuthInitialized = (state: RootState) => state.auth.initialized;
 export const selectAuth = (state: RootState) => state.auth;
 
 // Permission-based selectors
-export const selectHasPermission = (permission: string) => (state: RootState) => 
-  Array.isArray(state.auth.user?.permissions) && state.auth.user!.permissions!.includes(permission);
+export const selectHasPermission = (permission: string) => 
+  createSelector(
+    [selectUser],
+    (user) => user?.permissions?.includes(permission) ?? false
+  );
 
-// Convenience selectors for common permissions
-export const selectHasAdminAccess = (state: RootState) => 
-  selectHasPermission('ADMIN_ACCESS')(state);
+// Admin access selector - checks if user has any ADMIN_ permission
+export const selectCanAccessAdmin = 
+  createSelector(
+    [selectUser],
+    (user) => user?.permissions?.some(permission => permission.startsWith('ADMIN_')) ?? false
+  );
 
-export const selectCanViewUsers = (state: RootState) => 
-  selectHasPermission('ADMIN_USERS_VIEW')(state);
+// Specific permission selectors
+export const selectCanViewUsers = 
+  selectHasPermission('ADMIN_USERS_VIEW');
 
-export const selectCanSearchUsers = (state: RootState) => 
-  selectHasPermission('ADMIN_USERS_SEARCH')(state);
+export const selectCanSearchUsers = 
+  selectHasPermission('ADMIN_USERS_SEARCH');
 
-export const selectCanEditUsers = (state: RootState) => 
-  selectHasPermission('ADMIN_USERS_EDIT')(state);
+export const selectCanEditUsers = 
+  selectHasPermission('ADMIN_USERS_EDIT');
 
-export const selectCanDeleteUsers = (state: RootState) => 
-  selectHasPermission('ADMIN_USERS_DELETE')(state);
+export const selectCanDeleteUsers = 
+  selectHasPermission('ADMIN_USERS_DELETE');
 
-export const selectCanImpersonateUsers = (state: RootState) => 
-  selectHasPermission('ADMIN_USERS_IMPERSONATE')(state);
+export const selectCanImpersonateUsers = 
+  selectHasPermission('ADMIN_USERS_IMPERSONATE');
 
-export const selectCanAccessDebug = (state: RootState) => 
-  selectHasPermission('ADMIN_DEBUG')(state);
-
-// Legacy role-based selector for backward compatibility
-export const selectIsSuperAdmin = (state: RootState) => 
-  Array.isArray(state.auth.user?.roles) && state.auth.user!.roles!.includes('SUPER_ADMIN');
+export const selectCanAccessDebug =  
+  selectHasPermission('ADMIN_DEBUG');
 
 

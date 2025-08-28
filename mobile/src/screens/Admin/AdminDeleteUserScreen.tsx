@@ -67,7 +67,7 @@ export default function AdminDeleteUserScreen() {
           <Body>• This cannot be undone.</Body>
         </View>
         <Button
-          title="Delete"
+          title="Permanently Delete"
           onPress={onDelete}
           loading={loading}
           variant="ghost"

@@ -75,7 +75,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 lastLoginProvider: userData.lastLoginProvider ?? undefined,
                 permissions: Array.isArray(userData.permissions) ? userData.permissions : [],
               };
-              console.log('[AuthProvider] Setting user profile with permissions:', profile.permissions);
               dispatch(setUserAction(profile));
             }
           }
@@ -113,7 +112,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               lastLoginProvider: userData.lastLoginProvider ?? undefined,
               permissions: Array.isArray(userData.permissions) ? userData.permissions : [],
             };
-            console.log('[AuthProvider] Setting user profile with permissions:', profile.permissions);
             dispatch(setUserAction(profile));
           }
         } catch {

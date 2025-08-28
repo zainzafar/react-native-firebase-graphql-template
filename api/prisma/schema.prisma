@@ -48,12 +48,20 @@ model UserIdentity {
   @@index([userId])
 }
 
-enum Role {
-  SUPER_ADMIN
+model Role {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  name        String   @unique
+  description String?
+  
+  userRoles   UserRole[]
+  permissions RolePermission[]
+
+  @@index([name])
 }
 
 enum Permission {
-  ADMIN_ACCESS
   ADMIN_USERS_VIEW
   ADMIN_USERS_SEARCH
   ADMIN_USERS_EDIT
@@ -67,20 +75,23 @@ model UserRole {
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
-  role      Role
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  roleId    String
 
-  @@unique([userId, role])
+  @@unique([userId, roleId])
   @@index([userId])
+  @@index([roleId])
 }
 
 model RolePermission {
   id           String     @id @default(cuid())
   createdAt    DateTime   @default(now())
-  role         Role
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  roleId       String
   permission   Permission
 
-  @@unique([role, permission])
-  @@index([role])
+  @@unique([roleId, permission])
+  @@index([roleId])
 }
 
 model UserPermission {

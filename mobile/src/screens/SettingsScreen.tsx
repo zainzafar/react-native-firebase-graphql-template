@@ -5,12 +5,12 @@ import { useTheme } from '../theme/ThemeProvider';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../auth/AuthProvider';
 import { useAppSelector } from '../store/hooks';
-import { selectHasAdminAccess } from '../features/auth/selectors';
+import { selectCanAccessAdmin } from '../features/auth/selectors';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 
 export default function SettingsScreen() {
-  const { signOut, user } = useAuth();
-  const hasAdminAccess = useAppSelector(selectHasAdminAccess);
+  const { signOut } = useAuth();
+  const hasAdminAccess = useAppSelector(selectCanAccessAdmin);
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation<any>();
   const { isDark, setDarkMode, colors } = useTheme();
@@ -32,9 +32,7 @@ export default function SettingsScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView contentContainerStyle={[styles.scrollContent, { paddingTop: topInset, paddingBottom: 24 }]}> 
-        <View style={styles.header}><Heading>Settings</Heading></View>
-
+      <ScrollView contentContainerStyle={[styles.scrollContent, { paddingVertical: 20 }]}> 
         {/* Admin - only visible to users with admin access */}
         {hasAdminAccess && (
           <>

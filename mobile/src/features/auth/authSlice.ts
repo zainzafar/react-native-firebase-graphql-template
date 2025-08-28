@@ -1,12 +1,20 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 
+export type Role = {
+  id: string;
+  name: string;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type AuthUser = {
   id: string;
   email?: string;
   displayName?: string;
   photoURL?: string;
   lastLoginProvider?: string;
-  roles?: string[];
+  roles?: Role[];
   permissions?: string[];
 };
 

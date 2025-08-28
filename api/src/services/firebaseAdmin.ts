@@ -2,7 +2,7 @@ import admin from 'firebase-admin';
 import type { Request } from 'express';
 import { verifyAppJwt } from './appJwt';
 import { getPrisma } from './prisma';
-import type { Role, User as PrismaUser, UserIdentity, Permission } from '@prisma/client';
+import type { User as PrismaUser, UserIdentity, Permission, Role } from '@prisma/client';
 import { resolveUserPermissions } from '../graphql/rbac';
 
 export type AuthContextUser = PrismaUser & {
@@ -74,19 +74,19 @@ export async function getAuthUserFromRequest(req: Request): Promise<AuthContextU
         where: { id: appPayload.id }, 
         include: { 
           identities: true, 
-          roles: true
+          roles: { include: { role: true } }
         } 
       });
       if (dbUser) {
-        // Map roles relation to enum list for GraphQL convenience
-        const roleEnums = Array.isArray((dbUser as any).roles) ? (dbUser as any).roles.map((r: any) => r.role) : [];
+        // Map roles relation to role objects for GraphQL convenience
+        const roleObjects = Array.isArray((dbUser as any).roles) ? (dbUser as any).roles.map((r: any) => r.role) : [];
         
         // Resolve all permissions for this user
         const resolvedPermissions = await resolveUserPermissions(prisma, dbUser.id);
         
         return { 
           ...dbUser, 
-          roles: roleEnums, 
+          roles: roleObjects, 
           permissions: resolvedPermissions 
         } as AuthContextUser;
       }

@@ -9,8 +9,6 @@ export default {
     args: { query?: string; sortBy?: 'CREATED_AT_DESC' | 'CREATED_AT_ASC'; first?: number; after?: string },
     ctx: { prisma: PrismaClient; user: AuthContextUser }
   ) => {
-    // sleep for 5 seconds
-    await new Promise((resolve) => setTimeout(resolve, 2000));
     const prisma = ctx.prisma;
     
     // Check permissions based on whether search is being used

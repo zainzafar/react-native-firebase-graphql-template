@@ -1,22 +1,34 @@
-import { PrismaClient, Role, Permission } from '@prisma/client';
+import { PrismaClient, Permission } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log('[seed] Starting seed');
 
+  // Create the SUPER_ADMIN role
+  const superAdminRole = await prisma.role.upsert({
+    where: { name: 'SUPER_ADMIN' },
+    create: { 
+      name: 'SUPER_ADMIN',
+      description: 'Super administrator with all permissions'
+    },
+    update: {},
+  });
+
+  console.log('[seed] Created SUPER_ADMIN role');
+
   // Set up default role permissions
   const rolePermissions = [
     // SUPER_ADMIN gets all permissions
-    { role: Role.SUPER_ADMIN, permissions: Object.values(Permission) }
+    { roleId: superAdminRole.id, permissions: Object.values(Permission) }
   ];
 
   // Create role permissions
-  for (const { role, permissions } of rolePermissions) {
+  for (const { roleId, permissions } of rolePermissions) {
     for (const permission of permissions) {
       await prisma.rolePermission.upsert({
-        where: { role_permission: { role, permission } },
-        create: { role, permission },
+        where: { roleId_permission: { roleId, permission } },
+        create: { roleId, permission },
         update: {},
       });
     }
@@ -35,10 +47,11 @@ async function main() {
     console.warn(`[seed] No user found with email ${superAdminEmail}; ensure the user logs in once to be created.`);
     return;
   }
+  
   // Grant SUPER_ADMIN role to the user
   await prisma.userRole.upsert({
-    where: { userId_role: { userId: user.id, role: Role.SUPER_ADMIN } },
-    create: { userId: user.id, role: Role.SUPER_ADMIN },
+    where: { userId_roleId: { userId: user.id, roleId: superAdminRole.id } },
+    create: { userId: user.id, roleId: superAdminRole.id },
     update: {},
   });
 

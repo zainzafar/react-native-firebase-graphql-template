@@ -1,27 +1,26 @@
 import type { PrismaClient } from '@prisma/client';
 import { resolveUserPermissions } from '../../rbac';
+import type { AuthContextUser } from '../../../services/firebaseAdmin';
 
 export default {
   User: {
-    roles: async (parent: any, _args: unknown, ctx: { prisma: PrismaClient }) => {
-      const parentRoles = parent?.roles;
-
-      if (Array.isArray(parentRoles)) {
-        if (parentRoles.length === 0) return [];
-        if (typeof parentRoles[0] === 'string') return parentRoles as string[];
-        if (typeof parentRoles[0] === 'object') return (parentRoles as any[]).map((r) => r.role);
+    roles: async (parent: any, _args: unknown, ctx: { prisma: PrismaClient; user: AuthContextUser | null }) => {
+      // If user is requesting their own data, use the auth context
+      if (ctx.user && parent?.id === ctx.user.id) {
+        return ctx.user.roles;
       }
 
       if (!parent?.id) return [];
-      const rows = await ctx.prisma.userRole.findMany({ where: { userId: parent.id } });
+      const rows = await ctx.prisma.userRole.findMany({ 
+        where: { userId: parent.id },
+        include: { role: true }
+      });
       return rows.map((r) => r.role);
     },
-    permissions: async (parent: any, _args: unknown, ctx: { prisma: PrismaClient }) => {
-      const parentPermissions = parent?.permissions;
-      if (Array.isArray(parentPermissions)) {
-        if (parentPermissions.length === 0) return [];
-        if (typeof parentPermissions[0] === 'string') return parentPermissions as string[];
-        if (typeof parentPermissions[0] === 'object') return (parentPermissions as any[]).map((r) => r.permission);
+    permissions: async (parent: any, _args: unknown, ctx: { prisma: PrismaClient; user: AuthContextUser | null }) => {
+      // If user is requesting their own data, use the auth context
+      if (ctx.user && parent?.id === ctx.user.id) {
+        return ctx.user.permissions;
       }
       
       if (!parent?.id) return [];
