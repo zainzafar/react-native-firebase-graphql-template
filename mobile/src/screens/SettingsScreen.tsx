@@ -1,20 +1,18 @@
 import React, { useState } from 'react';
 import { Alert, Pressable, StyleSheet, View, Switch, ScrollView } from 'react-native';
-import { Body, Button, Card, Heading, useTopInset } from '../components';
+import { Body, Button, Card } from '../components';
 import { useTheme } from '../theme/ThemeProvider';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../auth/AuthProvider';
-import { useAppSelector } from '../store/hooks';
-import { selectCanAccessAdmin } from '../features/auth/selectors';
+import { usePermissions } from '../features/auth/hooks';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 
 export default function SettingsScreen() {
   const { signOut } = useAuth();
-  const hasAdminAccess = useAppSelector(selectCanAccessAdmin);
+  const { canAccessAdmin } = usePermissions();
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation<any>();
   const { isDark, setDarkMode, colors } = useTheme();
-  const topInset = useTopInset();
 
   const onLogout = async () => {
     try {
@@ -34,7 +32,7 @@ export default function SettingsScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={[styles.scrollContent, { paddingVertical: 20 }]}> 
         {/* Admin - only visible to users with admin access */}
-        {hasAdminAccess && (
+        {canAccessAdmin && (
           <>
             <Card style={styles.compactCard}>
               <Pressable onPress={() => navigation.navigate('AdminHome' as never)} style={styles.menuItem}>

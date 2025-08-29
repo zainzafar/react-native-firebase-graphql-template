@@ -3,10 +3,13 @@ import { StyleSheet, View, ScrollView } from 'react-native';
 import { Body, Button, Card, Input } from '../components';
 import { useTheme } from '../theme/ThemeProvider';
 import { useAuth } from '../auth/AuthProvider';
+import { useAppSelector } from '../store/hooks';
+import { selectUser } from '../features/auth/selectors';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 
 export default function AccountScreen() {
-  const { user, updateUserProfile, updatePassword } = useAuth();
+  const { updateUserProfile, updatePassword } = useAuth();
+  const user = useAppSelector(selectUser); // Database user for all data
   const [profileLoading, setProfileLoading] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [firstName, setFirstName] = useState('');
@@ -29,11 +32,11 @@ export default function AccountScreen() {
     }
   }, [user?.displayName]);
 
-  // Check if user has email/password authentication
-  const hasEmailPassword = user?.providerData?.some(provider => provider.providerId === 'password') || false;
-  const hasGoogle = user?.providerData?.some(provider => provider.providerId === 'google.com') || false;
-  const hasApple = user?.providerData?.some(provider => provider.providerId === 'apple.com') || false;
-  const hasPhone = user?.providerData?.some(provider => provider.providerId === 'phone') || false;
+  // Check if user has email/password authentication (using database identities)
+  const hasEmailPassword = user?.identities?.some((identity: any) => identity.providerId === 'password') || false;
+  const hasGoogle = user?.identities?.some((identity: any) => identity.providerId === 'google.com') || false;
+  const hasApple = user?.identities?.some((identity: any) => identity.providerId === 'apple.com') || false;
+  const hasPhone = user?.identities?.some((identity: any) => identity.providerId === 'phone') || false;
 
   const getAuthMethods = () => {
     const methods = [];

@@ -8,14 +8,22 @@ export type Role = {
   updatedAt: string;
 };
 
+export type UserIdentity = {
+  providerId: string;
+  providerUid: string;
+  lastUsedAt?: string;
+};
+
 export type AuthUser = {
   id: string;
   email?: string;
   displayName?: string;
   photoURL?: string;
+  phoneNumber?: string;
   lastLoginProvider?: string;
   roles?: Role[];
   permissions?: string[];
+  identities?: UserIdentity[];
 };
 
 export type AuthState = {

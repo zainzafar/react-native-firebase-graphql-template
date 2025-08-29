@@ -8,7 +8,7 @@ import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import { useNavigation } from '@react-navigation/native';
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
 import { useAppSelector } from '../../store/hooks';
-import { selectCanEditUsers, selectCanDeleteUsers, selectCanImpersonateUsers, selectCanSearchUsers } from '../../features/auth/selectors';
+import { usePermissions } from '../../features/auth/hooks';
 
 type Edge = { cursor: string; node: { uid: string; email?: string; phoneNumber?: string; displayName?: string; lastLoginProvider?: string; createdAt?: string; identities?: { providerId: string }[] } };
 type AdminListUsersQuery = {
@@ -30,10 +30,7 @@ export default function AdminManageUsersScreen() {
   const debounceRef = useRef<any>(null);
 
   // Permission checks
-  const canEditUsers = useAppSelector(selectCanEditUsers);
-  const canDeleteUsers = useAppSelector(selectCanDeleteUsers);
-  const canImpersonateUsers = useAppSelector(selectCanImpersonateUsers);
-  const canSearchUsers = useAppSelector(selectCanSearchUsers);
+  const { canEditUsers, canDeleteUsers, canImpersonateUsers, canSearchUsers } = usePermissions();
 
   const { data, loading, fetchMore, refetch } = useQuery<AdminListUsersQuery>(QUERY_ADMIN_LIST_USERS, {
     variables: { query: debounced || undefined, first: USERS_PER_PAGE, after: null },

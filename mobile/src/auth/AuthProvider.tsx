@@ -19,9 +19,22 @@ import { MUTATION_LOGIN_WITH_ID_TOKEN, MUTATION_UPDATE_PROFILE, QUERY_ME } from 
 import { saveAccessToken, clearAccessToken, getAccessToken } from './tokenStorage';
 import { handleHardSignOut } from './session';
 import { useAppDispatch } from '../store/hooks';
-import { logout, setUser as setUserAction } from '../features/auth/authSlice';
+import { logout, setUser as setUserAction, type AuthUser } from '../features/auth/authSlice';
 import { persistor } from '../store';
 import AppleAuth from '@invertase/react-native-apple-authentication';
+
+// Helper function to create user profile from GraphQL data
+const createUserProfile = (userData: any): AuthUser => ({
+  id: userData.uid,
+  email: userData.email ?? undefined,
+  displayName: userData.displayName ?? undefined,
+  photoURL: userData.photoURL ?? undefined,
+  phoneNumber: userData.phoneNumber ?? undefined,
+  lastLoginProvider: userData.lastLoginProvider ?? undefined,
+  permissions: Array.isArray(userData.permissions) ? userData.permissions : [],
+  identities: Array.isArray(userData.identities) ? userData.identities : [],
+  roles: Array.isArray(userData.roles) ? userData.roles : [],
+});
 
 type AuthContextValue = {
   user: FirebaseAuthTypes.User | null;
@@ -67,15 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
             if (userData) {
               // Update Redux state with database user data only
-              const profile = {
-                id: userData.uid,
-                email: userData.email ?? undefined,
-                displayName: userData.displayName ?? undefined,
-                photoURL: userData.photoURL ?? undefined,
-                lastLoginProvider: userData.lastLoginProvider ?? undefined,
-                permissions: Array.isArray(userData.permissions) ? userData.permissions : [],
-              };
-              dispatch(setUserAction(profile));
+              dispatch(setUserAction(createUserProfile(userData)));
             }
           }
         } catch (e) {
@@ -104,24 +109,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const userData = (data as any)?.me;
           if (userData) {
             // Update Redux state with database user data
-            const profile = {
-              id: userData.uid,
-              email: userData.email ?? undefined,
-              displayName: userData.displayName ?? undefined,
-              photoURL: userData.photoURL ?? undefined,
-              lastLoginProvider: userData.lastLoginProvider ?? undefined,
-              permissions: Array.isArray(userData.permissions) ? userData.permissions : [],
-            };
-            dispatch(setUserAction(profile));
+            dispatch(setUserAction(createUserProfile(userData)));
           }
         } catch {
           await clearAccessToken();
         }
       }
     })();
-  }, []);
+  }, [dispatch]);
 
-  const exchangeIdTokenForAppJWT = async (authMethod: string) => {
+  const exchangeIdTokenForAppJWT = useCallback(async (authMethod: string) => {
     const app = getApp();
     const authInstance = getAuth(app);
     const freshIdToken = authInstance.currentUser ? await getIdToken(authInstance.currentUser, true) : undefined;
@@ -139,15 +136,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         if (userData) {
           // Update Redux state with user data from GraphQL (includes lastLoginProvider)
-          const profile = {
-            id: userData.uid,
-            email: userData.email ?? undefined,
-            displayName: userData.displayName ?? undefined,
-            photoURL: userData.photoURL ?? undefined,
-            lastLoginProvider: userData.lastLoginProvider ?? undefined,
-            roles: Array.isArray(userData.roles) ? userData.roles : [],
-          };
-          dispatch(setUserAction(profile));
+          dispatch(setUserAction(createUserProfile(userData)));
         }
       } catch (e) {
         console.log(`[Auth] loginWithIdToken mutation failed after ${authMethod} sign-in`, e);
@@ -156,7 +145,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } else {
       console.log(`[Auth] No fresh Firebase ID token after ${authMethod} sign-in`);
     }
-  };
+  }, [dispatch]);
 
   const signInWithEmail = useCallback(async (email: string, password: string) => {
     const app = getApp();
@@ -175,7 +164,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch {}
     }
     await exchangeIdTokenForAppJWT('Email');
-  });
+  }, []);
 
   const getSignInMethodsForEmail = useCallback(async (email: string) => {
     const app = getApp();
@@ -265,7 +254,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Re-throw other errors
       throw e;
     }
-  }, []);
+  }, [exchangeIdTokenForAppJWT]);
 
   const signInWithPhone = useCallback(async (phoneNumber: string) => {
     try {
@@ -314,7 +303,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       throw new Error(errorMessage);
     }
-  }, []);
+  }, [exchangeIdTokenForAppJWT]);
 
   const updateUserProfile = useCallback(async (displayName?: string, photoURL?: string) => {
     try {
@@ -329,15 +318,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error('Failed to update profile');
       }
 
-      // Update Redux state with the updated user data
-      const profile = {
-        id: updatedUser.uid,
-        email: updatedUser.email ?? undefined,
-        displayName: updatedUser.displayName ?? undefined,
-        photoURL: updatedUser.photoURL ?? undefined,
-        lastLoginProvider: updatedUser.lastLoginProvider ?? undefined,
-      };
-      dispatch(setUserAction(profile));
+      // Update Redux state with the updated user data, preserving existing permissions, identities, etc.
+      dispatch(setUserAction(createUserProfile(updatedUser)));
     } catch (e: any) {
       console.error('Profile update error:', e);
       throw e;

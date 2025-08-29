@@ -4,20 +4,14 @@ import { Body, Card } from '../../components';
 import { useTheme } from '../../theme/ThemeProvider';
 import { useNavigation } from '@react-navigation/native';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
-import { useAppSelector } from '../../store/hooks';
-import { selectCanViewUsers, selectCanSearchUsers, selectCanEditUsers, selectCanDeleteUsers, selectCanImpersonateUsers, selectCanAccessDebug } from '../../features/auth/selectors';
+import { usePermissions } from '../../features/auth/hooks';
 
 export default function AdminHomeScreen() {
   const { colors } = useTheme();
   const navigation = useNavigation<any>();
 
   // Permission checks for user management
-  const canViewUsers = useAppSelector(selectCanViewUsers);
-  const canSearchUsers = useAppSelector(selectCanSearchUsers);
-  const canEditUsers = useAppSelector(selectCanEditUsers);
-  const canDeleteUsers = useAppSelector(selectCanDeleteUsers);
-  const canImpersonateUsers = useAppSelector(selectCanImpersonateUsers);
-  const canAccessDebug = useAppSelector(selectCanAccessDebug);
+  const { canViewUsers, canSearchUsers, canEditUsers, canDeleteUsers, canImpersonateUsers, canAccessDebug } = usePermissions();
 
   // Show Manage Users if user has any user management permission
   const canManageUsers = canViewUsers || canSearchUsers || canEditUsers || canDeleteUsers || canImpersonateUsers;
