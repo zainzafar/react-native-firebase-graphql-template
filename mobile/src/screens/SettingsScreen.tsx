@@ -18,9 +18,7 @@ export default function SettingsScreen() {
     try {
       setLoading(true);
       await signOut();
-      try {
-        navigation.reset({ index: 0, routes: [{ name: 'Auth' }] });
-      } catch {}
+      // Navigation will automatically change based on Redux state in RootNavigator
     } catch (e: any) {
       Alert.alert('Logout failed', e?.message || 'Unknown error');
     } finally {

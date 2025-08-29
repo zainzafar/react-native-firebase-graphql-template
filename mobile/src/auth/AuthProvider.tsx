@@ -152,7 +152,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const authInstance = getAuth(app);
     await signInWithEmailAndPassword(authInstance, email.trim(), password);
     await exchangeIdTokenForAppJWT('Email');
-  }, []);
+  }, [exchangeIdTokenForAppJWT]);
 
   const createUserWithEmail = useCallback(async (email: string, password: string, displayName?: string) => {
     const app = getApp();
@@ -164,7 +164,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch {}
     }
     await exchangeIdTokenForAppJWT('Email');
-  }, []);
+  }, [exchangeIdTokenForAppJWT]);
 
   const getSignInMethodsForEmail = useCallback(async (email: string) => {
     const app = getApp();
@@ -219,7 +219,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Re-throw other errors
       throw e;
     }
-  }, []);
+  }, [exchangeIdTokenForAppJWT]);
 
   const signInWithApple = useCallback(async () => {
     // If not supported (e.g., Android), silently return

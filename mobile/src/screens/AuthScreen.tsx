@@ -1,10 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, View, Pressable, StyleSheet, LayoutAnimation, Platform, UIManager, Animated, Easing } from 'react-native';
+import { Alert, View, StyleSheet, LayoutAnimation, Platform, UIManager, Animated, Easing } from 'react-native';
 //
-import { Body, Card, Heading, ScreenContainer } from '../components';
+import { Card, Heading, ScreenContainer } from '../components';
 import { GoogleButton, EmailButton, PhoneButton, AppleButton as AppleSignInButton } from '../components/auth-buttons';
 import { useAuth } from '../auth/AuthProvider';
-import { useNavigation } from '@react-navigation/native';
 import AppleAuth from '@invertase/react-native-apple-authentication';
 import EmailForm from './AuthScreen/EmailForm';
 import PhoneForm from './AuthScreen/PhoneForm';
@@ -15,7 +14,6 @@ export default function AuthScreen() {
   const { signInWithGoogle, signInWithApple } = useAuth();
   const [googleLoading, setGoogleLoading] = useState(false);
   const [appleLoading, setAppleLoading] = useState(false);
-  const navigation = useNavigation<any>();
   const [mode, setMode] = useState<Mode>('methods');
   const appear = useRef(new Animated.Value(1)).current;
   const appleSupported = AppleAuth?.isSupported === true && Platform.OS === 'ios';
