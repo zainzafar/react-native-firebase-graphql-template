@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Platform, ScrollView, View, Pressable, Alert, StyleSheet, Text, Animated } from 'react-native';
+import { Platform, ScrollView, View, Pressable, Alert, StyleSheet, Text, Animated, ActivityIndicator } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import Config from 'react-native-config';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
@@ -16,6 +16,7 @@ import { MUTATION_LOGIN_WITH_ID_TOKEN } from '../graphql/operations';
 import { useAppSelector } from '../store/hooks';
 import { selectAuth } from '../features/auth/selectors';
 import { useTheme } from '../theme/ThemeProvider';
+import { useQuery } from '@apollo/client/react';
 
 type TokenInfo = {
   present: boolean;
@@ -381,29 +382,22 @@ function AccordionSection({
 }
 
 function CompactMeInfo() {
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
-  const [me, setMe] = React.useState<any | null>(null);
-  React.useEffect(() => {
-    let alive = true;
-    (async () => {
-      try {
-        const { data } = await apolloClient.query({ query: QUERY_ME, fetchPolicy: 'network-only' });
-        if (!alive) return;
-        setMe((data as any)?.me ?? null);
-      } catch (e: any) {
-        if (!alive) return;
-        setError(e?.message || String(e));
-      } finally {
-        if (alive) setLoading(false);
-      }
-    })();
-    return () => { alive = false; };
-  }, []);
   const { colors } = useTheme();
-  if (loading) return <Text style={[styles.note, { color: colors.mutedText }]}>Loading user…</Text>;
-  if (error) return <Text style={[styles.note, { color: colors.mutedText }]}>Error: {error}</Text>;
+  const { data, loading, error } = useQuery<{ me?: any }>(QUERY_ME, {
+    fetchPolicy: 'network-only',
+  });
+  
+  const me = data?.me;
+  
+  if (loading) return (
+    <View style={styles.loadingContainer}>
+      <ActivityIndicator size="small" color={colors.text} />
+      <Text style={[styles.loadingText, { color: colors.mutedText }]}>Loading user…</Text>
+    </View>
+  );
+  if (error) return <Text style={[styles.note, { color: colors.mutedText }]}>Error: {error.message}</Text>;
   if (!me) return <Text style={[styles.note, { color: colors.mutedText }]}>No user info returned.</Text>;
+  
   return (
     <>
       <InfoRow label="GraphQL UID" value={me.uid} />
@@ -434,6 +428,8 @@ const styles = StyleSheet.create({
   fetchButton: { backgroundColor: '#007AFF', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, alignSelf: 'flex-start' },
   fetchButtonText: { color: '#ffffff', fontSize: 14, fontWeight: '500' },
   contentContainer: { paddingVertical: 0, paddingTop: 12 },
+  loadingContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 8 },
+  loadingText: { fontSize: 14, marginLeft: 8 },
 });
 
 
