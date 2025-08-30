@@ -3,12 +3,17 @@ import { StyleSheet, View, ScrollView } from 'react-native';
 import { Body, Button, Card, Input } from '../components';
 import { useTheme } from '../theme/ThemeProvider';
 import { useAuth } from '../auth/AuthProvider';
-import { useAppSelector } from '../store/hooks';
+import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { selectUser } from '../features/auth/selectors';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
+import { useMutation } from '@apollo/client/react';
+import { MUTATION_UPDATE_PROFILE } from '../graphql/operations';
+import { updateUser as updateUserAction } from '../features/auth/authSlice';
 
 export default function AccountScreen() {
-  const { updateUserProfile, updatePassword } = useAuth();
+  const dispatch = useAppDispatch();
+  const { updatePassword } = useAuth();
+  const [mutateUpdateProfile] = useMutation(MUTATION_UPDATE_PROFILE);
   const user = useAppSelector(selectUser); // Database user for all data
   const [profileLoading, setProfileLoading] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
@@ -58,7 +63,12 @@ export default function AccountScreen() {
         return;
       }
       
-      await updateUserProfile(displayName);
+      const { data } = await mutateUpdateProfile({ variables: { displayName } });
+      const updated = (data as any)?.updateProfile;
+      if (updated) {
+        // Update only changed fields in Redux
+        dispatch(updateUserAction({ displayName: updated.displayName, photoURL: updated.photoURL }));
+      }
       setProfileSuccess(true);
     } catch (e: any) {
       setProfileError(e?.message || 'Failed to update profile');

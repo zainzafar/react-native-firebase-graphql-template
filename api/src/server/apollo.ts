@@ -6,7 +6,7 @@ import type http from 'http';
 import express from 'express';
 import cors from 'cors';
 import type { OperationDefinitionNode } from 'graphql';
-import { print } from 'graphql';
+import { print, GraphQLError } from 'graphql';
 import { randomUUID } from 'node:crypto';
 import { loadTypeDefs } from '../graphql/loadTypeDefs';
 import { loadResolvers } from '../graphql/loadResolvers';
@@ -122,7 +122,6 @@ export async function applyApolloMiddleware({ app, httpServer }: ApplyApolloArgs
           res.setHeader('x-request-id', requestId);
         } catch {}
         
-        const user = await getAuthUserFromRequest(req);
         const prisma = getPrisma();
         
         // Get operation name for authentication check
@@ -130,9 +129,20 @@ export async function applyApolloMiddleware({ app, httpServer }: ApplyApolloArgs
 
         console.log('operationName', operationName);
         
-        // Check if operation requires authentication
-        if (requiresAuthentication(operationName) && !user) {
-          throw new Error('Unauthorized');
+        // Only fetch user if authentication is required
+        let user: AuthContextUser | null = null;
+        if (requiresAuthentication(operationName)) {
+          user = await getAuthUserFromRequest(req);
+          
+          // If authentication is required but no user found, throw error
+          if (!user) {
+            console.log('Unauthorized for operation', operationName);
+            throw new GraphQLError('Unauthorized', {
+              extensions: {
+                code: 'UNAUTHORIZED',
+              },
+            });
+          }
         }
         
         return { requestId, req, res, user: user ?? null, prisma } as GraphQLContext;

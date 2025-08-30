@@ -7,13 +7,12 @@ extend type Mutation {
   updateProfile(displayName: String, photoURL: String): User!
 }
 
-enum Permission {
-  ADMIN_USERS_VIEW
-  ADMIN_USERS_SEARCH
-  ADMIN_USERS_EDIT
-  ADMIN_USERS_DELETE
-  ADMIN_USERS_IMPERSONATE
-  ADMIN_DEBUG
+type Permission {
+  id: ID!
+  name: String!
+  description: String
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
 }
 
 type Role {
@@ -35,7 +34,7 @@ type User {
   identities: [UserIdentity!]!
   createdAt: Timestamp!
   roles: [Role!]!
-  permissions: [Permission!]!
+  permissions: [String!]!
 }
 
 type AuthPayload {

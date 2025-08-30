@@ -1,5 +1,4 @@
 import type { PrismaClient, User } from '@prisma/client';
-import { Permission } from '@prisma/client';
 import { requirePermission } from '../../rbac';
 import { AuthContextUser } from '../../../services/firebaseAdmin';
 
@@ -13,9 +12,9 @@ export default {
     
     // Check permissions based on whether search is being used
     if (args.query) {
-      await requirePermission({ user: ctx.user, prisma }, Permission.ADMIN_USERS_SEARCH);
+      await requirePermission({ user: ctx.user, prisma }, 'ADMIN_USERS_SEARCH');
     } else {
-      await requirePermission({ user: ctx.user, prisma }, Permission.ADMIN_USERS_VIEW);
+      await requirePermission({ user: ctx.user, prisma }, 'ADMIN_USERS_VIEW');
     }
 
     const take = Math.min(Math.max(args.first ?? 20, 1), 100);
@@ -54,7 +53,7 @@ export default {
     args: { uid: string },
     ctx: { prisma: PrismaClient; user: AuthContextUser }
   ) => {
-    await requirePermission({ user: ctx.user, prisma: ctx.prisma }, Permission.ADMIN_USERS_VIEW);
+    await requirePermission({ user: ctx.user, prisma: ctx.prisma }, 'ADMIN_USERS_VIEW');
     
     const user = await ctx.prisma.user.findUnique({
       where: { uid: args.uid },

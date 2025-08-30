@@ -61,13 +61,17 @@ model Role {
   @@index([name])
 }
 
-enum Permission {
-  ADMIN_USERS_VIEW
-  ADMIN_USERS_SEARCH
-  ADMIN_USERS_EDIT
-  ADMIN_USERS_DELETE
-  ADMIN_USERS_IMPERSONATE
-  ADMIN_DEBUG
+model Permission {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  name        String   @unique
+  description String?
+  
+  rolePermissions RolePermission[]
+  userPermissions UserPermission[]
+
+  @@index([name])
 }
 
 model UserRole {
@@ -88,10 +92,12 @@ model RolePermission {
   createdAt    DateTime   @default(now())
   role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
   roleId       String
-  permission   Permission
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  permissionId String
 
-  @@unique([roleId, permission])
+  @@unique([roleId, permissionId])
   @@index([roleId])
+  @@index([permissionId])
 }
 
 model UserPermission {
@@ -99,8 +105,10 @@ model UserPermission {
   createdAt    DateTime   @default(now())
   user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId       String
-  permission   Permission
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  permissionId String
 
-  @@unique([userId, permission])
+  @@unique([userId, permissionId])
   @@index([userId])
+  @@index([permissionId])
 }

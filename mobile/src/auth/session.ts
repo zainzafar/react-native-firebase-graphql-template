@@ -4,6 +4,8 @@ import { getAuth, signOut as firebaseSignOut, getIdToken } from '@react-native-f
 import { apolloClient, resetApollo } from '../graphql/client';
 import { MUTATION_LOGIN_WITH_ID_TOKEN } from '../graphql/operations';
 import { clearAccessToken, saveAccessToken } from './tokenStorage';
+import { store } from '../store';
+import { logout } from '../features/auth/authSlice';
 
 export async function refreshAppToken(): Promise<boolean> {
   try {
@@ -16,7 +18,7 @@ export async function refreshAppToken(): Promise<boolean> {
     if (!accessToken) throw new Error('No access token from backend');
     await saveAccessToken(accessToken);
     return true;
-  } catch {
+  } catch (error) {
     await handleHardSignOut();
     return false;
   }
@@ -27,9 +29,12 @@ export async function handleHardSignOut(): Promise<void> {
     const app = getApp();
     const auth = getAuth(app);
     await firebaseSignOut(auth);
-  } catch {}
+  } catch (error) {
+    // Ignore Firebase sign out errors
+  }
   await clearAccessToken();
   await resetApollo();
+  store.dispatch(logout());
 }
 
 

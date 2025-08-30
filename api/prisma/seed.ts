@@ -1,9 +1,32 @@
-import { PrismaClient, Permission } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+// Define default permissions
+const DEFAULT_PERMISSIONS = [
+  { name: 'ADMIN_USERS_VIEW', description: 'View admin users' },
+  { name: 'ADMIN_USERS_SEARCH', description: 'Search admin users' },
+  { name: 'ADMIN_USERS_EDIT', description: 'Edit admin users' },
+  { name: 'ADMIN_USERS_DELETE', description: 'Delete admin users' },
+  { name: 'ADMIN_USERS_IMPERSONATE', description: 'Impersonate admin users' },
+  { name: 'ADMIN_DEBUG', description: 'Access debug features' },
+];
+
 async function main() {
   console.log('[seed] Starting seed');
+
+  // Create permissions
+  const permissions = [];
+  for (const perm of DEFAULT_PERMISSIONS) {
+    const permission = await prisma.permission.upsert({
+      where: { name: perm.name },
+      create: perm,
+      update: { description: perm.description },
+    });
+    permissions.push(permission);
+  }
+
+  console.log('[seed] Created permissions:', permissions.map(p => p.name));
 
   // Create the SUPER_ADMIN role
   const superAdminRole = await prisma.role.upsert({
@@ -17,21 +40,21 @@ async function main() {
 
   console.log('[seed] Created SUPER_ADMIN role');
 
-  // Set up default role permissions
-  const rolePermissions = [
-    // SUPER_ADMIN gets all permissions
-    { roleId: superAdminRole.id, permissions: Object.values(Permission) }
-  ];
-
-  // Create role permissions
-  for (const { roleId, permissions } of rolePermissions) {
-    for (const permission of permissions) {
-      await prisma.rolePermission.upsert({
-        where: { roleId_permission: { roleId, permission } },
-        create: { roleId, permission },
-        update: {},
-      });
-    }
+  // Set up default role permissions - SUPER_ADMIN gets all permissions
+  for (const permission of permissions) {
+    await prisma.rolePermission.upsert({
+      where: { 
+        roleId_permissionId: { 
+          roleId: superAdminRole.id, 
+          permissionId: permission.id 
+        } 
+      },
+      create: { 
+        roleId: superAdminRole.id, 
+        permissionId: permission.id 
+      },
+      update: {},
+    });
   }
 
   console.log('[seed] Set up default role permissions');

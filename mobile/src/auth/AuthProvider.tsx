@@ -15,7 +15,7 @@ import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { GoogleAuthProvider, AppleAuthProvider, signInWithCredential } from '@react-native-firebase/auth';
 import { googleWebClientId } from '../config/firebase';
 import { apolloClient } from '../graphql/client';
-import { MUTATION_LOGIN_WITH_ID_TOKEN, MUTATION_UPDATE_PROFILE, QUERY_ME } from '../graphql/operations';
+import { MUTATION_LOGIN_WITH_ID_TOKEN, QUERY_ME } from '../graphql/operations';
 import { saveAccessToken, clearAccessToken, getAccessToken } from './tokenStorage';
 import { handleHardSignOut } from './session';
 import { useAppDispatch } from '../store/hooks';
@@ -46,7 +46,6 @@ type AuthContextValue = {
   signInWithApple: () => Promise<void>;
   signInWithPhone: (phoneNumber: string) => Promise<any>;
   confirmPhoneCode: (confirmation: any, code: string) => Promise<void>;
-  updateUserProfile: (displayName?: string, photoURL?: string) => Promise<void>;
   updatePassword: (newPassword: string) => Promise<void>;
   signOut: () => Promise<void>;
 };
@@ -175,9 +174,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = useCallback(async () => {
     await handleHardSignOut();
-    dispatch(logout());
     await persistor.purge();
-  }, [dispatch]);
+  }, []);
 
   const signInWithGoogle = useCallback(async () => {
     try {
@@ -305,27 +303,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [exchangeIdTokenForAppJWT]);
 
-  const updateUserProfile = useCallback(async (displayName?: string, photoURL?: string) => {
-    try {
-      // Call GraphQL mutation to update profile
-      const { data } = await apolloClient.mutate({
-        mutation: MUTATION_UPDATE_PROFILE,
-        variables: { displayName, photoURL },
-      });
-
-      const updatedUser = (data as any)?.updateProfile;
-      if (!updatedUser) {
-        throw new Error('Failed to update profile');
-      }
-
-      // Update Redux state with the updated user data, preserving existing permissions, identities, etc.
-      dispatch(setUserAction(createUserProfile(updatedUser)));
-    } catch (e: any) {
-      console.error('Profile update error:', e);
-      throw e;
-    }
-  }, [dispatch]);
-
   const updatePassword = useCallback(async (newPassword: string) => {
     try {
       const app = getApp();
@@ -343,7 +320,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const value = useMemo(() => ({ user, initializing, signInWithEmail, createUserWithEmail, getSignInMethodsForEmail, signInWithGoogle, signInWithApple, signInWithPhone, confirmPhoneCode, updateUserProfile, updatePassword, signOut }), [user, initializing, signInWithEmail, createUserWithEmail, getSignInMethodsForEmail, signInWithGoogle, signInWithApple, signInWithPhone, confirmPhoneCode, updateUserProfile, updatePassword, signOut]);
+  const value = useMemo(() => ({ user, initializing, signInWithEmail, createUserWithEmail, getSignInMethodsForEmail, signInWithGoogle, signInWithApple, signInWithPhone, confirmPhoneCode, updatePassword, signOut }), [user, initializing, signInWithEmail, createUserWithEmail, getSignInMethodsForEmail, signInWithGoogle, signInWithApple, signInWithPhone, confirmPhoneCode, updatePassword, signOut]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

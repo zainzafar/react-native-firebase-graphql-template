@@ -1,5 +1,4 @@
 import type { PrismaClient, User } from '@prisma/client';
-import { Permission } from '@prisma/client';
 import { getFirebaseAuth, AuthContextUser } from '../../../services/firebaseAdmin';
 import { requirePermission } from '../../rbac';
 
@@ -10,7 +9,7 @@ export default {
     ctx: { prisma: PrismaClient; user: AuthContextUser }
   ) => {
     const prisma = ctx.prisma;
-    await requirePermission({ user: ctx.user, prisma }, Permission.ADMIN_USERS_EDIT);
+    await requirePermission({ user: ctx.user, prisma }, 'ADMIN_USERS_EDIT');
 
     // First update Firebase Auth so it's the source of truth
     try {
@@ -53,7 +52,7 @@ export default {
     ctx: { prisma: PrismaClient; user: AuthContextUser }
   ) => {
     const prisma = ctx.prisma;
-    await requirePermission({ user: ctx.user, prisma }, Permission.ADMIN_USERS_DELETE);
+    await requirePermission({ user: ctx.user, prisma }, 'ADMIN_USERS_DELETE');
 
     // First delete from Firebase Auth
     try {
@@ -73,7 +72,7 @@ export default {
     ctx: { prisma: PrismaClient; user: AuthContextUser }
   ) => {
     const prisma = ctx.prisma;
-    await requirePermission({ user: ctx.user, prisma }, Permission.ADMIN_USERS_EDIT);
+    await requirePermission({ user: ctx.user, prisma }, 'ADMIN_USERS_EDIT');
 
     try {
       await getFirebaseAuth().generatePasswordResetLink(args.uid);

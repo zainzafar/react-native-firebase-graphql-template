@@ -2,12 +2,12 @@ import admin from 'firebase-admin';
 import type { Request } from 'express';
 import { verifyAppJwt } from './appJwt';
 import { getPrisma } from './prisma';
-import type { User as PrismaUser, UserIdentity, Permission, Role } from '@prisma/client';
+import type { User as PrismaUser, UserIdentity, Role } from '@prisma/client';
 import { resolveUserPermissions } from '../graphql/rbac';
 
 export type AuthContextUser = PrismaUser & {
   roles: Role[];
-  permissions: Permission[];
+  permissions: string[];
   identities: UserIdentity[];
 };
 
