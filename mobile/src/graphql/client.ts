@@ -1,8 +1,9 @@
-import { ApolloClient, InMemoryCache, createHttpLink, from } from '@apollo/client';
-import { setContext } from '@apollo/client/link/context';
-import { onError } from '@apollo/client/link/error';
+import { ApolloClient, InMemoryCache, HttpLink, ApolloLink } from '@apollo/client';
+import { SetContextLink } from '@apollo/client/link/context';
+import { ErrorLink } from '@apollo/client/link/error';
+import { CombinedGraphQLErrors, CombinedProtocolErrors } from '@apollo/client/errors';
 import Config from 'react-native-config';
-import { refreshAppToken } from '../auth/session';
+import { handleHardSignOut } from '../auth/session';
 import { getAccessToken } from '../auth/tokenStorage';
 import { Platform } from 'react-native';
 
@@ -12,42 +13,47 @@ const graphqlUrl = Platform.OS === 'android'
   ? rawUrl.replace('://localhost', '://10.0.2.2')
   : rawUrl;
 if (!graphqlUrl) {
-  // eslint-disable-next-line no-console
   console.warn('[Apollo] Config.GRAPHQL_API_URL is empty. Set GRAPHQL_API_URL in env to reach your backend.');
 }
-const httpLink = createHttpLink({ uri: graphqlUrl });
+const httpLink = new HttpLink({ uri: graphqlUrl });
 
-const authLink = setContext(async (_, { headers }) => {
+const authLink = new SetContextLink(async (prevContext, _operation) => {
   try {
     const token = await getAccessToken();
     return {
+      ...prevContext,
       headers: {
-        ...headers,
+        ...prevContext.headers,
         authorization: token ? `Bearer ${token}` : '',
       },
     };
   } catch {
-    return { headers };
+    return prevContext;
   }
 });
 
-const errorLink = onError((ctx: any) => {
-  const { graphQLErrors, networkError, operation, forward } = ctx || {};
-  if (graphQLErrors && graphQLErrors.length > 0) {
-    for (const err of graphQLErrors) {
-      console.log('[Apollo][GraphQL error]', err?.message, err?.extensions);
-      if (err.extensions && (err.extensions as any).code === 'UNAUTHENTICATED') {
-        return refreshAppToken().then((success) => (success ? forward(operation) : undefined)) as any;
-      }
-    }
+const errorLink = new ErrorLink(({ error }) => {
+  console.log('[Apollo] Error:', error);
+  
+  // Check for authentication errors
+  let hasAuthError = false;
+  
+  if (CombinedGraphQLErrors.is(error)) {
+    hasAuthError = error.errors.some((err: any) => err.extensions?.code === 'UNAUTHORIZED');
+  } else if (CombinedProtocolErrors.is(error)) {
+    hasAuthError = error.errors.some((err: any) => err.extensions?.code === 'UNAUTHORIZED');
+  } else {
+    hasAuthError = error.message?.toLowerCase().includes('unauthorized');
   }
-  if (networkError) {
-    console.log('[Apollo][Network error]', networkError);
+  
+  if (hasAuthError) {
+    console.log('[Apollo] Authentication error detected, logging out...');
+    handleHardSignOut();
   }
 });
 
 export const apolloClient = new ApolloClient({
-  link: from([errorLink, authLink, httpLink]),
+  link: ApolloLink.from([errorLink, authLink, httpLink]),
   cache: new InMemoryCache({
     typePolicies: {
       Query: {
