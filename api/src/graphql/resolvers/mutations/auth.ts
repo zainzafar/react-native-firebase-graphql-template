@@ -1,6 +1,6 @@
 import { verifyIdTokenSafe, getFirebaseAuth } from '../../../services/firebaseAdmin';
 import type { auth as firebaseAuth } from 'firebase-admin';
-import { signAppJwt } from '../../../services/appJwt';
+import { signAppJwtWithFirebaseExpiry } from '../../../services/appJwt';
 import { User, PrismaClient } from '@prisma/client';
 
 export default {
@@ -59,8 +59,8 @@ export default {
       console.log('[auth] upserted user in DB uid=', dbUser?.uid);
     }
 
-    // For JWT, we encode our DB user id only
-    const accessToken = dbUser ? signAppJwt({ id: dbUser.id }, 60 * 60 * 24 * 7) : undefined;
+    // For JWT, we encode our DB user id only with Firebase-aware expiration
+    const accessToken = dbUser ? signAppJwtWithFirebaseExpiry({ id: dbUser.id }, decoded.exp!) : undefined;
     return { user: dbUser, accessToken };
   },
 

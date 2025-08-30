@@ -412,7 +412,7 @@ function CompactMeInfo() {
 const styles = StyleSheet.create({
   iconButton: { paddingHorizontal: 8, paddingVertical: 0 },
   sectionSpacer: { marginTop: 20 },
-  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', height: 20 },
+  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', height: 32, paddingVertical: 6 },
   label: { fontSize: 14, flex: 0, marginRight: 8 },
   valueRow: { flexDirection: 'row', alignItems: 'center', flex: 1, maxWidth: '60%' },
   value: { fontSize: 14, flex: 1, textAlign: 'right', marginRight: 8 },

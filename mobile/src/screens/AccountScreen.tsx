@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, ScrollView } from 'react-native';
-import { Body, Button, Card, Input } from '../components';
+import { Body, Button, Card, Input, UserIdentityRow } from '../components';
 import { useTheme } from '../theme/ThemeProvider';
 import { useAuth } from '../auth/AuthProvider';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { selectUser } from '../features/auth/selectors';
-import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
+
 import { useMutation } from '@apollo/client/react';
 import { MUTATION_UPDATE_PROFILE } from '../graphql/operations';
 import { updateUser as updateUserAction } from '../features/auth/authSlice';
@@ -17,8 +17,7 @@ export default function AccountScreen() {
   const user = useAppSelector(selectUser); // Database user for all data
   const [profileLoading, setProfileLoading] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  const [displayName, setDisplayName] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [profileError, setProfileError] = useState<string | null>(null);
@@ -28,28 +27,15 @@ export default function AccountScreen() {
   const [passwordSuccess, setPasswordSuccess] = useState(false);
   const { colors } = useTheme();
 
-  // Initialize name fields from user display name
+  // Initialize display name from user
   useEffect(() => {
     if (user?.displayName) {
-      const nameParts = user.displayName.split(' ');
-      setFirstName(nameParts[0] || '');
-      setLastName(nameParts.slice(1).join(' ') || '');
+      setDisplayName(user.displayName);
     }
   }, [user?.displayName]);
 
   // Check if user has email/password authentication (using database identities)
   const hasEmailPassword = user?.identities?.some((identity: any) => identity.providerId === 'password') || false;
-  const hasGoogle = user?.identities?.some((identity: any) => identity.providerId === 'google.com') || false;
-  const hasApple = user?.identities?.some((identity: any) => identity.providerId === 'apple.com') || false;
-  const hasPhone = user?.identities?.some((identity: any) => identity.providerId === 'phone') || false;
-
-  const getAuthMethods = () => {
-    const methods = [];
-    if (hasGoogle) methods.push({ type: 'google', text: 'Google' });
-    if (hasApple) methods.push({ type: 'apple', text: 'Apple' });
-    if (hasPhone) methods.push({ type: 'phone', text: 'Phone Number' });
-    return methods;
-  };
 
   const onUpdateProfile = async () => {
     try {
@@ -57,8 +43,7 @@ export default function AccountScreen() {
       setProfileError(null);
       setProfileSuccess(false);
       
-      const displayName = `${firstName} ${lastName}`.trim();
-      if (!displayName) {
+      if (!displayName.trim()) {
         setProfileError('Please enter your name');
         return;
       }
@@ -115,53 +100,14 @@ export default function AccountScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={[styles.scrollContent, { paddingTop: 20, paddingBottom: 24 }]}>
-        {/* Authentication Method Info - Only show when user doesn't have email/password */}
-        {!hasEmailPassword && getAuthMethods().length > 0 && (
+        {/* Authentication Method Info - Show for all users */}
+        {user && (
           <Card>
-            <View style={styles.authInfo}>
-              <View style={styles.authMethodRow}>
-                {getAuthMethods().map((method, index) => {
-                  if (method.type === 'google') {
-                    return (
-                      <FontAwesome6 
-                        key={method.type}
-                        name="google"
-                        iconStyle="brand"
-                        size={20} 
-                        color="#EA4335"
-                        style={index > 0 ? { marginLeft: 0 } : undefined}
-                      />
-                    );
-                  } else if (method.type === 'apple') {
-                    return (
-                      <FontAwesome6 
-                        key={method.type}
-                        name="apple"
-                        iconStyle="brand"
-                        size={22} 
-                        color={colors.text}
-                        style={[index > 0 ? { marginLeft: 0 } : undefined, { marginTop: -2}]}
-                      />
-                    );
-                  } else if (method.type === 'phone') {
-                    return (
-                      <FontAwesome6 
-                        key={method.type}
-                        name="phone"
-                        iconStyle="solid"
-                        size={20} 
-                        color={colors.text}
-                        style={index > 0 ? { marginLeft: 0 } : undefined}
-                      />
-                    );
-                  }
-                  return null;
-                })}
-                <Body style={styles.authValue}>
-                  {hasPhone ? user?.phoneNumber || 'Phone Number' : user?.email || 'Email'}
-                </Body>
-              </View>
-            </View>
+            <UserIdentityRow 
+              email={user.email}
+              phoneNumber={user.phoneNumber}
+              identities={user.identities}
+            />
           </Card>
         )}
 
@@ -172,14 +118,9 @@ export default function AccountScreen() {
           </View>
           <View style={styles.form}>
             <Input 
-              value={firstName} 
-              onChangeText={setFirstName} 
-              placeholder="First name" 
-            />
-            <Input 
-              value={lastName} 
-              onChangeText={setLastName} 
-              placeholder="Last name" 
+              value={displayName} 
+              onChangeText={setDisplayName} 
+              placeholder="Display name" 
             />
             <Button 
               title="Update Profile" 

@@ -13,9 +13,25 @@ function getSecret(): string {
   return secret;
 }
 
-export function signAppJwt(payload: AppJwtPayload, expiresInSeconds: number = 60 * 60 * 24 * 7): string {
+export function signAppJwtWithFirebaseExpiry(payload: AppJwtPayload, firebaseTokenExp: number): string {
   const secret = getSecret();
-  return jwt.sign(payload as any, secret, { expiresIn: expiresInSeconds });
+  
+  const now = Math.floor(Date.now() / 1000);
+  const appTtlSec = 30 * 60;        // 30 minutes
+  const skewSec = 180;              // 3 minutes safety buffer
+  const firebaseExp = firebaseTokenExp;
+  
+  const exp = Math.min(now + appTtlSec, firebaseExp - skewSec);
+  const expiresIn = exp - now;
+  
+  // Ensure minimum expiration time
+  const minExpiration = 60; // 1 minute minimum
+  const finalExpiration = Math.max(expiresIn, minExpiration);
+  
+  return jwt.sign(payload as any, secret, { 
+    expiresIn: finalExpiration,
+    algorithm: 'HS256'
+  });
 }
 
 export function verifyAppJwt(token: string): AppJwtPayload | null {

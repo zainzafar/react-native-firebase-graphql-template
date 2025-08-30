@@ -1,7 +1,7 @@
 import { ApolloClient, InMemoryCache, HttpLink, ApolloLink } from '@apollo/client';
 import { SetContextLink } from '@apollo/client/link/context';
 import { ErrorLink } from '@apollo/client/link/error';
-import { CombinedGraphQLErrors, CombinedProtocolErrors } from '@apollo/client/errors';
+import { CombinedGraphQLErrors } from '@apollo/client/errors';
 import Config from 'react-native-config';
 import { handleHardSignOut, refreshAppToken } from '../auth/session';
 import { getAccessToken } from '../auth/tokenStorage';
