@@ -6,7 +6,7 @@ import type { User as PrismaUser, UserIdentity, Role } from '@prisma/client';
 import { resolveUserPermissions } from '../graphql/rbac';
 
 export type AuthContextUser = PrismaUser & {
-  roles: Role[];
+  role: Role | null;
   permissions: string[];
   identities: UserIdentity[];
 };
@@ -74,19 +74,19 @@ export async function getAuthUserFromRequest(req: Request): Promise<AuthContextU
         where: { id: appPayload.id }, 
         include: { 
           identities: true, 
-          roles: { include: { role: true } }
+          role: { include: { role: true } }
         } 
       });
       if (dbUser) {
-        // Map roles relation to role objects for GraphQL convenience
-        const roleObjects = Array.isArray((dbUser as any).roles) ? (dbUser as any).roles.map((r: any) => r.role) : [];
+        // Map role relation to role object for GraphQL convenience
+        const roleObject = (dbUser as any).role?.role || null;
         
         // Resolve all permissions for this user
         const resolvedPermissions = await resolveUserPermissions(prisma, dbUser.id);
         
         return { 
           ...dbUser, 
-          roles: roleObjects, 
+          role: roleObject, 
           permissions: resolvedPermissions 
         } as AuthContextUser;
       }

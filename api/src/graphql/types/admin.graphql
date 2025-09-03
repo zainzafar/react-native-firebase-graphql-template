@@ -5,6 +5,16 @@ enum UserSort {
   CREATED_AT_ASC
 }
 
+enum RoleGrantScope {
+  ROLE
+  ALL
+}
+
+enum PermissionGrantScope {
+  PERMISSION
+  ALL
+}
+
 type PageInfo {
   hasNextPage: Boolean!
   endCursor: String
@@ -20,25 +30,105 @@ type UserConnection {
   pageInfo: PageInfo!
 }
 
+type RoleGrantRule {
+  id: ID!
+  granterRole: Role!
+  granteeRole: Role
+  scope: RoleGrantScope!
+  canAssign: Boolean!
+  canRevoke: Boolean!
+  canManage: Boolean!
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
+}
+
+type PermissionGrantRule {
+  id: ID!
+  granterRole: Role!
+  permission: Permission
+  scope: PermissionGrantScope!
+  canAssign: Boolean!
+  canRevoke: Boolean!
+  canManage: Boolean!
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
+}
+
 extend type Query {
   adminListUsers(query: String, sortBy: UserSort = CREATED_AT_DESC, first: Int = 20, after: String): UserConnection!
-  adminGetUser(uid: ID!): User
+  adminGetUser(id: ID!): User
+  adminListManageableRoles: [Role!]!
+  adminListAssignableRoles: [Role!]!
+  adminGetRole(id: ID!): Role
+  adminListAssignablePermissions: [Permission!]!
+  adminGetUserRawPermissions(id: ID!): [String!]!
+  
+  # Delegation matrix queries
+  adminListRoleGrantRules: [RoleGrantRule!]!
+  adminListPermissionGrantRules: [PermissionGrantRule!]!
 }
 
 input AdminUpdateUserInput {
   email: String
   emailVerified: Boolean
   phoneNumber: String
-  password: String
   displayName: String
   photoURL: String
   disabled: Boolean
 }
 
+input AdminUpdateUserPasswordInput {
+  password: String!
+}
+
+input CreateRoleGrantRuleInput {
+  granterRoleId: ID!
+  granteeRoleId: ID
+  scope: RoleGrantScope!
+  canAssign: Boolean!
+  canRevoke: Boolean!
+  canManage: Boolean
+}
+
+input CreatePermissionGrantRuleInput {
+  granterRoleId: ID!
+  permissionId: ID
+  scope: PermissionGrantScope!
+  canAssign: Boolean!
+  canRevoke: Boolean!
+  canManage: Boolean
+}
+
+input CreateRoleInput {
+  name: String!
+  description: String
+  permissionIds: [ID!]
+}
+
+input UpdateRoleInput {
+  name: String
+  description: String
+}
+
 extend type Mutation {
-  adminUpdateUser(uid: ID!, input: AdminUpdateUserInput!): User!
-  adminDeleteUser(uid: ID!): Boolean!
-  adminResetPassword(uid: ID!): Boolean!
+  adminUpdateUser(id: ID!, input: AdminUpdateUserInput!): User!
+  adminUpdateUserPassword(id: ID!, input: AdminUpdateUserPasswordInput!): User!
+  adminDeleteUser(id: ID!): Boolean!
+  adminResetPassword(id: ID!, input: AdminUpdateUserPasswordInput!): Boolean!
+  adminSetUserRole(id: ID!, roleId: ID): User!
+  adminSetUserPermission(id: ID!, permissionId: ID!, enabled: Boolean!): [String!]!
+  adminSetRolePermission(roleId: ID!, permissionId: ID!, enabled: Boolean!, forceSyncGranterRoles: Boolean): Role!
+  
+  # Role CRUD mutations
+  adminCreateRole(input: CreateRoleInput!): Role!
+  adminUpdateRole(id: ID!, input: UpdateRoleInput!): Role!
+  adminDeleteRole(id: ID!): Boolean!
+  
+  # Delegation matrix mutations
+  adminCreateRoleGrantRule(input: CreateRoleGrantRuleInput!): RoleGrantRule!
+  adminDeleteRoleGrantRule(id: ID!): Boolean!
+  adminCreatePermissionGrantRule(input: CreatePermissionGrantRuleInput!): PermissionGrantRule!
+  adminDeletePermissionGrantRule(id: ID!): Boolean!
 }
 
 

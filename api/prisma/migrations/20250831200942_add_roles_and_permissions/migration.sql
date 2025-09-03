@@ -1,3 +1,9 @@
+-- CreateEnum
+CREATE TYPE "public"."RoleGrantScope" AS ENUM ('ROLE', 'ALL');
+
+-- CreateEnum
+CREATE TYPE "public"."PermissionGrantScope" AS ENUM ('PERMISSION', 'ALL');
+
 -- CreateTable
 CREATE TABLE "public"."Role" (
     "id" TEXT NOT NULL,
@@ -50,6 +56,34 @@ CREATE TABLE "public"."UserPermission" (
     CONSTRAINT "UserPermission_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "public"."RoleGrantRule" (
+    "id" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "granterRoleId" TEXT NOT NULL,
+    "granteeRoleId" TEXT,
+    "scope" "public"."RoleGrantScope" NOT NULL DEFAULT 'ROLE',
+    "canAssign" BOOLEAN NOT NULL DEFAULT true,
+    "canRevoke" BOOLEAN NOT NULL DEFAULT true,
+
+    CONSTRAINT "RoleGrantRule_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."PermissionGrantRule" (
+    "id" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "granterRoleId" TEXT NOT NULL,
+    "permissionId" TEXT,
+    "scope" "public"."PermissionGrantScope" NOT NULL DEFAULT 'PERMISSION',
+    "canAssign" BOOLEAN NOT NULL DEFAULT true,
+    "canRevoke" BOOLEAN NOT NULL DEFAULT true,
+
+    CONSTRAINT "PermissionGrantRule_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "Role_name_key" ON "public"."Role"("name");
 
@@ -90,6 +124,30 @@ CREATE INDEX "UserPermission_permissionId_idx" ON "public"."UserPermission"("per
 CREATE UNIQUE INDEX "UserPermission_userId_permissionId_key" ON "public"."UserPermission"("userId", "permissionId");
 
 -- CreateIndex
+CREATE INDEX "RoleGrantRule_granterRoleId_idx" ON "public"."RoleGrantRule"("granterRoleId");
+
+-- CreateIndex
+CREATE INDEX "RoleGrantRule_granteeRoleId_idx" ON "public"."RoleGrantRule"("granteeRoleId");
+
+-- CreateIndex
+CREATE INDEX "RoleGrantRule_scope_idx" ON "public"."RoleGrantRule"("scope");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "RoleGrantRule_granterRoleId_scope_granteeRoleId_key" ON "public"."RoleGrantRule"("granterRoleId", "scope", "granteeRoleId");
+
+-- CreateIndex
+CREATE INDEX "PermissionGrantRule_granterRoleId_idx" ON "public"."PermissionGrantRule"("granterRoleId");
+
+-- CreateIndex
+CREATE INDEX "PermissionGrantRule_permissionId_idx" ON "public"."PermissionGrantRule"("permissionId");
+
+-- CreateIndex
+CREATE INDEX "PermissionGrantRule_scope_idx" ON "public"."PermissionGrantRule"("scope");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "PermissionGrantRule_granterRoleId_scope_permissionId_key" ON "public"."PermissionGrantRule"("granterRoleId", "scope", "permissionId");
+
+-- CreateIndex
 CREATE INDEX "User_createdAt_idx" ON "public"."User"("createdAt");
 
 -- CreateIndex
@@ -115,3 +173,15 @@ ALTER TABLE "public"."UserPermission" ADD CONSTRAINT "UserPermission_userId_fkey
 
 -- AddForeignKey
 ALTER TABLE "public"."UserPermission" ADD CONSTRAINT "UserPermission_permissionId_fkey" FOREIGN KEY ("permissionId") REFERENCES "public"."Permission"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."RoleGrantRule" ADD CONSTRAINT "RoleGrantRule_granterRoleId_fkey" FOREIGN KEY ("granterRoleId") REFERENCES "public"."Role"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."RoleGrantRule" ADD CONSTRAINT "RoleGrantRule_granteeRoleId_fkey" FOREIGN KEY ("granteeRoleId") REFERENCES "public"."Role"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."PermissionGrantRule" ADD CONSTRAINT "PermissionGrantRule_granterRoleId_fkey" FOREIGN KEY ("granterRoleId") REFERENCES "public"."Role"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."PermissionGrantRule" ADD CONSTRAINT "PermissionGrantRule_permissionId_fkey" FOREIGN KEY ("permissionId") REFERENCES "public"."Permission"("id") ON DELETE CASCADE ON UPDATE CASCADE;

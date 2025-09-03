@@ -7,6 +7,16 @@ extend type Mutation {
   updateProfile(displayName: String, photoURL: String): User!
 }
 
+enum RoleGrantScope {
+  ROLE
+  ALL
+}
+
+enum PermissionGrantScope {
+  PERMISSION
+  ALL
+}
+
 type Permission {
   id: ID!
   name: String!
@@ -19,11 +29,44 @@ type Role {
   id: ID!
   name: String!
   description: String
+  permissions: [Permission!]!
+  users: [User!]!
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
+  
+  # Role ownership
+  createdByUser: User
+  
+  # Delegation matrix relations
+  canGrantRolesRules: [RoleGrantRule!]!
+  canBeGrantedByRolesRules: [RoleGrantRule!]!
+  canGrantPermissionsRules: [PermissionGrantRule!]!
+}
+
+type RoleGrantRule {
+  id: ID!
+  granterRole: Role!
+  granteeRole: Role
+  scope: RoleGrantScope!
+  canAssign: Boolean!
+  canRevoke: Boolean!
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
+}
+
+type PermissionGrantRule {
+  id: ID!
+  granterRole: Role!
+  permission: Permission
+  scope: PermissionGrantScope!
+  canAssign: Boolean!
+  canRevoke: Boolean!
   createdAt: Timestamp!
   updatedAt: Timestamp!
 }
 
 type User {
+  id: ID!
   uid: ID!
   email: String
   emailVerified: Boolean!
@@ -33,8 +76,9 @@ type User {
   lastLoginProvider: String
   identities: [UserIdentity!]!
   createdAt: Timestamp!
-  roles: [Role!]!
+  role: Role
   permissions: [String!]!
+  ownedRoles: [Role!]!
 }
 
 type AuthPayload {

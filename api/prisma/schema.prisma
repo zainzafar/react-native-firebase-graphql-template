@@ -10,22 +10,36 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id            String   @id @default(cuid())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+// --- NEW/UPDATED SECTIONS ---
 
-  uid           String   @unique
-  email         String?  @unique
-  emailVerified Boolean  @default(false)
-  displayName   String?
-  photoURL      String?
-  phoneNumber   String?
+// 1) Wildcard scopes
+enum RoleGrantScope {
+  ROLE // specific target role
+  ALL // wildcard: any role
+}
+
+enum PermissionGrantScope {
+  PERMISSION // specific target permission
+  ALL // wildcard: any permission
+}
+
+model User {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  uid               String  @unique
+  email             String? @unique
+  emailVerified     Boolean @default(false)
+  displayName       String?
+  photoURL          String?
+  phoneNumber       String?
   lastLoginProvider String?
 
-  identities    UserIdentity[]
-  roles         UserRole[]
-  permissions   UserPermission[]
+  identities  UserIdentity[]
+  role        UserRole? // One-to-one relationship (one user has one role)
+  permissions UserPermission[]
+  ownedRoles  Role[]           @relation("UserCreatedRoles")
 
   @@index([createdAt])
   @@index([displayName])
@@ -33,12 +47,12 @@ model User {
 }
 
 model UserIdentity {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId      String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
 
   providerId  String
   providerUid String
@@ -48,17 +62,29 @@ model UserIdentity {
   @@index([userId])
 }
 
+// 2) Extend Role with delegation relations
 model Role {
   id          String   @id @default(cuid())
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   name        String   @unique
   description String?
-  
-  userRoles   UserRole[]
+
+  // Role ownership - who created this role
+  createdByUserId String?
+  createdByUser   User?   @relation("UserCreatedRoles", fields: [createdByUserId], references: [id])
+
+  users       UserRole[] // Many users can have this role
   permissions RolePermission[]
 
+  // Delegation matrices
+  canGrantRolesRules       RoleGrantRule[] @relation("RoleGrantRules")
+  canBeGrantedByRolesRules RoleGrantRule[] @relation("RoleGrantableBy")
+
+  canGrantPermissionsRules PermissionGrantRule[] @relation("PermissionGrantRules")
+
   @@index([name])
+  @@index([createdByUserId])
 }
 
 model Permission {
@@ -67,9 +93,12 @@ model Permission {
   updatedAt   DateTime @updatedAt
   name        String   @unique
   description String?
-  
+
   rolePermissions RolePermission[]
   userPermissions UserPermission[]
+
+  // Delegation relations
+  grantableByPermissions PermissionGrantRule[] @relation("PermGrantableBy")
 
   @@index([name])
 }
@@ -78,7 +107,7 @@ model UserRole {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String
+  userId    String   @unique
   role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
   roleId    String
 
@@ -111,4 +140,61 @@ model UserPermission {
   @@unique([userId, permissionId])
   @@index([userId])
   @@index([permissionId])
+}
+
+// 3) Role → Role grant rules (supports wildcard via scope = ALL)
+model RoleGrantRule {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Delegator (who can assign/revoke roles)
+  granterRole   Role   @relation("RoleGrantRules", fields: [granterRoleId], references: [id], onDelete: Cascade)
+  granterRoleId String
+
+  // Target role (null when scope = ALL)
+  granteeRole   Role?   @relation("RoleGrantableBy", fields: [granteeRoleId], references: [id], onDelete: Cascade)
+  granteeRoleId String?
+
+  scope     RoleGrantScope @default(ROLE)
+  canAssign Boolean        @default(true)
+  canRevoke Boolean        @default(true)
+  canManage Boolean        @default(false)
+
+  // Note: Database constraint should enforce: (scope = 'ALL' AND granteeRoleId IS NULL) OR (scope = 'ROLE' AND granteeRoleId IS NOT NULL)
+  // This can be added as a raw SQL constraint in the migration if needed
+
+  // Enforce uniqueness; allows exactly one wildcard row per granter (scope+null key)
+  @@unique([granterRoleId, scope, granteeRoleId])
+  @@index([granterRoleId])
+  @@index([granteeRoleId])
+  @@index([scope])
+}
+
+// 4) Role → Permission grant rules (supports wildcard via scope = ALL)
+model PermissionGrantRule {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Delegator (who can assign/revoke direct user permissions)
+  granterRole   Role   @relation("PermissionGrantRules", fields: [granterRoleId], references: [id], onDelete: Cascade)
+  granterRoleId String
+
+  // Target permission (null when scope = ALL)
+  permission   Permission? @relation("PermGrantableBy", fields: [permissionId], references: [id], onDelete: Cascade)
+  permissionId String?
+
+  scope     PermissionGrantScope @default(PERMISSION)
+  canAssign Boolean              @default(true)
+  canRevoke Boolean              @default(true)
+
+  // Note: Database constraint should enforce: (scope = 'ALL' AND permissionId IS NULL) OR (scope = 'PERMISSION' AND permissionId IS NOT NULL)
+  // This can be added as a raw SQL constraint in the migration if needed
+
+  // Enforce uniqueness; allows one wildcard row per granter for permissions
+  @@unique([granterRoleId, scope, permissionId])
+  @@index([granterRoleId])
+  @@index([permissionId])
+  @@index([scope])
 }
