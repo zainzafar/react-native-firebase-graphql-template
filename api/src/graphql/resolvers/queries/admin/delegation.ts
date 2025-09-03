@@ -1,5 +1,5 @@
 import type { PrismaClient } from '@prisma/client';
-import { requirePermission, getWildcardRoleRights } from '../../../rbac';
+import { requirePermission, actorHasWildcardRoleManageDelegator } from '../../../rbac';
 import { AuthContextUser } from '../../../../services/firebaseAdmin';
 
 export default {
@@ -12,7 +12,7 @@ export default {
     requirePermission(ctx.user, 'ADMIN_ROLE_GRANT_RULES_VIEW');
     
     // Check if caller has global role management wildcard
-    const hasGlobalRoleManage = (await getWildcardRoleRights(ctx.prisma, ctx.user.id)).canManage;
+    const hasGlobalRoleManage = await actorHasWildcardRoleManageDelegator(ctx.prisma, ctx.user.id);
     
     let whereClause = {};
     
@@ -75,11 +75,11 @@ export default {
     requirePermission(ctx.user, 'ADMIN_PERMISSION_GRANT_RULES_VIEW');
     
     // Visibility will be based on role governance only
-    const hasGlobalPermissionManage = false;
+    const hasGlobalRoleManage = await actorHasWildcardRoleManageDelegator(ctx.prisma, ctx.user.id);
     
     let whereClause = {};
     
-    if (!hasGlobalPermissionManage) {
+    if (!hasGlobalRoleManage) {
       // Get caller's role ID (assuming 1 role per user)
       const userRole = await ctx.prisma.userRole.findFirst({
         where: { userId: ctx.user.id },

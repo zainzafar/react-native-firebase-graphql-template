@@ -49,7 +49,6 @@ type PermissionGrantRule {
   scope: PermissionGrantScope!
   canAssign: Boolean!
   canRevoke: Boolean!
-  canManage: Boolean!
   createdAt: Timestamp!
   updatedAt: Timestamp!
 }
@@ -96,7 +95,6 @@ input CreatePermissionGrantRuleInput {
   scope: PermissionGrantScope!
   canAssign: Boolean!
   canRevoke: Boolean!
-  canManage: Boolean
 }
 
 input CreateRoleInput {
