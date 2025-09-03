@@ -7,10 +7,10 @@ import { QUERY_ADMIN_LIST_USERS } from '../../graphql/operations';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import { useNavigation } from '@react-navigation/native';
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
-import { useAppSelector } from '../../store/hooks';
+
 import { usePermissions } from '../../features/auth/hooks';
 
-type Edge = { cursor: string; node: { uid: string; email?: string; phoneNumber?: string; displayName?: string; lastLoginProvider?: string; createdAt?: string; identities?: { providerId: string }[] } };
+type Edge = { cursor: string; node: { id: string; uid: string; email?: string; phoneNumber?: string; displayName?: string; lastLoginProvider?: string; createdAt?: string; identities?: { providerId: string }[] } };
 type AdminListUsersQuery = {
   adminListUsers?: {
     edges: Edge[];
@@ -30,11 +30,15 @@ export default function AdminManageUsersScreen() {
   const debounceRef = useRef<any>(null);
 
   // Permission checks
-  const { canEditUsers, canDeleteUsers, canImpersonateUsers, canSearchUsers } = usePermissions();
+  const { canUpdateUserProfile, canUpdateUserPassword, canDeleteUsers, canImpersonateUsers, canSearchUsers } = usePermissions();
+  
+  // Show edit button if user can update profile or password
+  const canEditUsers = canUpdateUserProfile || canUpdateUserPassword;
 
   const { data, loading, fetchMore, refetch } = useQuery<AdminListUsersQuery>(QUERY_ADMIN_LIST_USERS, {
     variables: { query: debounced || undefined, first: USERS_PER_PAGE, after: null },
     notifyOnNetworkStatusChange: true,
+    fetchPolicy: 'network-only', // Always fetch fresh data when managing users
   });
 
   useEffect(() => {
@@ -120,7 +124,7 @@ export default function AdminManageUsersScreen() {
         <View style={styles.rowActions}>
           {[
             ...(canImpersonateUsers ? [{ key: 'imp', title: 'Impersonate', onPress: () => {} }] : []),
-            ...(canEditUsers ? [{ key: 'edit', title: 'Edit', onPress: () => navigation.navigate('AdminEditUser', { id: u.uid }) }] : []),
+            ...(canEditUsers ? [{ key: 'edit', title: 'Edit', onPress: () => navigation.navigate('AdminEditUser', { id: u.id }) }] : []),
           ].map((action) => (
             <View key={action.key} style={styles.actionCol}>
               <Button

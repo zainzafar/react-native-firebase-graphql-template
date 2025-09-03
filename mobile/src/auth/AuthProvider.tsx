@@ -25,7 +25,8 @@ import AppleAuth from '@invertase/react-native-apple-authentication';
 
 // Helper function to create user profile from GraphQL data
 const createUserProfile = (userData: any): AuthUser => ({
-  id: userData.uid,
+  id: userData.id,
+  uid: userData.uid,
   email: userData.email ?? undefined,
   displayName: userData.displayName ?? undefined,
   photoURL: userData.photoURL ?? undefined,

@@ -19,6 +19,7 @@ type ButtonProps = {
   icon?: any;
   iconStyle?: 'solid' | 'regular' | 'brand';
   textColor?: string;
+  iconRight?: boolean;
 };
 
 export function Button({ 
@@ -37,6 +38,7 @@ export function Button({
   icon,
   iconStyle = 'solid',
   textColor,
+  iconRight,
 }: ButtonProps) {
   const { colors, isDark } = useTheme();
   // Subtle default background for ghost buttons so they look like buttons
@@ -150,18 +152,27 @@ export function Button({
         </View>
       ) : (
         <View style={styles.contentContainer}>
-          {icon && (
+          {icon && !iconRight && (
             <FontAwesome6 
               name={icon} 
               iconStyle={iconStyle} 
               size={16} 
               color={textColorFinal} 
-              style={styles.icon}
+              style={styles.iconLeft}
             />
           )}
           <Text style={[styles.buttonText, { color: textColorFinal }]} numberOfLines={1} ellipsizeMode="tail" allowFontScaling={false}>
             {title}
           </Text>
+          {icon && iconRight && (
+            <FontAwesome6 
+              name={icon} 
+              iconStyle={iconStyle} 
+              size={16} 
+              color={textColorFinal} 
+              style={styles.iconRight}
+            />
+          )}
         </View>
       )}
       
@@ -195,7 +206,8 @@ const styles = StyleSheet.create({
   contentContainer: { flexDirection: 'row', alignItems: 'center' },
   successContainer: { flexDirection: 'row', alignItems: 'center' },
   errorContainer: { flexDirection: 'row', alignItems: 'center' },
-  icon: { marginRight: 8 },
+  iconLeft: { marginRight: 8 },
+  iconRight: { marginLeft: 8 },
   progressContainer: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center' },
   progressBar: { height: '100%', backgroundColor: 'rgba(255,255,255,0.2)' },
 });

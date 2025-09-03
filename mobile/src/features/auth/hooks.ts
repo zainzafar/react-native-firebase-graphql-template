@@ -19,12 +19,19 @@ export function usePermissions() {
     // Dynamic permission checker
     hasPermission,
     
-    // Convenience methods for common permissions
-    canViewUsers: hasPermission('ADMIN_USERS_VIEW'),
+    // Convenience methods for common permissions (using new simplified system)
+    canViewUsers: hasPermission('ADMIN_USERS_VIEW_ALL'),
     canSearchUsers: hasPermission('ADMIN_USERS_SEARCH'),
-    canEditUsers: hasPermission('ADMIN_USERS_EDIT'),
+    canUpdateUserProfile: hasPermission('ADMIN_USERS_UPDATE_PROFILE'),
+    canUpdateUserPassword: hasPermission('ADMIN_USERS_UPDATE_PASSWORD'),
     canDeleteUsers: hasPermission('ADMIN_USERS_DELETE'),
     canImpersonateUsers: hasPermission('ADMIN_USERS_IMPERSONATE'),
     canAccessDebug: hasPermission('ADMIN_DEBUG'),
+    
+    // New delegation system permissions
+    canViewRoles: hasPermission('ADMIN_ROLES_VIEW'),
+    canViewPermissions: hasPermission('ADMIN_PERMISSIONS_VIEW'),
+    canManageRoleGrantRules: hasPermission('ADMIN_ROLE_GRANT_RULES_VIEW'),
+    canManagePermissionGrantRules: hasPermission('ADMIN_PERMISSION_GRANT_RULES_VIEW'),
   };
 }

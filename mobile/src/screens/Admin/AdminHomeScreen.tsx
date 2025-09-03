@@ -11,10 +11,13 @@ export default function AdminHomeScreen() {
   const navigation = useNavigation<any>();
 
   // Permission checks for user management
-  const { canViewUsers, canSearchUsers, canEditUsers, canDeleteUsers, canImpersonateUsers, canAccessDebug } = usePermissions();
+  const { canViewUsers, canSearchUsers, canUpdateUserProfile, canUpdateUserPassword, canDeleteUsers, canImpersonateUsers, canAccessDebug, canManageRoleGrantRules, canViewRoles, canViewPermissions } = usePermissions();
 
   // Show Manage Users if user has any user management permission
-  const canManageUsers = canViewUsers || canSearchUsers || canEditUsers || canDeleteUsers || canImpersonateUsers;
+  const canManageUsers = canViewUsers || canSearchUsers || canUpdateUserProfile || canUpdateUserPassword || canDeleteUsers || canImpersonateUsers;
+
+  // Show Roles & Permissions if user can view roles or permissions
+  const canManageRolesAndPermissions = canViewRoles || canViewPermissions;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}> 
@@ -24,6 +27,30 @@ export default function AdminHomeScreen() {
             <View style={styles.menuItemLeft}>
               <FontAwesome6 name="users" iconStyle="solid" size={20} color={colors.text} />
               <Body style={styles.menuItemText}>Manage Users</Body>
+            </View>
+            <FontAwesome6 name="chevron-right" iconStyle="solid" size={16} color={colors.mutedText} />
+          </Pressable>
+        </Card>
+      )}
+
+      {canManageRolesAndPermissions && (
+        <Card style={styles.card}> 
+          <Pressable onPress={() => navigation.navigate('AdminRoles')} style={styles.menuItem}>
+            <View style={styles.menuItemLeft}>
+              <FontAwesome6 name="shield-halved" iconStyle="solid" size={20} color={colors.text} />
+              <Body style={styles.menuItemText}>Roles & Permissions</Body>
+            </View>
+            <FontAwesome6 name="chevron-right" iconStyle="solid" size={16} color={colors.mutedText} />
+          </Pressable>
+        </Card>
+      )}
+
+      {canManageRoleGrantRules && (
+        <Card style={styles.card}> 
+          <Pressable onPress={() => navigation.navigate('AdminDelegationMatrix')} style={styles.menuItem}>
+            <View style={styles.menuItemLeft}>
+              <FontAwesome6 name="sitemap" iconStyle="solid" size={20} color={colors.text} />
+              <Body style={styles.menuItemText}>Delegation Matrix</Body>
             </View>
             <FontAwesome6 name="chevron-right" iconStyle="solid" size={16} color={colors.mutedText} />
           </Pressable>

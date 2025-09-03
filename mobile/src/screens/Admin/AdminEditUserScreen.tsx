@@ -1,19 +1,33 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { Button, Card, Input, Body, UserIdentityRow } from '../../components';
 import { useTheme } from '../../theme/ThemeProvider';
+import { useAppSelector } from '../../store/hooks';
+import { selectUserPermissions } from '../../features/auth/selectors';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useMutation, useQuery } from '@apollo/client/react';
-import { MUTATION_ADMIN_UPDATE_USER, QUERY_ADMIN_GET_USER, MUTATION_ADMIN_RESET_PASSWORD } from '../../graphql/operations';
+import { MUTATION_ADMIN_UPDATE_USER, MUTATION_ADMIN_UPDATE_USER_PASSWORD, QUERY_ADMIN_GET_USER, MUTATION_ADMIN_RESET_PASSWORD } from '../../graphql/operations';
 
 export default function AdminEditUserScreen() {
   const { colors } = useTheme();
+  const myPerms = useAppSelector(selectUserPermissions) as string[];
+  
+  // Check for new simplified permissions
+  const canViewRoles = myPerms.includes('ADMIN_ROLES_VIEW');
+  const canViewPermissions = myPerms.includes('ADMIN_PERMISSIONS_VIEW');
+  const canOpenAccess = canViewRoles || canViewPermissions;
+  const canDeleteUser = myPerms.includes('ADMIN_USERS_DELETE');
+  const canUpdateProfile = myPerms.includes('ADMIN_USERS_UPDATE_PROFILE');
+  const canUpdatePassword = myPerms.includes('ADMIN_USERS_UPDATE_PASSWORD');
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
-  const uid = route.params?.id as string; // we navigate with uid
+  const userId = route.params?.id as string; // we navigate with database id
 
-  // Fetch by uid (source of truth)
-  const { data } = useQuery<{ adminGetUser?: any }>(QUERY_ADMIN_GET_USER, { variables: { uid } });
+  // Fetch by database id (source of truth)
+  const { data, loading } = useQuery<{ adminGetUser?: any }>(QUERY_ADMIN_GET_USER, { 
+    variables: { id: userId },
+    fetchPolicy: 'network-only' // Always fetch fresh data when editing a user
+  });
   const [mutateProfile, { loading: profileLoading }] = useMutation(MUTATION_ADMIN_UPDATE_USER, {
     update: (cache, { data }: any) => {
       // Update the user in the admin list cache
@@ -24,7 +38,7 @@ export default function AdminEditUserScreen() {
             adminListUsers: (existing = {}) => {
               if (existing.edges) {
                 const updatedEdges = existing.edges.map((edge: any) => {
-                  if (edge.node.uid === updatedUser.uid) {
+                  if (edge.node.id === updatedUser.id) {
                     return { ...edge, node: { ...edge.node, ...updatedUser } };
                   }
                   return edge;
@@ -38,7 +52,7 @@ export default function AdminEditUserScreen() {
       }
     },
   });
-  const [mutatePassword, { loading: passwordLoading }] = useMutation(MUTATION_ADMIN_UPDATE_USER);
+  const [mutatePassword, { loading: passwordLoading }] = useMutation(MUTATION_ADMIN_UPDATE_USER_PASSWORD);
   const [resetPassword, { loading: resetting }] = useMutation(MUTATION_ADMIN_RESET_PASSWORD);
 
   const user = data?.adminGetUser;
@@ -78,7 +92,7 @@ export default function AdminEditUserScreen() {
   const onSave = async () => {
     try {
       setSaveSuccess(false);
-      await mutateProfile({ variables: { uid: user?.uid, input: {
+      await mutateProfile({ variables: { id: user.id, input: {
         email: email || undefined,
         emailVerified,
         phoneNumber,
@@ -96,13 +110,25 @@ export default function AdminEditUserScreen() {
   };
 
   const onResetPassword = async () => {
+    if (!password.trim()) {
+      setResetError('Please enter a new password');
+      setResetErrorFlash(true);
+      return;
+    }
+    
     try {
       setResetError(null);
       setResetSuccess(false);
-      await resetPassword({ variables: { uid: user?.uid } });
+      await resetPassword({ 
+        variables: { 
+          id: user.id, 
+          input: { password: password } 
+        } 
+      });
       setResetSuccess(true);
+      setPassword(''); // Clear the input after success
     } catch (e: any) {
-      setResetError(e?.message || 'Failed to send reset');
+      setResetError(e?.message || 'Failed to reset password');
       setResetErrorFlash(true);
     }
   };
@@ -110,7 +136,7 @@ export default function AdminEditUserScreen() {
   const onSavePassword = async () => {
     try {
       setPasswordSaveSuccess(false);
-      await mutatePassword({ variables: { uid: user?.uid, input: { password: password || undefined } } });
+      await mutatePassword({ variables: { id: user.id, input: { password: password } } });
       setPassword('');
       setPasswordSaveSuccess(true);
       setPasswordSaveError(null);
@@ -120,41 +146,84 @@ export default function AdminEditUserScreen() {
     }
   };
 
+
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+        <ActivityIndicator size="large" color={colors.text} />
+      </View>
+    );
+  }
+
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}> 
+    <ScrollView
+      style={{ flex: 1, backgroundColor: colors.background }}
+      contentContainerStyle={styles.container}
+      keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="on-drag"
+      contentInsetAdjustmentBehavior="automatic"
+    > 
       <Card style={styles.card}>
         <View style={styles.form}>
-          <UserIdentityRow email={user?.email} phoneNumber={user?.phoneNumber} identities={user?.identities} />
+          <UserIdentityRow email={user.email} phoneNumber={user.phoneNumber} identities={user.identities} />
         </View>
       </Card>
       <Card style={styles.card}>
         <View style={styles.form}> 
-          <Input value={email} onChangeText={setEmail} placeholder="Email" />
-          <Input value={displayName} onChangeText={setDisplayName} placeholder="Display name" />
-          <Input value={phoneNumber} onChangeText={setPhoneNumber} placeholder="Phone number" />
-          <Input value={photoURL} onChangeText={setPhotoURL} placeholder="Photo URL" />
-          <Button
-            title="Save"
-            onPress={onSave}
-            loading={profileLoading}
-            success={saveSuccess}
-            successText="Saved"
-            error={saveErrorFlash}
-            errorText="Please try again"
-            onSuccessComplete={() => { setSaveSuccess(false); setSaveErrorFlash(false); }}
-            variant="ghost"
+          <Input 
+            value={email} 
+            onChangeText={setEmail} 
+            placeholder="Email" 
+            editable={canUpdateProfile}
           />
+          <Input 
+            value={displayName} 
+            onChangeText={setDisplayName} 
+            placeholder="Display name" 
+            editable={canUpdateProfile}
+          />
+          <Input 
+            value={phoneNumber} 
+            onChangeText={setPhoneNumber} 
+            placeholder="Phone number" 
+            editable={canUpdateProfile}
+          />
+          <Input 
+            value={photoURL} 
+            onChangeText={setPhotoURL} 
+            placeholder="Photo URL" 
+            editable={canUpdateProfile}
+          />
+          {canUpdateProfile && (
+            <Button
+              title="Save"
+              onPress={onSave}
+              loading={profileLoading}
+              success={saveSuccess}
+              successText="Saved"
+              error={saveErrorFlash}
+              errorText="Please try again"
+              onSuccessComplete={() => { setSaveSuccess(false); setSaveErrorFlash(false); }}
+              variant="ghost"
+            />
+          )}
           {!!saveError && (
             <Body style={{ color: '#DC2626' }}>{saveError}</Body>
           )}
         </View>
       </Card>
 
-      {/* Security section - show if user has password/google/apple */}
-      {showSecuritySection && (
+      {/* Security section - show if user has password/google/apple and update password permission */}
+      {showSecuritySection && canUpdatePassword && (
         <Card style={styles.card}>
           <View style={styles.form}> 
-            <Input value={password} onChangeText={setPassword} placeholder="New password (optional)" />
+            <Input 
+              value={password} 
+              onChangeText={setPassword} 
+              placeholder="New password (optional)" 
+              editable={canUpdatePassword}
+            />
             <Button
               title="Save password"
               onPress={onSavePassword}
@@ -191,23 +260,36 @@ export default function AdminEditUserScreen() {
       )}
       
       {/* Danger zone: Delete user */}
-      <Card style={styles.card}>
-        <View style={styles.form}>
-          <Button
-            title="Delete user"
-            variant="ghost"
-            icon="trash-can"
-            iconStyle="regular"
-            onPress={() => navigation.navigate('AdminDeleteUser', { id: uid })}
-          />
-        </View>
-      </Card>
-    </View>
+      {(canOpenAccess || canDeleteUser) && (
+        <Card style={styles.card}>
+          <View style={styles.form}>
+            {canOpenAccess && (
+              <Button
+                title="Roles & Permissions"
+                variant="ghost"
+                icon="key"
+                iconStyle="solid"
+                onPress={() => navigation.navigate('AdminEditUserAccess', { id: userId })}
+              />
+            )}
+            {canDeleteUser && (
+              <Button
+                title="Delete user"
+                variant="ghost"
+                icon="trash-can"
+                iconStyle="regular"
+                onPress={() => navigation.navigate('AdminDeleteUser', { id: userId })}
+              />
+            )}
+          </View>
+        </Card>
+      )}
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16 },
+  container: { padding: 16 },
   form: { gap: 12 },
   card: { marginBottom: 16 },
 });

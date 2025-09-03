@@ -39,6 +39,7 @@ type InputProps = {
   keyboardType?: any;
   textContentType?: any;
   autoComplete?: any;
+  editable?: boolean;
 };
 
 export function Input(props: InputProps) {

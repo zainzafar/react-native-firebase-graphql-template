@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, View, StyleSheet } from 'react-native';
+import { Alert, View, StyleSheet, ScrollView } from 'react-native';
 import { Body, Button, Card, UserIdentityRow } from '../../components';
 import { useTheme } from '../../theme/ThemeProvider';
 import { useRoute, useNavigation } from '@react-navigation/native';
@@ -11,7 +11,7 @@ export default function AdminDeleteUserScreen() {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const id = route.params?.id as string;
-  const { data } = useQuery<{ adminGetUser?: any }>(QUERY_ADMIN_GET_USER, { variables: { uid: id } });
+  const { data } = useQuery<{ adminGetUser?: any }>(QUERY_ADMIN_GET_USER, { variables: { id: id } });
   const user = data?.adminGetUser;
   const [mutate, { loading }] = useMutation(MUTATION_ADMIN_DELETE_USER, {
     update: (cache, { data }: any) => {
@@ -22,7 +22,7 @@ export default function AdminDeleteUserScreen() {
           fields: {
             adminListUsers: (existing = {}) => {
               if (existing.edges) {
-                const filteredEdges = existing.edges.filter((edge: any) => edge.node.uid !== id);
+                const filteredEdges = existing.edges.filter((edge: any) => edge.node.id !== id);
                 return { ...existing, edges: filteredEdges };
               }
               return existing;
@@ -45,7 +45,7 @@ export default function AdminDeleteUserScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              await mutate({ variables: { uid: id } });
+              await mutate({ variables: { id: id } });
               Alert.alert('Deleted', 'User has been deleted.');
               try { navigation.goBack(); } catch {}
             } catch (e: any) {
@@ -58,7 +58,13 @@ export default function AdminDeleteUserScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}> 
+    <ScrollView
+      style={{ flex: 1, backgroundColor: colors.background }}
+      contentContainerStyle={styles.container}
+      keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="on-drag"
+      contentInsetAdjustmentBehavior="automatic"
+    > 
       <Card>
         <View style={styles.list}> 
           <UserIdentityRow email={user?.email} phoneNumber={user?.phoneNumber} identities={user?.identities} style={{ marginBottom: 8 }} />
@@ -77,12 +83,12 @@ export default function AdminDeleteUserScreen() {
           textColor="#FFFFFF"
         />
       </Card>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16 },
+  container: { padding: 16 },
   list: { marginVertical: 12, gap: 6 },
 });
 

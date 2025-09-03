@@ -16,6 +16,7 @@ export type UserIdentity = {
 
 export type AuthUser = {
   id: string;
+  uid: string;
   email?: string;
   displayName?: string;
   photoURL?: string;
