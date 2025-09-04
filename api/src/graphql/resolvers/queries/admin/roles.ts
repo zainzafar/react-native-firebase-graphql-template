@@ -90,7 +90,9 @@ export default {
     const filterablePermissions = await Promise.all(
       allPermissions.map(async (permission) => {
         try {
-          await requireAssignPermission(ctx.prisma, ctx.user.id, permission.id);
+          await requireAssignPermission(ctx.prisma, ctx.user.id, permission.id, {
+            allowGovernanceBypassPossession: true
+          });
           return permission;
         } catch {
           return null; // User can't grant this permission (either no delegation rights or doesn't possess it)

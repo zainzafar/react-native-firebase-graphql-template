@@ -41,7 +41,9 @@ export default {
 
       // Validate each requested permission using unified delegation + possession check
       for (const p of perms) {
-        await requireAssignPermission(tx, user.id, p.id);
+        await requireAssignPermission(tx, user.id, p.id, {
+          allowGovernanceBypassPossession: true 
+        });
       }
 
       // Get user's role for the grant rule
@@ -227,7 +229,9 @@ export default {
 
       if (args.enabled) {
         // TURNING ON: unified delegation + possession check
-        await requireAssignPermission(tx, user.id, permission.id);
+        await requireAssignPermission(tx, user.id, permission.id, {
+          allowGovernanceBypassPossession: true
+        });
 
         // Optional: Protect existing role delegation rules to this role
         const delegators = await tx.roleGrantRule.findMany({
@@ -247,16 +251,13 @@ export default {
 
           if (conflicts.length) {
             if (args.forceSyncGranterRoles) {
-              // Try to auto-sync: add this permission to each conflicting granter role,
-              // but only if the actor is allowed to add it there (reuse same checks).
+              // Try to auto-sync: add this permission to each conflicting granter role
               for (const granterRoleId of conflicts) {
                 // Must control the granter role too
                 const canManageGranter = await canManageRoleDelegationMatrix(tx, user.id, granterRoleId);
                 if (!canManageGranter) {
                   throw new GraphQLError(`Cannot sync granter role ${granterRoleId}: you do not control it`);
                 }
-                // Same delegation + possession checks apply
-                await requireAssignPermission(tx, user.id, permission.id);
                 await tx.rolePermission.upsert({
                   where: { roleId_permissionId: { roleId: granterRoleId, permissionId: permission.id } },
                   create: { roleId: granterRoleId, permissionId: permission.id },
