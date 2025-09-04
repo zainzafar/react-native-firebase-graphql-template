@@ -112,7 +112,7 @@ extend type Mutation {
   adminUpdateUser(id: ID!, input: AdminUpdateUserInput!): User!
   adminUpdateUserPassword(id: ID!, input: AdminUpdateUserPasswordInput!): User!
   adminDeleteUser(id: ID!): Boolean!
-  adminResetPassword(id: ID!, input: AdminUpdateUserPasswordInput!): Boolean!
+  adminResetPassword(id: ID!): Boolean!
   adminSetUserRole(id: ID!, roleId: ID): User!
   adminSetUserPermission(id: ID!, permissionId: ID!, enabled: Boolean!): [String!]!
   adminSetRolePermission(roleId: ID!, permissionId: ID!, enabled: Boolean!, forceSyncGranterRoles: Boolean): Role!
