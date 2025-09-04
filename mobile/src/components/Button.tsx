@@ -13,6 +13,8 @@ type ButtonProps = {
   onSuccessComplete?: () => void;
   error?: boolean;
   errorText?: string;
+  errorDuration?: number;
+  onErrorComplete?: () => void;
   variant?: 'primary' | 'ghost';
   disabled?: boolean;
   style?: any;
@@ -32,6 +34,8 @@ export function Button({
   onSuccessComplete,
   error,
   errorText,
+  errorDuration = 3000,
+  onErrorComplete,
   variant = 'primary', 
   disabled, 
   style,
@@ -41,6 +45,11 @@ export function Button({
   iconRight,
 }: ButtonProps) {
   const { colors, isDark } = useTheme();
+  
+  // Internal state to track animation completion
+  const [internalSuccess, setInternalSuccess] = useState(false);
+  const [internalError, setInternalError] = useState(false);
+  
   // Subtle default background for ghost buttons so they look like buttons
   const isGhost = variant !== 'primary';
   const ghostBg = isDark ? 'rgba(255,255,255,0.06)' : colors.card;
@@ -51,23 +60,23 @@ export function Button({
   const borderColor = variant === 'primary' ? colors.primary : ghostBorder;
   
   // Success and error state styling
-  const successBg = success ? '#059669' : bg;
-  const successBorderColor = success ? '#059669' : borderColor;
-  const errorBg = error ? '#DC2626' : bg;
-  const errorBorderColor = error ? '#DC2626' : borderColor;
+  const successBg = internalSuccess ? colors.buttonSuccess : bg;
+  const successBorderColor = internalSuccess ? colors.buttonSuccess : borderColor;
+  const errorBg = internalError ? colors.buttonError : bg;
+  const errorBorderColor = internalError ? colors.buttonError : borderColor;
   
   // Determine final background and border color
-  const finalBg = error ? errorBg : success ? successBg : bg;
-  const finalBorderColor = error ? errorBorderColor : success ? successBorderColor : borderColor;
+  const finalBg = internalError ? errorBg : internalSuccess ? successBg : bg;
+  const finalBorderColor = internalError ? errorBorderColor : internalSuccess ? successBorderColor : borderColor;
   
   // Animation for progress bar
   const progressAnim = useRef(new Animated.Value(0)).current;
   
-  // Error animation state
-  const [errorAnimating, setErrorAnimating] = useState(false);
+
   
   useEffect(() => {
     if (success) {
+      setInternalSuccess(true);
       // Reset progress
       progressAnim.setValue(0);
       
@@ -77,36 +86,43 @@ export function Button({
         duration: successDuration,
         useNativeDriver: false,
       }).start(() => {
-        // Call onSuccessComplete when animation finishes
+        // Stop animation and call completion callback
+        progressAnim.stopAnimation();
         onSuccessComplete?.();
+        
+        // Reset internal state after animation completes
+        setInternalSuccess(false);
       });
     } else {
       // Reset progress when not in success state
       progressAnim.setValue(0);
+      setInternalSuccess(false);
     }
   }, [success, successDuration, progressAnim, onSuccessComplete]);
 
   useEffect(() => {
-    if (error && !errorAnimating) {
-      setErrorAnimating(true);
-      
+    if (error) {
+      setInternalError(true);
       // Reset progress animation
       progressAnim.setValue(0);
       
       // Animate progress bar from 0 to 1 (red animation)
       Animated.timing(progressAnim, {
         toValue: 1,
-        duration: 3000, // 3 seconds for error animation
+        duration: errorDuration,
         useNativeDriver: false,
       }).start(() => {
-        // Reset error state and call completion callback
-        setErrorAnimating(false);
-        if (onSuccessComplete) {
-          onSuccessComplete();
-        }
+        // Stop animation and call completion callback
+        progressAnim.stopAnimation();
+        onErrorComplete?.();
+        
+        // Reset internal state after animation completes
+        setInternalError(false);
       });
+    } else {
+      setInternalError(false);
     }
-  }, [error, errorAnimating, progressAnim, onSuccessComplete]);
+  }, [error, progressAnim, onErrorComplete, errorDuration]);
 
   const handlePress = async () => {
     if (onPress) {
@@ -132,18 +148,18 @@ export function Button({
         disabled && { opacity: 0.6 },
         style,
       ]}
-      disabled={disabled || loading || success || error}
+      disabled={disabled || loading || internalSuccess || internalError}
     >
       {loading ? (
         <ActivityIndicator color={textColorFinal} />
-      ) : success ? (
+      ) : internalSuccess ? (
         <View style={styles.successContainer}>
           <FontAwesome6 name="check" iconStyle="solid" size={16} color="white" />
           <Text style={[styles.buttonText, { color: 'white', marginLeft: 8 }]} numberOfLines={1} ellipsizeMode="tail" allowFontScaling={false}>
             {successText || title}
           </Text>
         </View>
-      ) : error ? (
+      ) : internalError ? (
         <View style={styles.errorContainer}>
           <FontAwesome6 name="triangle-exclamation" iconStyle="solid" size={16} color="white" />
           <Text style={[styles.buttonText, { color: 'white', marginLeft: 8 }]} numberOfLines={1} ellipsizeMode="tail" allowFontScaling={false}>
@@ -177,7 +193,7 @@ export function Button({
       )}
       
       {/* Progress bar overlay */}
-      {(success || error) && (
+      {(internalSuccess || internalError) && (
         <View style={styles.progressContainer}>
           <Animated.View
             style={[
@@ -187,7 +203,7 @@ export function Button({
                   inputRange: [0, 1],
                   outputRange: ['0%', '100%'],
                 }),
-                backgroundColor: error ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.3)',
+                backgroundColor: internalError ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.3)',
               },
             ]}
           />
@@ -211,3 +227,4 @@ const styles = StyleSheet.create({
   progressContainer: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center' },
   progressBar: { height: '100%', backgroundColor: 'rgba(255,255,255,0.2)' },
 });
+

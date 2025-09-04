@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, TextInput, Switch } from 'react-native';
+import { View, StyleSheet, ScrollView, TextInput } from 'react-native';
 import { useTheme } from '../../theme/ThemeProvider';
 import { useAppSelector } from '../../store/hooks';
 import { selectUserPermissions } from '../../features/auth/selectors';
 import { useQuery, useMutation } from '@apollo/client/react';
-import { Body, Button, Card } from '../../components';
+import { Body, Button, Card, PermissionList } from '../../components';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -51,6 +51,16 @@ export default function AdminCreateRoleScreen() {
 
   const allPermissions = permissionsData?.adminListAssignablePermissions ?? [];
 
+  // Debug logging
+  console.log('🔍 AdminCreateRoleScreen Debug:');
+  console.log('  - canViewPermissions:', canViewPermissions);
+  console.log('  - permissionsData:', permissionsData);
+  console.log('  - allPermissions:', allPermissions);
+  console.log('  - allPermissions.length:', allPermissions.length);
+  if (allPermissions.length > 0) {
+    console.log('  - First permission sample:', allPermissions[0]);
+  }
+
   const handleCreateRole = async () => {
     try {
       setCreateLoading(true);
@@ -96,9 +106,9 @@ export default function AdminCreateRoleScreen() {
   const handleTogglePermission = async (permission: Permission, enabled: boolean) => {
     // Optimistically update local state first
     if (enabled) {
-      setRolePermissions(prev => [...prev, permission.name]);
+      setRolePermissions(prev => [...prev, permission.id]);
     } else {
-      setRolePermissions(prev => prev.filter(p => p !== permission.name));
+      setRolePermissions(prev => prev.filter(p => p !== permission.id));
     }
   };
 
@@ -154,7 +164,8 @@ export default function AdminCreateRoleScreen() {
           successText="Role Created!"
           error={createErrorFlash}
           errorText="Error creating"
-          onSuccessComplete={() => { setCreateSuccess(false); setCreateErrorFlash(false); }}
+
+
         />
         {createError && (
           <Body style={[styles.errorText, { color: colors.danger }]}>
@@ -166,65 +177,68 @@ export default function AdminCreateRoleScreen() {
   );
 
   const renderPermissions = () => {
-    if (!canViewPermissions) return null;
+    if (!canViewPermissions) {
+      return null;
+    }
 
     // If no permissions are available to assign, don't show the section
-    if (allPermissions.length === 0) return null;
-
-    // Group permissions by category
-    const userManagement: Permission[] = [];
-    const system: Permission[] = [];
-    
-    allPermissions.forEach(p => {
-      if (p.name.startsWith('ADMIN_DEBUG') || p.name.includes('ROLE') || p.name.includes('PERMISSION')) {
-        system.push(p);
-      } else {
-        userManagement.push(p);
-      }
-    });
-
-    const renderPermissionSection = (title: string, permissions: Permission[]) => {
-      if (permissions.length === 0) return null;
-      
-      return (
-        <View style={styles.permissionSection}>
-          <Body style={{ color: colors.mutedText, marginBottom: 12 }}>{title}</Body>
-          {title === 'System' && (
-            <Body style={{ color: colors.mutedText, marginBottom: 12, fontSize: 12 }}>
-              Advanced system permissions. Only permissions you can assign are shown.
-            </Body>
-          )}
-          <View style={{ gap: 20 }}>
-            {permissions.map((p) => {
-              const isEnabled = rolePermissions.includes(p.name);
-              
-              return (
-                <View key={p.id}>
-                  <View style={styles.permRow}>
-                    <View style={{ flex: 1 }}>
-                      <Body style={{ color: colors.text }}>{p.description || p.name}</Body>
-                    </View>
-                    <Switch
-                      value={isEnabled}
-                      onValueChange={(v) => handleTogglePermission(p, v)}
-                    />
-                  </View>
-                </View>
-              );
-            })}
-          </View>
-        </View>
-      );
-    };
+    if (allPermissions.length === 0) {
+      return null;
+    }
 
     return (
       <Card style={styles.sectionCard}>
         {renderSectionHeader('Assign Permissions', 'key')}
-        {renderPermissionSection('User Management', userManagement)}
-        {renderPermissionSection('System', system)}
+                  <PermissionList
+            permissions={allPermissions}
+            selectedPermissions={rolePermissions}
+            onPermissionToggle={(permissionId, enabled) => {
+              const permission = allPermissions.find(p => p.id === permissionId);
+              if (permission) {
+                handleTogglePermission(permission, enabled);
+              }
+            }}
+            showDescriptions={true}
+            showNames={false}
+            canEnable={Object.fromEntries(allPermissions.map(p => [p.id, true]))}
+            canDisable={Object.fromEntries(allPermissions.map(p => [p.id, true]))}
+          />
       </Card>
     );
   };
+
+  const styles = StyleSheet.create({
+    container: { flex: 1 },
+    paddedContainer: { paddingHorizontal: colors.screenPaddingHorizontal, paddingVertical: colors.screenPaddingVertical },
+    saveButtonContainer: { 
+      marginTop: 16 
+    },
+    saveButton: { width: '100%' },
+    content: { flex: 1 },
+    sectionCard: { marginBottom: 16 },
+    sectionHeader: { 
+      flexDirection: 'row', 
+      alignItems: 'center', 
+      gap: 8, 
+      marginBottom: 16 
+    },
+    sectionTitle: { fontSize: 16, fontWeight: '600' },
+    formSection: { gap: 8, marginBottom: 16 },
+    formLabel: { fontSize: 14, fontWeight: '500', marginBottom: 4 },
+    textInput: { 
+      paddingVertical: 12, 
+      paddingHorizontal: 16, 
+      borderRadius: 8, 
+      borderWidth: 1, 
+      fontSize: 14 
+    },
+
+    errorText: { 
+      fontSize: 14, 
+      marginTop: 8, 
+      textAlign: 'center' 
+    },
+  });
 
   return (
     <View style={[styles.container, styles.paddedContainer, { backgroundColor: colors.background }]}>
@@ -235,37 +249,3 @@ export default function AdminCreateRoleScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  paddedContainer: { paddingHorizontal: 20, paddingVertical: 24 },
-  saveButtonContainer: { 
-    marginTop: 16 
-  },
-  saveButton: { width: '100%' },
-  content: { flex: 1 },
-  sectionCard: { marginBottom: 16 },
-  sectionHeader: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    gap: 8, 
-    marginBottom: 16 
-  },
-  sectionTitle: { fontSize: 16, fontWeight: '600' },
-  formSection: { gap: 8, marginBottom: 16 },
-  formLabel: { fontSize: 14, fontWeight: '500', marginBottom: 4 },
-  textInput: { 
-    paddingVertical: 12, 
-    paddingHorizontal: 16, 
-    borderRadius: 8, 
-    borderWidth: 1, 
-    fontSize: 14 
-  },
-  permissionSection: { marginBottom: 20 },
-  permRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  errorText: { 
-    fontSize: 14, 
-    marginTop: 8, 
-    textAlign: 'center' 
-  },
-});

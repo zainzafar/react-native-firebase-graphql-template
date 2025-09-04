@@ -6,8 +6,14 @@ export const lightColors = {
   primary: '#2563EB',
   primaryText: '#FFFFFF',
   border: '#E2E8F0',
+  cardBorder: '#E2E8F0',
   accent: '#22C55E',
   danger: '#EF4444',
+  buttonSuccess: '#059669',
+  buttonError: '#DC2626',
+  // Screen layout
+  screenPaddingHorizontal: 20,
+  screenPaddingVertical: 20,
 };
 
 export const darkColors = {
@@ -18,8 +24,14 @@ export const darkColors = {
   primary: '#60A5FA',
   primaryText: '#0B1220',
   border: '#1F2937',
+  cardBorder: '#1F2937',
   accent: '#34D399',
   danger: '#F87171',
+  buttonSuccess: '#059669',
+  buttonError: '#DC2626',
+  // Screen layout
+  screenPaddingHorizontal: 20,
+  screenPaddingVertical: 20,
 };
 
 export type AppColors = typeof lightColors;

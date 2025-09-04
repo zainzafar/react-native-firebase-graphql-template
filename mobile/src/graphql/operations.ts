@@ -102,8 +102,8 @@ export const MUTATION_ADMIN_DELETE_USER = gql`
 `;
 
 export const MUTATION_ADMIN_RESET_PASSWORD = gql`
-  mutation AdminResetPassword($id: ID!, $input: AdminUpdateUserPasswordInput!) {
-    adminResetPassword(id: $id, input: $input)
+  mutation AdminResetPassword($id: ID!) {
+    adminResetPassword(id: $id)
   }
 `;
 
@@ -145,6 +145,21 @@ export const QUERY_ADMIN_GET_ROLE = gql`
         displayName 
         phoneNumber 
         identities { providerId }
+      }
+      canGrantRolesRules {
+        id
+        scope
+        canAssign
+        canRevoke
+        canManage
+        granteeRole { id name description }
+      }
+      canGrantPermissionsRules {
+        id
+        scope
+        canAssign
+        canRevoke
+        permission { id name description }
       }
     }
   }

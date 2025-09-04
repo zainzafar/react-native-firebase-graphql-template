@@ -65,13 +65,10 @@ export default function AdminEditUserScreen() {
   const [disabled, setDisabled] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [saveErrorFlash, setSaveErrorFlash] = useState(false);
   const [resetSuccess, setResetSuccess] = useState(false);
   const [resetError, setResetError] = useState<string | null>(null);
-  const [resetErrorFlash, setResetErrorFlash] = useState(false);
   const [passwordSaveSuccess, setPasswordSaveSuccess] = useState(false);
   const [passwordSaveError, setPasswordSaveError] = useState<string | null>(null);
-  const [passwordSaveErrorFlash, setPasswordSaveErrorFlash] = useState(false);
   const providerIds = Array.isArray(user?.identities) ? user!.identities.map((p: any) => p.providerId) : [];
   const hasPasswordProvider = providerIds.includes('password');
   const hasGoogleProvider = providerIds.includes('google.com');
@@ -105,31 +102,21 @@ export default function AdminEditUserScreen() {
       setSaveError(null); // clear error only after a successful save
     } catch (e: any) {
       setSaveError(e?.message || 'Failed to save');
-      setSaveErrorFlash(true);
     }
   };
 
   const onResetPassword = async () => {
-    if (!password.trim()) {
-      setResetError('Please enter a new password');
-      setResetErrorFlash(true);
-      return;
-    }
-    
     try {
       setResetError(null);
       setResetSuccess(false);
       await resetPassword({ 
         variables: { 
-          id: user.id, 
-          input: { password: password } 
+          id: user.id
         } 
       });
       setResetSuccess(true);
-      setPassword(''); // Clear the input after success
     } catch (e: any) {
-      setResetError(e?.message || 'Failed to reset password');
-      setResetErrorFlash(true);
+      setResetError(e?.message || 'Failed to send password reset email');
     }
   };
 
@@ -142,7 +129,6 @@ export default function AdminEditUserScreen() {
       setPasswordSaveError(null);
     } catch (e: any) {
       setPasswordSaveError(e?.message || 'Failed to update password');
-      setPasswordSaveErrorFlash(true);
     }
   };
 
@@ -200,11 +186,10 @@ export default function AdminEditUserScreen() {
               title="Save"
               onPress={onSave}
               loading={profileLoading}
-              success={saveSuccess}
+              success={!!saveSuccess}
               successText="Saved"
-              error={saveErrorFlash}
+              error={!!saveError}
               errorText="Please try again"
-              onSuccessComplete={() => { setSaveSuccess(false); setSaveErrorFlash(false); }}
               variant="ghost"
             />
           )}
@@ -228,11 +213,10 @@ export default function AdminEditUserScreen() {
               title="Save password"
               onPress={onSavePassword}
               loading={passwordLoading}
-              success={passwordSaveSuccess}
+              success={!!passwordSaveSuccess}
               successText="Saved"
-              error={passwordSaveErrorFlash}
+              error={!!passwordSaveError}
               errorText="Please try again"
-              onSuccessComplete={() => { setPasswordSaveSuccess(false); setPasswordSaveErrorFlash(false); }}
               disabled={!password.trim()}
               variant="ghost"
             />
@@ -241,14 +225,13 @@ export default function AdminEditUserScreen() {
             )}
             {hasPasswordProvider && (
               <Button
-                title="Send password reset"
+                title="Send password reset email"
                 onPress={onResetPassword}
                 loading={resetting}
-                success={resetSuccess}
-                successText="Email sent"
-                error={resetErrorFlash}
+                success={!!resetSuccess}
+                successText="Reset email sent!"
+                error={!!resetError}
                 errorText="Please try again"
-                onSuccessComplete={() => { setResetSuccess(false); setResetErrorFlash(false); }}
                 variant="ghost"
               />
             )}

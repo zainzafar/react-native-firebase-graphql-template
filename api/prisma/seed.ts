@@ -154,8 +154,7 @@ async function main() {
         granterRoleId: superAdminRole.id,
         scope: 'ALL',
         canAssign: true,
-        canRevoke: true,
-        canManage: true, // explicitly global governor
+        canRevoke: true
       },
     });
   }

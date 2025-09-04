@@ -1,16 +1,14 @@
 import React from 'react';
-import { View, StyleSheet, Pressable, ScrollView, Alert } from 'react-native';
+import { View, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { useTheme } from '../../theme/ThemeProvider';
 import { useAppSelector } from '../../store/hooks';
 import { selectUserPermissions } from '../../features/auth/selectors';
-import { useQuery, useMutation } from '@apollo/client/react';
+import { useQuery } from '@apollo/client/react';
 import { Body, Button, Card } from '../../components';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import { useNavigation } from '@react-navigation/native';
 import {
   QUERY_ADMIN_LIST_MANAGEABLE_ROLES,
-  QUERY_ADMIN_LIST_GRANTABLE_PERMISSIONS,
-  MUTATION_ADMIN_DELETE_ROLE,
 } from '../../graphql/operations';
 
 type Role = {
@@ -21,8 +19,6 @@ type Role = {
   users: { id: string }[];
 };
 
-
-
 export default function AdminRolesScreen() {
   const { colors } = useTheme();
   const navigation = useNavigation<any>();
@@ -31,47 +27,14 @@ export default function AdminRolesScreen() {
   // Permission checks
   const canViewRoles = permissions.includes('ADMIN_ROLES_VIEW');
   const canCreateRoles = permissions.includes('ADMIN_ROLES_CREATE');
-  const canDeleteRoles = permissions.includes('ADMIN_ROLES_DELETE');
   
   // Queries
-  const { data: rolesData, loading: rolesLoading, refetch } = useQuery<{ adminListManageableRoles: Role[] }>(
+  const { data: rolesData, loading: rolesLoading } = useQuery<{ adminListManageableRoles: Role[] }>(
     QUERY_ADMIN_LIST_MANAGEABLE_ROLES,
     { skip: !canViewRoles }
   );
 
-  // Mutations
-  const [deleteRole] = useMutation(MUTATION_ADMIN_DELETE_ROLE, {
-    refetchQueries: [
-      { query: QUERY_ADMIN_LIST_MANAGEABLE_ROLES },
-      { query: QUERY_ADMIN_LIST_GRANTABLE_PERMISSIONS }
-    ],
-  });
-
   const roles = rolesData?.adminListManageableRoles ?? [];
-
-  const handleDeleteRole = async (roleId: string, roleName: string) => {
-    Alert.alert(
-      'Delete Role',
-      `Are you sure you want to delete the role "${roleName}"? This action cannot be undone.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Delete', 
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteRole({ variables: { id: roleId } });
-              refetch();
-              Alert.alert('Success', 'Role deleted successfully!');
-            } catch (error: any) {
-              console.error('Failed to delete role:', error);
-              Alert.alert('Error', error?.message || 'Failed to delete role');
-            }
-          }
-        }
-      ]
-    );
-  };
 
   const renderRoleCard = (role: Role) => (
     <Card key={role.id} style={styles.roleCard}>
@@ -105,27 +68,6 @@ export default function AdminRolesScreen() {
             </Body>
           </View>
         </View>
-
-        {/* Action Buttons */}
-        <View style={styles.roleActions}>
-          <Pressable
-            onPress={() => navigation.navigate('AdminRoleDetail', { roleId: role.id })}
-            style={[styles.actionButton, { backgroundColor: colors.primary + '20' }]}
-          >
-            <FontAwesome6 name="eye" iconStyle="solid" size={14} color={colors.primary} />
-            <Body style={[styles.actionText, { color: colors.primary }]}>View</Body>
-          </Pressable>
-          
-          {canDeleteRoles && (
-            <Pressable
-              onPress={() => handleDeleteRole(role.id, role.name)}
-              style={[styles.actionButton, { backgroundColor: '#DC2626' + '20' }]}
-            >
-              <FontAwesome6 name="trash" iconStyle="solid" size={14} color="#DC2626" />
-              <Body style={[styles.actionText, { color: '#DC2626' }]}>Delete</Body>
-            </Pressable>
-          )}
-        </View>
       </Pressable>
     </Card>
   );
@@ -146,6 +88,58 @@ export default function AdminRolesScreen() {
       </Card>
     );
   };
+
+  const styles = StyleSheet.create({
+    container: { flex: 1 },
+    addButtonContainer: { paddingHorizontal: colors.screenPaddingHorizontal, paddingVertical: colors.screenPaddingVertical },
+    content: { flex: 1, paddingHorizontal: colors.screenPaddingHorizontal },
+    roleCard: { marginVertical: 10 },
+    roleCardPressable: { padding: 0 },
+    roleHeader: { 
+      flexDirection: 'row', 
+      alignItems: 'flex-start', 
+      justifyContent: 'space-between', 
+      marginBottom: 12 
+    },
+    roleInfo: { flex: 1 },
+    roleTitle: { fontSize: 18, fontWeight: '600', marginBottom: 4 },
+    roleDescription: { fontSize: 14, lineHeight: 18 },
+    roleStats: { 
+      flexDirection: 'row', 
+      gap: 16, 
+    },
+    statItem: { 
+      flexDirection: 'row', 
+      alignItems: 'center', 
+      gap: 6 
+    },
+    statText: { fontSize: 12 },
+    emptyCard: { marginTop: 32 },
+    emptyContent: { 
+      alignItems: 'center', 
+      paddingVertical: 32, 
+      gap: 12 
+    },
+    emptyTitle: { fontSize: 18, fontWeight: '500' },
+    emptyDescription: { fontSize: 14, textAlign: 'center', paddingHorizontal: 16 },
+    loadingCard: { marginTop: 32, paddingVertical: 32 },
+    // Form styles
+    formContainer: { padding: 16, gap: 20 },
+    formSection: { gap: 8 },
+    formLabel: { fontSize: 14, fontWeight: '500', marginBottom: 4 },
+    textInput: { 
+      paddingVertical: 12, 
+      paddingHorizontal: 16, 
+      borderRadius: 8, 
+      borderWidth: 1, 
+      fontSize: 14 
+    },
+    formActions: { 
+      flexDirection: 'row', 
+      gap: 12, 
+      marginTop: 8 
+    },
+  });
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -178,69 +172,3 @@ export default function AdminRolesScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  addButtonContainer: { paddingHorizontal: 16, paddingVertical: 16 },
-  content: { flex: 1, paddingHorizontal: 16 },
-  roleCard: { marginVertical: 10 },
-  roleCardPressable: { padding: 0 },
-  roleHeader: { 
-    flexDirection: 'row', 
-    alignItems: 'flex-start', 
-    justifyContent: 'space-between', 
-    marginBottom: 12 
-  },
-  roleInfo: { flex: 1 },
-  roleTitle: { fontSize: 18, fontWeight: '600', marginBottom: 4 },
-  roleDescription: { fontSize: 14, lineHeight: 18 },
-  roleStats: { 
-    flexDirection: 'row', 
-    gap: 16, 
-    marginBottom: 16 
-  },
-  statItem: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    gap: 6 
-  },
-  statText: { fontSize: 12 },
-  roleActions: { 
-    flexDirection: 'row', 
-    gap: 8 
-  },
-  actionButton: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    gap: 6, 
-    paddingVertical: 8, 
-    paddingHorizontal: 12, 
-    borderRadius: 6 
-  },
-  actionText: { fontSize: 12, fontWeight: '500' },
-  emptyCard: { marginTop: 32 },
-  emptyContent: { 
-    alignItems: 'center', 
-    paddingVertical: 32, 
-    gap: 12 
-  },
-  emptyTitle: { fontSize: 18, fontWeight: '500' },
-  emptyDescription: { fontSize: 14, textAlign: 'center', paddingHorizontal: 16 },
-  loadingCard: { marginTop: 32, paddingVertical: 32 },
-  // Form styles
-  formContainer: { padding: 16, gap: 20 },
-  formSection: { gap: 8 },
-  formLabel: { fontSize: 14, fontWeight: '500', marginBottom: 4 },
-  textInput: { 
-    paddingVertical: 12, 
-    paddingHorizontal: 16, 
-    borderRadius: 8, 
-    borderWidth: 1, 
-    fontSize: 14 
-  },
-  formActions: { 
-    flexDirection: 'row', 
-    gap: 12, 
-    marginTop: 8 
-  },
-});

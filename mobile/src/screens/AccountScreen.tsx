@@ -130,10 +130,7 @@ export default function AccountScreen() {
               successText="Profile Updated"
               error={!!profileError}
               errorText="Please try again"
-              onSuccessComplete={() => {
-                setProfileSuccess(false);
-                setProfileError(null);
-              }}
+
               variant="ghost"
               style={styles.button}
             />
@@ -170,11 +167,7 @@ export default function AccountScreen() {
                 successText="Password Updated"
                 error={!!passwordError}
                 errorText="Please try again"
-                onSuccessComplete={() => {
-                  setPasswordSuccess(false);
-                  setPasswordError(null);
-                  setPasswordValidationError(null);
-                }}
+
                 variant="ghost"
                 style={styles.button}
               />

@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { View, StyleSheet, Switch, Modal, Pressable, ScrollView, Animated, PanResponder, Dimensions } from 'react-native';
+import { View, StyleSheet, Modal, Pressable, ScrollView, Animated, PanResponder, Dimensions } from 'react-native';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import { useRoute } from '@react-navigation/native';
 import { useTheme } from '../../theme/ThemeProvider';
 import { useAppSelector } from '../../store/hooks';
 import { selectUserPermissions } from '../../features/auth/selectors';
 import { useMutation, useQuery } from '@apollo/client/react';
-import { Body, Button, Card } from '../../components';
+import { Body, Button, Card, PermissionList } from '../../components';
 import {
   QUERY_ADMIN_LIST_ASSIGNABLE_ROLES,
   QUERY_ADMIN_LIST_GRANTABLE_PERMISSIONS,
@@ -43,19 +43,23 @@ export default function AdminEditUserAccessScreen() {
 
   const { data: rolesData } = useQuery<{ adminListAssignableRoles: Role[] }>(QUERY_ADMIN_LIST_ASSIGNABLE_ROLES, { skip: !canViewRoles });
   const { data: permsData } = useQuery<{ adminListAssignablePermissions: Permission[] }>(QUERY_ADMIN_LIST_GRANTABLE_PERMISSIONS, { skip: !canViewPermissions });
-  const { data: userData, refetch: refetchUser } = useQuery<{ adminGetUser?: any }>(QUERY_ADMIN_GET_USER, { variables: { id: userId } });
-  const { data: rawPermsData, refetch: refetchRaw } = useQuery<{ adminGetUserRawPermissions: string[] }>(
+  const { data: userData } = useQuery<{ adminGetUser?: any }>(QUERY_ADMIN_GET_USER, { variables: { id: userId } });
+  const { data: rawPermsData } = useQuery<{ adminGetUserRawPermissions: string[] }>(
     QUERY_ADMIN_GET_USER_RAW_PERMISSIONS,
     { variables: { id: userId }, skip: !canViewPermissions }
   );
 
-  const [setRole, { loading: settingRole, error: setRoleError }] = useMutation(MUTATION_ADMIN_SET_USER_ROLE);
+  const [setRole, { loading: settingRole, error: setRoleError }] = useMutation(MUTATION_ADMIN_SET_USER_ROLE, {
+    refetchQueries: [
+      { query: QUERY_ADMIN_GET_USER, variables: { id: userId } },
+      { query: QUERY_ADMIN_GET_USER_RAW_PERMISSIONS, variables: { id: userId } }
+    ]
+  });
   const [setUserPermission] = useMutation(MUTATION_ADMIN_SET_USER_PERMISSION);
 
   const roles = useMemo(() => (rolesData?.adminListAssignableRoles ?? []) as Role[], [rolesData?.adminListAssignableRoles]);
   const permissions = useMemo(() => (permsData?.adminListAssignablePermissions ?? []) as Permission[], [permsData?.adminListAssignablePermissions]);
-  const selectedRoleId = (userData?.adminGetUser?.roles?.[0]?.id as string | undefined) ?? null;
-  const [localRoleId, setLocalRoleId] = useState<string | null>(selectedRoleId);
+  const [localRoleId, setLocalRoleId] = useState<string | null>(null);
   const [roleModalVisible, setRoleModalVisible] = useState(false);
   const sheetInitialY = Math.round(Dimensions.get('window').height * 0.60);
   const sheetTranslateY = useRef(new Animated.Value(sheetInitialY)).current;
@@ -77,9 +81,16 @@ export default function AdminEditUserAccessScreen() {
       }
     },
   }), [sheetInitialY, sheetTranslateY]);
+  
+  // Sync localRoleId with the user's role whenever userData changes
   useEffect(() => {
-    setLocalRoleId(selectedRoleId);
-  }, [selectedRoleId]);
+    const userRole = userData?.adminGetUser?.role;
+    if (userRole?.id) {
+      setLocalRoleId(userRole.id);
+    } else {
+      setLocalRoleId(null);
+    }
+  }, [userData?.adminGetUser?.role]);
 
   const roleById = useMemo(() => {
     const map = new Map<string, Role>();
@@ -104,6 +115,8 @@ export default function AdminEditUserAccessScreen() {
 
 
 
+
+
   const canAssignPermission = (permName: string) => {
     // Check if the permission is in the assignable permissions list
     return assignablePermissions.some(perm => perm.name === permName);
@@ -115,11 +128,15 @@ export default function AdminEditUserAccessScreen() {
   };
 
   const onSelectRole = async (roleId: string | null) => {
-    setLocalRoleId(roleId);
     try {
       await setRole({ variables: { id: userId, roleId } });
-      await Promise.all([refetchUser(), refetchRaw()]);
-    } catch {}
+      // Update local state after successful mutation
+      setLocalRoleId(roleId);
+      // The mutation will automatically refetch the queries
+    } catch (error) {
+      console.error('Failed to set role:', error);
+      // Don't update local state if mutation failed
+    }
   };
 
   const onTogglePermission = async (permission: Permission, next: boolean) => {
@@ -253,49 +270,50 @@ export default function AdminEditUserAccessScreen() {
   const renderPermissionSection = (title: string, permissions: Permission[]) => {
     if (permissions.length === 0) return null;
     
+    // Pre-compute the maps for this permission section
+    const helpTexts: { [permissionId: string]: string | undefined } = {};
+    const canEnable: { [permissionId: string]: boolean } = {};
+    const canDisable: { [permissionId: string]: boolean } = {};
+    
+    permissions.forEach(permission => {
+      const inherited = selectedRole ? rolePermissionNames.has(permission.name) : false;
+      const isGranularDisabled = isGranularPermissionDisabled(permission.name);
+      const canAssign = canAssignPermission(permission.name);
+      
+      helpTexts[permission.id] = inherited ? 'Inherited from role' : undefined;
+      canEnable[permission.id] = !isEditingSelf && !inherited && !isGranularDisabled && canAssign;
+      canDisable[permission.id] = !isEditingSelf && !inherited && !isGranularDisabled && canAssign;
+    });
+    
     return (
       <Card style={styles.card}>
-        <View style={styles.section}>
-          <Body style={{ color: colors.mutedText, marginBottom: 12 }}>{title}</Body>
-          {title === 'System' && (
-            <Body style={{ color: colors.mutedText, marginBottom: 12, fontSize: 12 }}>
-              Advanced system permissions. Only permissions you can assign are shown.
-            </Body>
-          )}
-          <View style={{ gap: 20 }}>
-            {permissions.map((p, _index) => {
-              const inherited = selectedRole ? rolePermissionNames.has(p.name) : false;
-              const direct = rawPermissions.includes(p.name);
-              const isGranularDisabled = isGranularPermissionDisabled(p.name);
-              
-              // For granular permissions, if global permission is active, they should be enabled
-              let effective = inherited || direct;
-              if (isGranularDisabled) {
-                effective = true; // Granular permissions are automatically enabled when global is active
-              }
-              
-              const enabled = selectedRole ? (!inherited && canAssignPermission(p.name)) : canAssignPermission(p.name);
-              
-              return (
-                <View key={p.id}>
-                  <View style={styles.permRow}>
-                    <View style={{ flex: 1 }}>
-                      <Body style={{ color: colors.text }}>{p.description || p.name}</Body>
-                      {inherited && (
-                        <Body style={{ color: colors.mutedText }}>Inherited from role</Body>
-                      )}
-                    </View>
-                    <Switch
-                      value={effective}
-                      disabled={!enabled || isEditingSelf || isGranularDisabled}
-                      onValueChange={(v) => onTogglePermission(p, v)}
-                    />
-                  </View>
-                </View>
-              );
-            })}
-          </View>
-        </View>
+        <PermissionList
+          permissions={permissions}
+          selectedPermissions={permissions.filter(p => {
+            const inherited = selectedRole ? rolePermissionNames.has(p.name) : false;
+            const direct = rawPermissions.includes(p.name);
+            const isGranularDisabled = isGranularPermissionDisabled(p.name);
+            
+            // For granular permissions, if global permission is active, they should be enabled
+            let effective = inherited || direct;
+            if (isGranularDisabled) {
+              effective = true; // Granular permissions are automatically enabled when global is active
+            }
+            
+            return effective;
+          }).map(p => p.id)}
+          onPermissionToggle={(permissionId, enabled) => {
+            const permission = permissions.find(p => p.id === permissionId);
+            if (permission) {
+              onTogglePermission(permission, enabled);
+            }
+          }}
+          showDescriptions={true}
+          showNames={false}
+          helpTexts={helpTexts}
+          canEnable={canEnable}
+          canDisable={canDisable}
+        />
       </Card>
     );
   };
@@ -335,7 +353,7 @@ const styles = StyleSheet.create({
   section: { gap: 12 },
   card: { marginBottom: 16 },
   roleRow: { marginTop: 0 },
-  permRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+
   separator: { height: 1, width: '100%' },
   modalBackdrop: { flex: 1, justifyContent: 'flex-end', alignItems: 'center', padding: 0, backgroundColor: 'rgba(0,0,0,0.4)' },
   modalSheetBottom: { width: '100%', height: '60%', borderTopLeftRadius: 16, borderTopRightRadius: 16, borderWidth: 1, overflow: 'hidden' },

@@ -16,7 +16,12 @@ import AdminRoleGrantsScreen from '../screens/Admin/AdminRoleGrantsScreen';
 import AdminPermissionGrantsScreen from '../screens/Admin/AdminPermissionGrantsScreen';
 import AdminRolesScreen from '../screens/Admin/AdminRolesScreen';
 import AdminRoleDetailScreen from '../screens/Admin/AdminRoleDetailScreen';
+import AdminEditRoleBasicInfo from '../screens/Admin/AdminEditRoleBasicInfo';
+import AdminEditRolePermissions from '../screens/Admin/AdminEditRolePermissions';
+import AdminViewRoleUsers from '../screens/Admin/AdminViewRoleUsers';
+import AdminManageRoleDelegation from '../screens/Admin/AdminManageRoleDelegation';
 import AdminCreateRoleScreen from '../screens/Admin/AdminCreateRoleScreen';
+import AdminDeleteRoleScreen from '../screens/Admin/AdminDeleteRoleScreen';
 
 import { useAppSelector } from '../store/hooks';
 import { selectAuthInitialized, selectIsAuthenticated } from '../features/auth/selectors';
@@ -78,6 +83,11 @@ function SettingsStack() {
       <Stack.Screen name="AdminRoles" component={AdminRolesScreen} options={{ headerShown: true, title: 'Roles & Permissions' }} />
       <Stack.Screen name="AdminCreateRole" component={AdminCreateRoleScreen} options={{ headerShown: true, title: 'Create Role' }} />
       <Stack.Screen name="AdminRoleDetail" component={AdminRoleDetailScreen} options={{ headerShown: true, title: 'Role Details' }} />
+      <Stack.Screen name="AdminEditRoleBasicInfo" component={AdminEditRoleBasicInfo} options={{ headerShown: true, title: 'Edit Role' }} />
+      <Stack.Screen name="AdminEditRolePermissions" component={AdminEditRolePermissions} options={{ headerShown: true, title: 'Role Permissions' }} />
+      <Stack.Screen name="AdminViewRoleUsers" component={AdminViewRoleUsers} options={{ headerShown: true, title: 'Role Users' }} />
+      <Stack.Screen name="AdminManageRoleDelegation" component={AdminManageRoleDelegation} options={{ headerShown: true, title: 'Role Delegation' }} />
+      <Stack.Screen name="AdminDeleteRole" component={AdminDeleteRoleScreen} options={{ headerShown: true, title: 'Delete Role' }} />
       <Stack.Screen name="AdminDelegationMatrix" component={AdminDelegationMatrixScreen} options={{ headerShown: true, title: 'Delegation Matrix' }} />
       <Stack.Screen name="AdminRoleGrants" component={AdminRoleGrantsScreen} options={{ headerShown: true, title: 'Role Grants' }} />
       <Stack.Screen name="AdminPermissionGrants" component={AdminPermissionGrantsScreen} options={{ headerShown: true, title: 'Permission Grants' }} />
