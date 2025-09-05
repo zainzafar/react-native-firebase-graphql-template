@@ -42,17 +42,17 @@ const DEFAULT_PERMISSIONS = [
 type RoleConfig = { name: string; description?: string; include?: string[]; exclude?: string[] };
 const ROLES_CONFIG: RoleConfig[] = [
   {
-    name: 'SUPER_ADMIN',
+    name: 'Super Admin',
     description: 'Super administrator with all permissions',
     include: ['*'],
   },
   {
-    name: 'ADMIN',
+    name: 'Admin',
     description: 'Administrator with all permissions except role/permission delegation',
     exclude: ['ADMIN_ROLE_GRANT_RULES_VIEW', 'ADMIN_ROLE_GRANT_RULES_CREATE', 'ADMIN_ROLE_GRANT_RULES_DELETE', 'ADMIN_PERMISSION_GRANT_RULES_VIEW', 'ADMIN_PERMISSION_GRANT_RULES_CREATE', 'ADMIN_PERMISSION_GRANT_RULES_DELETE'],
   },
   {
-    name: "CUSTOMER",
+    name: "Customer",
     description: 'Customer with access to all features',
     exclude: ['ADMIN_USERS_VIEW_ALL', 'ADMIN_USERS_SEARCH', 'ADMIN_USERS_UPDATE_PROFILE', 'ADMIN_USERS_UPDATE_PASSWORD', 'ADMIN_USERS_DELETE', 'ADMIN_USERS_IMPERSONATE', 'ADMIN_DEBUG', 'ADMIN_ROLES_VIEW', 'ADMIN_ROLES_CREATE', 'ADMIN_ROLES_UPDATE', 'ADMIN_ROLES_DELETE', 'ADMIN_ROLE_GRANT_RULES_VIEW', 'ADMIN_ROLE_GRANT_RULES_CREATE', 'ADMIN_ROLE_GRANT_RULES_DELETE', 'ADMIN_PERMISSION_GRANT_RULES_VIEW', 'ADMIN_PERMISSION_GRANT_RULES_CREATE', 'ADMIN_PERMISSION_GRANT_RULES_DELETE', 'ADMIN_PERMISSIONS_VIEW'],
   }
@@ -62,6 +62,10 @@ async function main() {
   console.log('[seed] Starting seed');
 
   const superAdminEmail = process.env.SEED_SUPER_ADMIN_EMAIL;
+
+  // Delete all existing roles and permissions
+  await prisma.role.deleteMany();
+  await prisma.permission.deleteMany();
 
   // 1) Seed permissions (idempotent)
   const permissions = await Promise.all(
@@ -99,7 +103,7 @@ async function main() {
   }
 
   // 3) SUPER_ADMIN role
-  const superAdminRole = await prisma.role.findUnique({ where: { name: 'SUPER_ADMIN' } });
+  const superAdminRole = await prisma.role.findUnique({ where: { name: 'Super Admin' } });
   if (!superAdminRole) {
     throw new Error('SUPER_ADMIN role not found');
   }
@@ -112,23 +116,23 @@ async function main() {
     });
 
     if (!user) {
-      console.log(`User with email ${superAdminEmail} not found. Skipping SUPER_ADMIN role assignment.`);
+      console.log(`User with email ${superAdminEmail} not found. Skipping Super Admin role assignment.`);
     } else {
       console.log(`Found existing user: ${superAdminEmail}`);
 
-      // 5) Assign SUPER_ADMIN role to that user
+      // 5) Assign Super Admin role to that user
       await prisma.userRole.upsert({
         where: { userId_roleId: { userId: user.id, roleId: superAdminRole.id } },
         update: {},
         create: { userId: user.id, roleId: superAdminRole.id },
       });
 
-      console.log(`SUPER_ADMIN role assigned to: ${superAdminEmail}`);
+      console.log(`Super Admin role assigned to: ${superAdminEmail}`);
     }
   }
 
   // 6) Wildcard grant rules (no-families):
-  //    - SUPER_ADMIN → ALL ROLES
+  //    - Super Admin → ALL ROLES
   const wildcardRoleGrant = await prisma.roleGrantRule.findFirst({
     where: { granterRoleId: superAdminRole.id, scope: 'ALL', canAssign: true },
   });
@@ -144,7 +148,7 @@ async function main() {
     });
   }
 
-  //    - SUPER_ADMIN → ALL PERMISSIONS (direct user permissions)
+  //    - Super Admin → ALL PERMISSIONS (direct user permissions)
   const wildcardPermGrant = await prisma.permissionGrantRule.findFirst({
     where: { granterRoleId: superAdminRole.id, scope: 'ALL', canAssign: true },
   });
@@ -159,11 +163,30 @@ async function main() {
     });
   }
 
+  // Ensure ADMIN role has permission delegation (ALL) but no global role governance
+  const adminRole = await prisma.role.findUnique({ where: { name: 'Admin' } });
+  if (adminRole) {
+    const adminPermGrant = await prisma.permissionGrantRule.findFirst({
+      where: { granterRoleId: adminRole.id, scope: 'ALL' },
+    });
+    if (!adminPermGrant) {
+      await prisma.permissionGrantRule.create({
+        data: {
+          granterRoleId: adminRole.id,
+          scope: 'ALL',
+          canAssign: true,
+          canRevoke: true,
+        },
+      });
+    }
+    // Note: No RoleGrantRule is created for ADMIN to explicitly avoid global role governance
+  }
+
   console.log('✅ Seed complete.');
   if (superAdminEmail) {
-    console.log(`SUPER_ADMIN user: ${superAdminEmail}`);
+    console.log(`Super Admin user: ${superAdminEmail}`);
   } else {
-    console.log('No SUPER_ADMIN user created (SEED_SUPER_ADMIN_EMAIL not set)');
+    console.log('No Super Admin user created (SEED_SUPER_ADMIN_EMAIL not set)');
   }
 }
 
