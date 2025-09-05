@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Alert, Pressable, StyleSheet, View, Switch, ScrollView } from 'react-native';
-import { Body, Button, Card } from '../components';
+import { Alert, Pressable, StyleSheet, View, Switch } from 'react-native';
+import { Body, Button, Card, Screen } from '../components';
 import { useTheme } from '../theme/ThemeProvider';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../auth/AuthProvider';
@@ -27,58 +27,54 @@ export default function SettingsScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView contentContainerStyle={[styles.scrollContent, { paddingVertical: 20 }]}> 
-        {/* Admin - only visible to users with admin access */}
-        {canAccessAdmin && (
-          <>
-            <Card style={styles.compactCard}>
-              <Pressable onPress={() => navigation.navigate('AdminHome' as never)} style={styles.menuItem}>
-                <View style={styles.menuItemLeft}>
-                  <FontAwesome6 name="shield-halved" iconStyle="solid" size={20} color={colors.text} />
-                  <Body style={styles.menuItemText}>Admin</Body>
-                </View>
-                <FontAwesome6 name="chevron-right" iconStyle="solid" size={16} color={colors.mutedText} />
-              </Pressable>
-            </Card>
-            <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          </>
-        )}
+    <Screen scroll={false} contentContainerStyle={styles.scrollContent}>
+      {/* Admin - only visible to users with admin access */}
+      {canAccessAdmin && (
+        <>
+          <Card style={styles.compactCard}>
+            <Pressable onPress={() => navigation.navigate('AdminHome' as never)} style={styles.menuItem}>
+              <View style={styles.menuItemLeft}>
+                <FontAwesome6 name="shield-halved" iconStyle="solid" size={20} color={colors.text} />
+                <Body style={styles.menuItemText}>Admin</Body>
+              </View>
+              <FontAwesome6 name="chevron-right" iconStyle="solid" size={16} color={colors.mutedText} />
+            </Pressable>
+          </Card>
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+        </>
+      )}
 
-        {/* Account */}
-        <Card style={styles.compactCard}>
-          <Pressable onPress={() => navigation.navigate('Account' as never)} style={styles.menuItem}>
-            <View style={styles.menuItemLeft}>
-              <FontAwesome6 name="user" iconStyle="solid" size={20} color={colors.text} />
-              <Body style={styles.menuItemText}>Account</Body>
-            </View>
-            <FontAwesome6 name="chevron-right" iconStyle="solid" size={16} color={colors.mutedText} />
-          </Pressable>
-        </Card>
-
-        {/* Dark Mode */}
-        <Card style={styles.compactCard}>
-          <View style={styles.menuItem}>
-            <View style={styles.menuItemLeft}>
-              <FontAwesome6 name="moon" iconStyle="solid" size={20} color={colors.text} />
-              <Body style={styles.menuItemText}>Dark mode</Body>
-            </View>
-            <Switch value={isDark} onValueChange={setDarkMode} />
+      {/* Account */}
+      <Card style={styles.compactCard}>
+        <Pressable onPress={() => navigation.navigate('Account' as never)} style={styles.menuItem}>
+          <View style={styles.menuItemLeft}>
+            <FontAwesome6 name="user" iconStyle="solid" size={20} color={colors.text} />
+            <Body style={styles.menuItemText}>Account</Body>
           </View>
-        </Card>
+          <FontAwesome6 name="chevron-right" iconStyle="solid" size={16} color={colors.mutedText} />
+        </Pressable>
+      </Card>
 
-        <View style={styles.grow} />
+      {/* Dark Mode */}
+      <Card style={styles.compactCard}>
+        <View style={styles.menuItem}>
+          <View style={styles.menuItemLeft}>
+            <FontAwesome6 name="moon" iconStyle="solid" size={20} color={colors.text} />
+            <Body style={styles.menuItemText}>Dark mode</Body>
+          </View>
+          <Switch value={isDark} onValueChange={setDarkMode} />
+        </View>
+      </Card>
 
-        <Button title="Log out" onPress={onLogout} loading={loading} variant="ghost" />
-      </ScrollView>
-    </View>
+      <View style={styles.grow} />
+
+      <Button title="Log out" onPress={onLogout} loading={loading} variant="ghost" />
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  scrollContent: { flexGrow: 1, paddingHorizontal: 16, gap: 20 },
-  header: { paddingBottom: 8, paddingLeft: 5 },
+  scrollContent: { gap: 20 },
   compactCard: { padding: 12 },
   menuItem: { 
     flexDirection: 'row', 

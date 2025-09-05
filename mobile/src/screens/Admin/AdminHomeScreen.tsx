@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { Body, Card } from '../../components';
+import { Body, Card, Screen } from '../../components';
 import { useTheme } from '../../theme/ThemeProvider';
 import { useNavigation } from '@react-navigation/native';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
@@ -11,7 +11,7 @@ export default function AdminHomeScreen() {
   const navigation = useNavigation<any>();
 
   // Permission checks for user management
-  const { canViewUsers, canSearchUsers, canUpdateUserProfile, canUpdateUserPassword, canDeleteUsers, canImpersonateUsers, canAccessDebug, canManageRoleGrantRules, canViewRoles, canViewPermissions } = usePermissions();
+  const { canViewUsers, canSearchUsers, canUpdateUserProfile, canUpdateUserPassword, canDeleteUsers, canImpersonateUsers, canAccessDebug, canViewRoles, canViewPermissions } = usePermissions();
 
   // Show Manage Users if user has any user management permission
   const canManageUsers = canViewUsers || canSearchUsers || canUpdateUserProfile || canUpdateUserPassword || canDeleteUsers || canImpersonateUsers;
@@ -20,7 +20,7 @@ export default function AdminHomeScreen() {
   const canManageRolesAndPermissions = canViewRoles || canViewPermissions;
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}> 
+    <Screen scroll={false} contentContainerStyle={styles.container}>
       {canManageUsers && (
         <Card style={styles.card}> 
           <Pressable onPress={() => navigation.navigate('AdminManageUsers')} style={styles.menuItem}>
@@ -57,13 +57,12 @@ export default function AdminHomeScreen() {
           </Pressable>
         </Card>
       )}
-    </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingHorizontal: 16, paddingTop: 16, gap: 16 },
-  header: { paddingBottom: 8, paddingLeft: 5 },
+  container: { gap: 16, flex: 1 },
   card: { padding: 12 },
   menuItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8, paddingHorizontal: 4 },
   menuItemLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, View, Pressable, RefreshControl } from 'react-native';
-import { Body, Button, Card } from '../../../components';
+import { Body, Button, Card, Screen } from '../../../components';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { useQuery } from '@apollo/client/react';
 import { QUERY_ADMIN_LIST_USERS } from '../../../graphql/operations';
@@ -141,7 +141,7 @@ export default function AdminManageUsersScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}> 
+    <Screen scroll={false}>
       {canSearchUsers && (
         <Card style={styles.searchCard}>
           <View style={styles.searchRow}>
@@ -169,9 +169,7 @@ export default function AdminManageUsersScreen() {
         keyExtractor={(e) => e.cursor}
         renderItem={renderItem}
         contentContainerStyle={{ 
-          padding: 16, 
-          paddingTop: canSearchUsers ? 0 : 16, // Add top padding when search is hidden
-          gap: 12 
+          gap: 12,
         }}
         onEndReached={onEndReached}
         onEndReachedThreshold={0.5}
@@ -202,13 +200,12 @@ export default function AdminManageUsersScreen() {
           </View>
         ) : null}
       />
-    </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  searchCard: { marginVertical: 16, marginHorizontal: 16 },
+  searchCard: { marginBottom: 16 },
   searchRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   searchInput: { flex: 1, paddingVertical: 0 },
   row: { padding: 12, gap: 12 },

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, View, StyleSheet, LayoutAnimation, Platform, UIManager, Animated, Easing } from 'react-native';
 //
-import { Card, Heading, ScreenContainer } from '../components';
+import { Card, Heading, Screen } from '../components';
 import { GoogleButton, EmailButton, PhoneButton, AppleButton as AppleSignInButton } from '../components/auth-buttons';
 import { useAuth } from '../auth/AuthProvider';
 import AppleAuth from '@invertase/react-native-apple-authentication';
@@ -67,9 +67,9 @@ export default function AuthScreen() {
   };
 
   return (
-    <ScreenContainer>
+    <Screen scroll={false} contentContainerStyle={styles.container}>
       <View style={styles.header}>
-        <Heading>Let’s get started…</Heading>
+        <Heading>Let's get started…</Heading>
       </View>
       <Card>
         <Animated.View style={{ opacity: appear, transform: [{ translateY: appear.interpolate({ inputRange: [0, 1], outputRange: [8, 0] }) }] }}>
@@ -98,15 +98,14 @@ export default function AuthScreen() {
           )}
         </Animated.View>
       </Card>
-
-    </ScreenContainer>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  container: { justifyContent: 'center', gap: 20 },
   header: { alignItems: 'center', gap: 6 },
   subheading: { textAlign: 'center' },
-
   buttonGroup: { gap: 12 },
 });
 

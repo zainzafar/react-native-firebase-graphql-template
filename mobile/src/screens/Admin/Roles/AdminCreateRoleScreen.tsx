@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, TextInput } from 'react-native';
+import { View, StyleSheet, TextInput } from 'react-native';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { useAppSelector } from '../../../store/hooks';
 import { selectUserPermissions } from '../../../features/auth/selectors';
 import { useQuery, useMutation } from '@apollo/client/react';
-import { Body, Button, Card, PermissionList } from '../../../components';
+import { Body, Button, Card, PermissionList, Screen } from '../../../components';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -177,8 +177,6 @@ export default function AdminCreateRoleScreen() {
   };
 
   const styles = StyleSheet.create({
-    container: { flex: 1 },
-    paddedContainer: { paddingHorizontal: colors.screenPaddingHorizontal, paddingVertical: colors.screenPaddingVertical },
     saveButtonContainer: { 
       marginTop: 16 
     },
@@ -201,7 +199,6 @@ export default function AdminCreateRoleScreen() {
       borderWidth: 1, 
       fontSize: 14 
     },
-
     errorText: { 
       fontSize: 14, 
       marginTop: 8, 
@@ -210,11 +207,9 @@ export default function AdminCreateRoleScreen() {
   });
 
   return (
-    <View style={[styles.container, styles.paddedContainer, { backgroundColor: colors.background }]}>
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {renderBasicInfo()}
-        {renderPermissions()}
-      </ScrollView>
+    <Screen contentContainerStyle={styles.content}>
+      {renderBasicInfo()}
+      {renderPermissions()}
       
       {/* Create Button - Outside cards at bottom */}
       <View style={styles.saveButtonContainer}>
@@ -244,6 +239,6 @@ export default function AdminCreateRoleScreen() {
           </Body>
         )}
       </View>
-    </View>
+    </Screen>
   );
 }

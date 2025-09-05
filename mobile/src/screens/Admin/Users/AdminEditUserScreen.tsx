@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
-import { Button, Card, Input, Body, UserIdentityRow } from '../../../components';
+import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import { Button, Card, Input, Body, UserIdentityRow, Screen } from '../../../components';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { useAppSelector } from '../../../store/hooks';
 import { selectUserPermissions } from '../../../features/auth/selectors';
@@ -143,13 +143,7 @@ export default function AdminEditUserScreen() {
   }
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: colors.background }}
-      contentContainerStyle={styles.container}
-      keyboardShouldPersistTaps="handled"
-      keyboardDismissMode="on-drag"
-      contentInsetAdjustmentBehavior="automatic"
-    > 
+    <Screen> 
       <Card style={styles.card}>
         <View style={styles.form}>
           <UserIdentityRow email={user.email} phoneNumber={user.phoneNumber} identities={user.identities} />
@@ -267,12 +261,11 @@ export default function AdminEditUserScreen() {
           </View>
         </Card>
       )}
-    </ScrollView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 16 },
   form: { gap: 12 },
   card: { marginBottom: 16 },
 });

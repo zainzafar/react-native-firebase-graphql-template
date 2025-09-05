@@ -2,9 +2,13 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from '
 import { useColorScheme } from 'react-native';
 import { secureGet, secureSet } from '../auth/secureStorage';
 import { darkColors, lightColors, AppColors } from './colors';
+import { spacing, Spacing } from './spacing';
+import { layout, Layout } from './layout';
 
 type ThemeContextValue = {
   colors: AppColors;
+  spacing: Spacing;
+  layout: Layout;
   isDark: boolean;
   setDarkMode: (enabled: boolean) => void;
 };
@@ -32,7 +36,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   };
 
   const colors = useMemo(() => (isDark ? darkColors : lightColors), [isDark]);
-  const value = useMemo(() => ({ colors, isDark, setDarkMode }), [colors, isDark]);
+  const value = useMemo(() => ({ colors, spacing, layout, isDark, setDarkMode }), [colors, isDark]);
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 

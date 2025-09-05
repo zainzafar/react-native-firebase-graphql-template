@@ -7,7 +7,7 @@ export { Button } from './Button';
 
 export function useTopInset() {
   const insets = useSafeAreaInsets();
-  return Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 20 : insets.top + 20;
+  return Platform.OS === 'android' ? (StatusBar.currentHeight || 0) : insets.top;
 }
 
 export function ScreenContainer({ children }: { children: React.ReactNode }) {

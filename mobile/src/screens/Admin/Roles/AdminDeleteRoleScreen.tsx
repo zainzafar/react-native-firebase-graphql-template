@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, StyleSheet, Alert } from 'react-native';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { useAppSelector } from '../../../store/hooks';
 import { selectUserPermissions } from '../../../features/auth/selectors';
 import { useQuery, useMutation } from '@apollo/client/react';
-import { Body, Button, Card } from '../../../components';
+import { Body, Button, Card, Screen } from '../../../components';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import {
@@ -104,38 +104,37 @@ export default function AdminDeleteRoleScreen() {
 
   if (roleLoading) {
     return (
-      <View style={[styles.container, styles.paddedContainer, { backgroundColor: colors.background }]}>
+      <Screen>
         <View style={styles.loadingContainer}>
           <FontAwesome6 name="spinner" iconStyle="solid" size={32} color={colors.primary} />
           <Body style={[styles.loadingText, { color: colors.mutedText }]}>Loading role details...</Body>
         </View>
-      </View>
+      </Screen>
     );
   }
 
   if (!role) {
     return (
-      <View style={[styles.container, styles.paddedContainer, { backgroundColor: colors.background }]}>
+      <Screen>
         <Card style={styles.errorCard}>
-          <Body style={{ color: colors.danger, textAlign: 'center' }}>Role not found</Body>
+          <Body style={[styles.centerText, { color: colors.danger }]}>Role not found</Body>
         </Card>
-      </View>
+      </Screen>
     );
   }
 
   if (!canDeleteRoles) {
     return (
-      <View style={[styles.container, styles.paddedContainer, { backgroundColor: colors.background }]}>
+      <Screen>
         <Card style={styles.errorCard}>
-          <Body style={{ color: colors.danger, textAlign: 'center' }}>You don't have permission to delete roles</Body>
+          <Body style={[styles.centerText, { color: colors.danger }]}>You don't have permission to delete roles</Body>
         </Card>
-      </View>
+      </Screen>
     );
   }
 
   return (
-    <View style={[styles.container, styles.paddedContainer, { backgroundColor: colors.background }]}>
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+    <Screen contentContainerStyle={styles.content}>
         {/* Warning Header */}
         <Card style={styles.warningCard}>
           <View style={styles.warningHeader}>
@@ -196,14 +195,11 @@ export default function AdminDeleteRoleScreen() {
             </Body>
           </Card>
         )}
-      </ScrollView>
-    </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  paddedContainer: { paddingHorizontal: 20, paddingVertical: 20 },
   content: { flex: 1 },
   warningCard: { 
     marginBottom: 16,
@@ -273,4 +269,5 @@ const styles = StyleSheet.create({
     fontSize: 14, 
     textAlign: 'center' 
   },
+  centerText: { textAlign: 'center' },
 });

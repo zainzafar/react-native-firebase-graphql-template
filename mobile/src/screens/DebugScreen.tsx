@@ -1,11 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Platform, ScrollView, View, Pressable, Alert, StyleSheet, Text, Animated, ActivityIndicator } from 'react-native';
+import { Platform, View, Pressable, Alert, StyleSheet, Text, Animated, ActivityIndicator } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import Config from 'react-native-config';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { getApp } from '@react-native-firebase/app';
 import { getAuth, getIdToken } from '@react-native-firebase/auth';
-import { Card, ScreenContainer } from '../components';
+import { Card, Screen } from '../components';
 import Clipboard from '@react-native-clipboard/clipboard';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import { QUERY_ME } from '../graphql/operations';
@@ -273,22 +273,20 @@ export default function DebugScreen() {
   ];
 
   return (
-    <ScreenContainer>
-      <ScrollView>
-        {sections.map((section, index) => (
-          <View key={section.id} style={index > 0 ? styles.sectionSpacer : undefined}>
-            <AccordionSection
-              title={section.title}
-              isExpanded={isExpanded(section.id)}
-              onToggle={() => toggleSection(section.id)}
-              rightElement={section.rightElement || undefined}
-            >
-              {section.content}
-            </AccordionSection>
-          </View>
-        ))}
-      </ScrollView>
-    </ScreenContainer>
+    <Screen>
+      {sections.map((section, index) => (
+        <View key={section.id} style={index > 0 ? styles.sectionSpacer : undefined}>
+          <AccordionSection
+            title={section.title}
+            isExpanded={isExpanded(section.id)}
+            onToggle={() => toggleSection(section.id)}
+            rightElement={section.rightElement || undefined}
+          >
+            {section.content}
+          </AccordionSection>
+        </View>
+      ))}
+    </Screen>
   );
 }
 

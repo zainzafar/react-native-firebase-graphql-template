@@ -1,0 +1,136 @@
+import React, { useMemo } from 'react';
+import { ScrollView, StyleSheet, View, ViewStyle, StyleProp } from 'react-native';
+import { SafeAreaView, Edge } from 'react-native-safe-area-context';
+import { useHeaderHeight } from '@react-navigation/elements';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { useTheme } from '../theme/ThemeProvider';
+
+// Debug flag to control border visibility
+const DEBUG_BORDERS = __DEV__ && false; // Set to true to enable debug borders
+
+// Custom hook to safely get bottom tab bar height
+function useSafeBottomTabBarHeight() {
+  try {
+    return useBottomTabBarHeight();
+  } catch {
+    return 0;
+  }
+}
+
+type ScreenProps = {
+  children: React.ReactNode;
+  /** Use a ScrollView (true) or a static View (false). Defaults to true. */
+  scroll?: boolean;
+  /** Extra style for the outer SafeAreaView container. */
+  style?: StyleProp<ViewStyle>;
+  /** Extra style for the inner content container (ScrollView contentContainerStyle or static View). */
+  contentContainerStyle?: StyleProp<ViewStyle>;
+  /** Which safe-area edges to apply; if omitted we auto-detect based on header presence. */
+  edges?: Edge[];
+  /** Show vertical scroll indicator; defaults to false. */
+  showScrollIndicator?: boolean;
+  /** Add vertical padding in static mode; defaults to true. */
+  paddedStatic?: boolean;
+};
+
+export function Screen({
+  children,
+  scroll = true,
+  style,
+  contentContainerStyle,
+  edges,
+  showScrollIndicator = false,
+  paddedStatic = true,
+}: ScreenProps) {
+  const { colors, layout } = useTheme();
+  const headerHeight = useHeaderHeight();
+  const bottomTabBarHeight = useSafeBottomTabBarHeight();
+  const hasHeader = headerHeight > 0;
+  const hasBottomTabBar = bottomTabBarHeight > 0;
+
+  // If caller provides edges, use them; otherwise: dynamically determine edges
+  // based on header and bottom tab bar presence
+  const safeAreaEdges: Edge[] = useMemo(() => {
+    if (edges) return edges;
+    
+    const result: Edge[] = [];
+    if (!hasHeader) result.push('top');
+    if (!hasBottomTabBar) result.push('bottom');
+    return result;
+  }, [edges, hasHeader, hasBottomTabBar]);
+
+  // The outer container should handle horizontal gutter only.
+  const containerStyle: StyleProp<ViewStyle> = [
+    styles.flex,
+    { 
+      backgroundColor: colors.background, 
+      paddingHorizontal: layout.screenGutter,
+      paddingVertical: layout.screenGutter,
+      ...(DEBUG_BORDERS && {
+        borderWidth: 2,
+        borderColor: '#FF0000', // Red border for SafeAreaView container
+      }),
+    },
+    style,
+  ];
+
+  // Keep a comfortable top and bottom padding in both modes.
+  const baseContentPadding: ViewStyle = {
+    paddingTop: 0,
+    paddingBottom: 0,
+    margin: 0,
+  };
+
+  const scrollContent: StyleProp<ViewStyle> = [
+    styles.scrollContentGrow,
+    baseContentPadding,
+    ...(DEBUG_BORDERS ? [{
+      borderWidth: 2,
+      borderColor: '#00FF00', // Green border for ScrollView content
+      backgroundColor: 'rgba(0, 255, 0, 0.1)', // Light green background for ScrollView
+    }] : []),
+    contentContainerStyle,
+  ];
+
+  const staticContent: StyleProp<ViewStyle> = [
+    styles.flex,
+    paddedStatic ? baseContentPadding : null,
+    ...(DEBUG_BORDERS ? [{
+      borderWidth: 2,
+      borderColor: '#0000FF', // Blue border for static content
+      backgroundColor: 'rgba(0, 0, 255, 0.1)', // Light blue background for static content
+    }] : []),
+    contentContainerStyle,
+  ];
+
+  // Debug logging for final computed styles
+  console.log('Screen component - SafeAreaView containerStyle:', containerStyle);
+  console.log('Screen component - staticContent style:', staticContent);
+  console.log('Screen component - scroll prop:', scroll, 'hasHeader:', hasHeader, 'hasBottomTabBar:', hasBottomTabBar);
+  console.log('Screen component - safeAreaEdges:', safeAreaEdges);
+
+  return (
+    <SafeAreaView style={containerStyle} edges={safeAreaEdges}>
+      {scroll ? (
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={scrollContent}
+          showsVerticalScrollIndicator={showScrollIndicator}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          contentInsetAdjustmentBehavior="never"
+        >
+          {children}
+        </ScrollView>
+      ) : (
+        <View style={staticContent}>{children}</View>
+      )}
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  flex: { flex: 1 },
+  scroll: { flex: 1 },
+  scrollContentGrow: { flexGrow: 1 },
+});

@@ -1,16 +1,14 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView, Alert, Pressable } from 'react-native';
+import { View, StyleSheet, Alert, Pressable } from 'react-native';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { useAppSelector } from '../../../store/hooks';
 import { selectUserPermissions } from '../../../features/auth/selectors';
 import { useQuery, useMutation } from '@apollo/client/react';
-import { Body, Button, Card } from '../../../components';
+import { Body, Button, Card, Screen } from '../../../components';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import {
   QUERY_ADMIN_GET_ROLE,
-  QUERY_ADMIN_LIST_MANAGEABLE_ROLES,
-  MUTATION_ADMIN_CREATE_ROLE_GRANT_RULE,
   MUTATION_ADMIN_DELETE_ROLE_GRANT_RULE,
 } from '../../../graphql/operations';
 
@@ -28,9 +26,6 @@ type RoleGrantRule = {
   canManage: boolean;
   granteeRole?: { id: string; name: string; description?: string };
 };
-
-type ManageableRole = { id: string; name: string; description?: string };
-
 
 export default function AdminRoleGrantRules() {
   const { colors } = useTheme();
@@ -54,20 +49,15 @@ export default function AdminRoleGrantRules() {
     }
   );
 
-  const { data: rolesData } = useQuery<{ adminListManageableRoles: ManageableRole[] }>(
-    QUERY_ADMIN_LIST_MANAGEABLE_ROLES
-  );
-
   // Mutations
   const [deleteRoleGrant] = useMutation(MUTATION_ADMIN_DELETE_ROLE_GRANT_RULE, {
     refetchQueries: [{ query: QUERY_ADMIN_GET_ROLE, variables: { id: roleId } }],
   });
 
   const role = roleData?.adminGetRole;
-  const roles = rolesData?.adminListManageableRoles ?? [];
 
   const handleAddRoleGrant = () => {
-    navigation.navigate('AdminAddRoleGrantRule', { roleId });
+    (navigation as any).navigate('AdminAddRoleGrantRule', { roleId });
   };
 
   const handleDeleteRoleGrant = async (ruleId: string) => {
@@ -95,27 +85,27 @@ export default function AdminRoleGrantRules() {
 
   if (roleLoading) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Screen>
         <Card style={styles.loadingCard}>
-          <Body style={{ color: colors.mutedText, textAlign: 'center' }}>Loading role grant rules...</Body>
+          <Body style={[styles.centerText, { color: colors.mutedText }]}>Loading role grant rules...</Body>
         </Card>
-      </View>
+      </Screen>
     );
   }
 
   if (!role) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Screen>
         <Card style={styles.errorCard}>
-          <Body style={{ color: colors.mutedText, textAlign: 'center' }}>Role not found</Body>
+          <Body style={[styles.centerText, { color: colors.mutedText }]}>Role not found</Body>
         </Card>
-      </View>
+      </Screen>
     );
   }
 
   if (!canViewRoleGrants) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Screen>
         <Card style={styles.noAccessCard}>
           <View style={styles.noAccessContent}>
             <FontAwesome6 name="shield-halved" iconStyle="solid" size={32} color={colors.mutedText} />
@@ -125,12 +115,12 @@ export default function AdminRoleGrantRules() {
             </Body>
           </View>
         </Card>
-      </View>
+      </Screen>
     );
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <Screen>
       {/* Add Role Grant Rule Button */}
       {canCreateRoleGrants && (
         <View style={styles.addButtonContainer}>
@@ -144,7 +134,7 @@ export default function AdminRoleGrantRules() {
       )}
 
       {/* Content */}
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <View style={styles.content}>
         {(role.canGrantRolesRules?.length ?? 0) === 0 ? (
           <Card style={styles.emptyCard}>
             <View style={styles.emptyContent}>
@@ -207,14 +197,12 @@ export default function AdminRoleGrantRules() {
             ))}
           </View>
         )}
-      </ScrollView>
-
-    </View>
+      </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
   addButtonContainer: { paddingHorizontal: 16, paddingVertical: 20 },
   content: { flex: 1, paddingHorizontal: 16 },
   rulesContainer: { gap: 12 },
@@ -253,4 +241,5 @@ const styles = StyleSheet.create({
   },
   noAccessTitle: { fontSize: 18, fontWeight: '500' },
   noAccessDescription: { fontSize: 14, textAlign: 'center', paddingHorizontal: 16 },
+  centerText: { textAlign: 'center' },
 });

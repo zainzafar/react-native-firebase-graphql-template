@@ -1,11 +1,11 @@
 import React from 'react';
 import { ActivityIndicator } from 'react-native';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { useAppSelector } from '../../../store/hooks';
 import { selectUserPermissions } from '../../../features/auth/selectors';
 import { useQuery } from '@apollo/client/react';
-import { Body, Card, NavigationCard } from '../../../components';
+import { Body, Card, NavigationCard, Screen } from '../../../components';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import {
@@ -62,123 +62,114 @@ export default function AdminRoleDetailScreen() {
 
   if (roleLoading) {
     return (
-      <View style={[styles.container, styles.paddedContainer, { backgroundColor: colors.background }]}>
+      <Screen>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
           <Body style={[styles.loadingText, { color: colors.mutedText }]}>Loading role details...</Body>
         </View>
-      </View>
+      </Screen>
     );
   }
 
   if (!role) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Screen>
         <Card style={styles.errorCard}>
-          <Body style={{ color: colors.mutedText, textAlign: 'center' }}>Role not found</Body>
+          <Body style={[styles.centerText, { color: colors.mutedText }]}>Role not found</Body>
         </Card>
-      </View>
+      </Screen>
     );
   }
 
-
-
   return (
-    <View style={[styles.container, styles.paddedContainer, { backgroundColor: colors.background }]}>
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Role Header */}
-        <Card style={styles.headerCard}>
-          <Body style={[styles.roleTitle, { color: colors.text }]}>{role.name}</Body>
-          {role.description && (
-            <Body style={[styles.roleDescription, { color: colors.mutedText }]}>
-              {role.description}
+    <Screen>
+      {/* Role Header */}
+      <Card style={styles.headerCard}>
+        <Body style={[styles.roleTitle, { color: colors.text }]}>{role.name}</Body>
+        {role.description && (
+          <Body style={[styles.roleDescription, { color: colors.mutedText }]}>
+            {role.description}
+          </Body>
+        )}
+        <View style={styles.roleStats}>
+          <View style={styles.statItem}>
+            <FontAwesome6 name="users" iconStyle="solid" size={12} color={colors.mutedText} />
+            <Body style={[styles.statText, { color: colors.mutedText }]}>
+              {role.users.length} users
             </Body>
-          )}
-          <View style={styles.roleStats}>
-            <View style={styles.statItem}>
-              <FontAwesome6 name="users" iconStyle="solid" size={12} color={colors.mutedText} />
-              <Body style={[styles.statText, { color: colors.mutedText }]}>
-                {role.users.length} users
-              </Body>
-            </View>
-            <View style={styles.statItem}>
-              <FontAwesome6 name="key" iconStyle="solid" size={12} color={colors.mutedText} />
-              <Body style={[styles.statText, { color: colors.mutedText }]}>
-                {role.permissions.length} permissions
-              </Body>
-            </View>
           </View>
-        </Card>
-
-        {/* Navigation Cards */}
-        <View style={styles.navigationCards}>
-          {/* Update Basic Information */}
-          <NavigationCard
-            title="Update Basic Information"
-            description="Update the name and description of this role"
-            icon="edit"
-            onPress={() => navigation.navigate('AdminEditRoleBasicInfo', { roleId: role.id })}
-            disabled={!canUpdateRoles}
-            iconColor={colors.primary}
-            iconBackgroundColor={`${colors.primary}20`}
-          />
-
-          {/* Manage Permissions */}
-          <NavigationCard
-            title="Manage Permissions"
-            description="Manage assigned permissions to this role"
-            icon="key"
-            onPress={() => navigation.navigate('AdminEditRolePermissions', { roleId: role.id })}
-            disabled={!canViewPermissions}
-            iconColor={colors.primary}
-            iconBackgroundColor={`${colors.primary}20`}
-          />
-
-          {/* View Users */}
-          <NavigationCard
-            title="View Users"
-            description="View users currently assigned to this role"
-            icon="users"
-            onPress={() => navigation.navigate('AdminViewRoleUsers', { roleId: role.id })}
-            disabled={!canViewRoleUsers}
-            iconColor={colors.primary}
-            iconBackgroundColor={`${colors.primary}20`}
-          />
-
-          {/* Manage Delegation Rules */}
-          {canViewRoleGrants && (
-            <NavigationCard
-              title="Manage Delegation Rules"
-              description="Manage who can assign/revoke this role and related permissions"
-              icon="sitemap"
-              onPress={() => navigation.navigate('AdminManageRoleDelegation', { roleId: role.id })}
-              iconColor={colors.primary}
-              iconBackgroundColor={`${colors.primary}20`}
-            />
-          )}
-
-          {/* Delete Role */}
-          <NavigationCard
-            title="Delete Role"
-            description="Delete this role. All users will lose access granted by this role."
-            icon="trash"
-            onPress={() => navigation.navigate('AdminDeleteRole', { roleId: role.id })}
-            disabled={!canDeleteRoles}
-            iconColor="#DC2626"
-            iconBackgroundColor="#DC262620"
-          />
+          <View style={styles.statItem}>
+            <FontAwesome6 name="key" iconStyle="solid" size={12} color={colors.mutedText} />
+            <Body style={[styles.statText, { color: colors.mutedText }]}>
+              {role.permissions.length} permissions
+            </Body>
+          </View>
         </View>
+      </Card>
 
+      {/* Navigation Cards */}
+      <View style={styles.navigationCards}>
+        {/* Update Basic Information */}
+        <NavigationCard
+          title="Update Basic Information"
+          description="Update the name and description of this role"
+          icon="edit"
+          onPress={() => navigation.navigate('AdminEditRoleBasicInfo', { roleId: role.id })}
+          disabled={!canUpdateRoles}
+          iconColor={colors.primary}
+          iconBackgroundColor={`${colors.primary}20`}
+        />
 
-      </ScrollView>
-    </View>
+        {/* Manage Permissions */}
+        <NavigationCard
+          title="Manage Permissions"
+          description="Manage assigned permissions to this role"
+          icon="key"
+          onPress={() => navigation.navigate('AdminEditRolePermissions', { roleId: role.id })}
+          disabled={!canViewPermissions}
+          iconColor={colors.primary}
+          iconBackgroundColor={`${colors.primary}20`}
+        />
+
+        {/* View Users */}
+        <NavigationCard
+          title="View Users"
+          description="View users currently assigned to this role"
+          icon="users"
+          onPress={() => navigation.navigate('AdminViewRoleUsers', { roleId: role.id })}
+          disabled={!canViewRoleUsers}
+          iconColor={colors.primary}
+          iconBackgroundColor={`${colors.primary}20`}
+        />
+
+        {/* Manage Delegation Rules */}
+        {canViewRoleGrants && (
+          <NavigationCard
+            title="Manage Delegation Rules"
+            description="Manage who can assign/revoke this role and related permissions"
+            icon="sitemap"
+            onPress={() => navigation.navigate('AdminManageRoleDelegation', { roleId: role.id })}
+            iconColor={colors.primary}
+            iconBackgroundColor={`${colors.primary}20`}
+          />
+        )}
+
+        {/* Delete Role */}
+        <NavigationCard
+          title="Delete Role"
+          description="Delete this role. All users will lose access granted by this role."
+          icon="trash"
+          onPress={() => navigation.navigate('AdminDeleteRole', { roleId: role.id })}
+          disabled={!canDeleteRoles}
+          iconColor="#DC2626"
+          iconBackgroundColor="#DC262620"
+        />
+      </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  paddedContainer: { paddingHorizontal: 20, paddingVertical: 20 },
-  content: { flex: 1 },
   headerCard: { padding: 20, marginBottom: 16 },
   roleTitle: { fontSize: 24, fontWeight: '700', marginBottom: 8 },
   roleDescription: { fontSize: 16, lineHeight: 22, marginBottom: 16 },
@@ -207,5 +198,5 @@ const styles = StyleSheet.create({
     marginTop: 16, 
     paddingVertical: 16 
   },
-
+  centerText: { textAlign: 'center' },
 });

@@ -1,9 +1,9 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { View, StyleSheet, Pressable } from 'react-native';
 import { useTheme } from '../../../theme/ThemeProvider';
 
 import { useQuery } from '@apollo/client/react';
-import { Body, Card, UserIdentityRow } from '../../../components';
+import { Body, Card, UserIdentityRow, Screen } from '../../../components';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import {
@@ -43,65 +43,61 @@ export default function AdminViewRoleUsers() {
 
   if (roleLoading) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Screen>
         <Card style={styles.loadingCard}>
-          <Body style={{ color: colors.mutedText, textAlign: 'center' }}>Loading role users...</Body>
+          <Body style={[styles.centerText, { color: colors.mutedText }]}>Loading role users...</Body>
         </Card>
-      </View>
+      </Screen>
     );
   }
 
   if (!role) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Screen>
         <Card style={styles.errorCard}>
-          <Body style={{ color: colors.mutedText, textAlign: 'center' }}>Role not found</Body>
+          <Body style={[styles.centerText, { color: colors.mutedText }]}>Role not found</Body>
         </Card>
-      </View>
+      </Screen>
     );
   }
 
   return (
-    <View style={[styles.container, styles.paddedContainer, { backgroundColor: colors.background }]}>
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {role.users.length === 0 ? (
-          <Card style={styles.emptyCard}>
-            <View style={styles.emptyContainer}>
-              <Body style={[styles.emptyText, { color: colors.mutedText }]}>
-                No users are currently assigned to this role
-              </Body>
-            </View>
-          </Card>
-        ) : (
-          <Card style={styles.usersCard}>
-            <View style={styles.usersContainer}>
-              {role.users.map((user) => (
-                <Pressable 
-                  key={user.id}
-                  onPress={() => navigation.navigate('AdminEditUserAccess', { id: user.id })}
-                  style={styles.userRow}
-                >
-                  <View style={styles.userInfo}>
-                    <UserIdentityRow 
-                      email={user.email}
-                      phoneNumber={user.phoneNumber}
-                      identities={user.identities}
-                    />
-                  </View>
-                  <FontAwesome6 name="chevron-right" iconStyle="solid" size={16} color={colors.mutedText} />
-                </Pressable>
-              ))}
-            </View>
-          </Card>
-        )}
-      </ScrollView>
-    </View>
+    <Screen contentContainerStyle={styles.content}>
+      {role.users.length === 0 ? (
+        <Card style={styles.emptyCard}>
+          <View style={styles.emptyContainer}>
+            <Body style={[styles.emptyText, { color: colors.mutedText }]}>
+              No users are currently assigned to this role
+            </Body>
+          </View>
+        </Card>
+      ) : (
+        <Card style={styles.usersCard}>
+          <View style={styles.usersContainer}>
+            {role.users.map((user) => (
+              <Pressable 
+                key={user.id}
+                onPress={() => navigation.navigate('AdminEditUserAccess', { id: user.id })}
+                style={styles.userRow}
+              >
+                <View style={styles.userInfo}>
+                  <UserIdentityRow 
+                    email={user.email}
+                    phoneNumber={user.phoneNumber}
+                    identities={user.identities}
+                  />
+                </View>
+                <FontAwesome6 name="chevron-right" iconStyle="solid" size={16} color={colors.mutedText} />
+              </Pressable>
+            ))}
+          </View>
+        </Card>
+      )}
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  paddedContainer: { paddingHorizontal: 20, paddingVertical: 20 },
   content: { flex: 1 },
   emptyCard: { marginBottom: 16 },
   emptyContainer: { padding: 32, alignItems: 'center' },
@@ -120,4 +116,5 @@ const styles = StyleSheet.create({
   userInfo: { flex: 1 },
   loadingCard: { marginTop: 32, paddingVertical: 32 },
   errorCard: { marginTop: 32, paddingVertical: 32 },
+  centerText: { textAlign: 'center' },
 });

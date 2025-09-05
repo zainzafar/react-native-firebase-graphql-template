@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, ScrollView } from 'react-native';
-import { Body, Button, Card, Input, UserIdentityRow } from '../components';
-import { useTheme } from '../theme/ThemeProvider';
+import { StyleSheet, View } from 'react-native';
+import { Body, Button, Card, Input, UserIdentityRow, Screen } from '../components';
 import { useAuth } from '../auth/AuthProvider';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { selectUser } from '../features/auth/selectors';
@@ -25,8 +24,7 @@ export default function AccountScreen() {
   const [passwordValidationError, setPasswordValidationError] = useState<string | null>(null);
   const [profileSuccess, setProfileSuccess] = useState(false);
   const [passwordSuccess, setPasswordSuccess] = useState(false);
-  const { colors } = useTheme();
-
+  
   // Initialize display name from user
   useEffect(() => {
     if (user?.displayName) {
@@ -98,37 +96,73 @@ export default function AccountScreen() {
 
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView contentContainerStyle={[styles.scrollContent, { paddingTop: 20, paddingBottom: 24 }]}>
-        {/* Authentication Method Info - Show for all users */}
-        {user && (
-          <Card>
-            <UserIdentityRow 
-              email={user.email}
-              phoneNumber={user.phoneNumber}
-              identities={user.identities}
-            />
-          </Card>
-        )}
+    <Screen contentContainerStyle={styles.scrollContent}>
+      {/* Authentication Method Info - Show for all users */}
+      {user && (
+        <Card>
+          <UserIdentityRow 
+            email={user.email}
+            phoneNumber={user.phoneNumber}
+            identities={user.identities}
+          />
+        </Card>
+      )}
 
-        {/* Profile Section */}
+      {/* Profile Section */}
+      <Card>
+        <View style={styles.sectionHeader}>
+          <Body style={styles.sectionTitle}>Profile Information</Body>
+        </View>
+        <View style={styles.form}>
+          <Input 
+            value={displayName} 
+            onChangeText={setDisplayName} 
+            placeholder="Display name" 
+          />
+          <Button 
+            title="Update Profile" 
+            onPress={onUpdateProfile} 
+            loading={profileLoading}
+            success={profileSuccess}
+            successText="Profile Updated"
+            error={!!profileError}
+            errorText="Please try again"
+
+            variant="ghost"
+            style={styles.button}
+          />
+        </View>
+      </Card>
+
+      {/* Password Section - Only show if user has email/password auth */}
+      {hasEmailPassword && (
         <Card>
           <View style={styles.sectionHeader}>
-            <Body style={styles.sectionTitle}>Profile Information</Body>
+            <Body style={styles.sectionTitle}>Change Password</Body>
           </View>
           <View style={styles.form}>
             <Input 
-              value={displayName} 
-              onChangeText={setDisplayName} 
-              placeholder="Display name" 
+              value={newPassword} 
+              onChangeText={setNewPassword} 
+              placeholder="New password" 
+              secureTextEntry
             />
+            <Input 
+              value={confirmPassword} 
+              onChangeText={setConfirmPassword} 
+              placeholder="Confirm new password" 
+              secureTextEntry
+            />
+            {passwordValidationError && (
+              <Body style={styles.errorText}>{passwordValidationError}</Body>
+            )}
             <Button 
-              title="Update Profile" 
-              onPress={onUpdateProfile} 
-              loading={profileLoading}
-              success={profileSuccess}
-              successText="Profile Updated"
-              error={!!profileError}
+              title="Update Password" 
+              onPress={onUpdatePassword} 
+              loading={passwordLoading}
+              success={passwordSuccess}
+              successText="Password Updated"
+              error={!!passwordError}
               errorText="Please try again"
 
               variant="ghost"
@@ -136,57 +170,13 @@ export default function AccountScreen() {
             />
           </View>
         </Card>
-
-        {/* Password Section - Only show if user has email/password auth */}
-        {hasEmailPassword && (
-          <Card>
-            <View style={styles.sectionHeader}>
-              <Body style={styles.sectionTitle}>Change Password</Body>
-            </View>
-            <View style={styles.form}>
-              <Input 
-                value={newPassword} 
-                onChangeText={setNewPassword} 
-                placeholder="New password" 
-                secureTextEntry
-              />
-              <Input 
-                value={confirmPassword} 
-                onChangeText={setConfirmPassword} 
-                placeholder="Confirm new password" 
-                secureTextEntry
-              />
-              {passwordValidationError && (
-                <Body style={styles.errorText}>{passwordValidationError}</Body>
-              )}
-              <Button 
-                title="Update Password" 
-                onPress={onUpdatePassword} 
-                loading={passwordLoading}
-                success={passwordSuccess}
-                successText="Password Updated"
-                error={!!passwordError}
-                errorText="Please try again"
-
-                variant="ghost"
-                style={styles.button}
-              />
-            </View>
-          </Card>
-        )}
-      </ScrollView>
-    </View>
+      )}
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  scrollContent: { flexGrow: 1, paddingHorizontal: 16, gap: 20 },
-
-  subtitle: { opacity: 0.7, marginTop: 4 },
-  authInfo: { gap: 8 },
-  authMethodRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  authValue: { fontSize: 16, fontWeight: '500', marginLeft: 4 },
+  scrollContent: { gap: 20 },
   sectionHeader: { marginBottom: 12 },
   sectionTitle: { fontSize: 16, fontWeight: '600' },
   form: { gap: 16 },

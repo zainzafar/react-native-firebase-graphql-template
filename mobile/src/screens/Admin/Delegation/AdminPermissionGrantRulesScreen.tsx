@@ -1,16 +1,14 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView, Alert, Pressable } from 'react-native';
+import { View, StyleSheet, Alert, Pressable } from 'react-native';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { useAppSelector } from '../../../store/hooks';
 import { selectUserPermissions } from '../../../features/auth/selectors';
 import { useQuery, useMutation } from '@apollo/client/react';
-import { Body, Button, Card } from '../../../components';
+import { Body, Button, Card, Screen } from '../../../components';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import {
   QUERY_ADMIN_GET_ROLE,
-  QUERY_ADMIN_LIST_GRANTABLE_PERMISSIONS,
-  MUTATION_ADMIN_CREATE_PERMISSION_GRANT_RULE,
   MUTATION_ADMIN_DELETE_PERMISSION_GRANT_RULE,
 } from '../../../graphql/operations';
 
@@ -28,13 +26,10 @@ type PermissionGrantRule = {
   permission?: { id: string; name: string; description?: string };
 };
 
-type Permission = { id: string; name: string; description?: string };
-
-
 export default function AdminPermissionGrantRules() {
   const { colors } = useTheme();
   const route = useRoute<any>();
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const userPermissions = useAppSelector(selectUserPermissions) as string[];
   
   const roleId = route.params?.roleId;
@@ -53,17 +48,12 @@ export default function AdminPermissionGrantRules() {
     }
   );
 
-  const { data: permissionsData } = useQuery<{ adminListAssignablePermissions: Permission[] }>(
-    QUERY_ADMIN_LIST_GRANTABLE_PERMISSIONS
-  );
-
   // Mutations
   const [deletePermissionGrant] = useMutation(MUTATION_ADMIN_DELETE_PERMISSION_GRANT_RULE, {
     refetchQueries: [{ query: QUERY_ADMIN_GET_ROLE, variables: { id: roleId } }],
   });
 
   const role = roleData?.adminGetRole;
-  const availablePermissions = permissionsData?.adminListAssignablePermissions ?? [];
 
   const handleAddPermissionGrant = () => {
     navigation.navigate('AdminAddPermissionGrantRule', { roleId });
@@ -94,27 +84,27 @@ export default function AdminPermissionGrantRules() {
 
   if (roleLoading) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Screen>
         <Card style={styles.loadingCard}>
-          <Body style={{ color: colors.mutedText, textAlign: 'center' }}>Loading permission grant rules...</Body>
+          <Body style={{ textAlign: 'center', color: colors.mutedText }}>Loading permission grant rules...</Body>
         </Card>
-      </View>
+      </Screen>
     );
   }
 
   if (!role) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Screen>
         <Card style={styles.errorCard}>
-          <Body style={{ color: colors.mutedText, textAlign: 'center' }}>Role not found</Body>
+          <Body style={{ textAlign: 'center', color: colors.mutedText }}>Role not found</Body>
         </Card>
-      </View>
+      </Screen>
     );
   }
 
   if (!canViewPermissionGrants) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Screen>
         <Card style={styles.noAccessCard}>
           <View style={styles.noAccessContent}>
             <FontAwesome6 name="shield-halved" iconStyle="solid" size={32} color={colors.mutedText} />
@@ -124,12 +114,12 @@ export default function AdminPermissionGrantRules() {
             </Body>
           </View>
         </Card>
-      </View>
+      </Screen>
     );
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <Screen>
       {/* Add Permission Grant Rule Button */}
       {canCreatePermissionGrants && (
         <View style={styles.addButtonContainer}>
@@ -143,7 +133,7 @@ export default function AdminPermissionGrantRules() {
       )}
 
       {/* Content */}
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <View style={styles.content}>
         {(role.canGrantPermissionsRules?.length ?? 0) === 0 ? (
           <Card style={styles.emptyCard}>
             <View style={styles.emptyContent}>
@@ -163,7 +153,7 @@ export default function AdminPermissionGrantRules() {
               <Card key={rule.id} style={styles.ruleCard}>
                 <View style={styles.ruleHeader}>
                   <View style={styles.ruleInfo}>
-                    <Body style={[styles.ruleScope, { color: colors.text }]} numberOfLines={1} ellipsizeMode="tail">
+                    <Body style={[styles.ruleScope, { color: colors.text }]}>
                       {rule.scope === 'ALL' 
                         ? 'All Permissions' 
                         : rule.permission?.name?.replace(/^ADMIN_/, '').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Unknown'
@@ -203,14 +193,12 @@ export default function AdminPermissionGrantRules() {
             ))}
           </View>
         )}
-      </ScrollView>
-
-    </View>
+      </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
   addButtonContainer: { paddingHorizontal: 16, paddingVertical: 20 },
   content: { flex: 1, paddingHorizontal: 16 },
   rulesContainer: { gap: 12 },

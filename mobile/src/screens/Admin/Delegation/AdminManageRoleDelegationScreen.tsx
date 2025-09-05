@@ -1,10 +1,10 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { useAppSelector } from '../../../store/hooks';
 import { selectUserPermissions } from '../../../features/auth/selectors';
 import { useQuery } from '@apollo/client/react';
-import { Body, Card, NavigationCard } from '../../../components';
+import { Body, Card, NavigationCard, Screen } from '../../../components';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import {
@@ -43,75 +43,72 @@ export default function AdminManageRoleDelegation() {
 
   if (roleLoading) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Screen>
         <Card style={styles.loadingCard}>
-          <Body style={{ color: colors.mutedText, textAlign: 'center' }}>Loading delegation rules...</Body>
+          <Body style={[styles.centerText, { color: colors.mutedText }]}>Loading delegation rules...</Body>
         </Card>
-      </View>
+      </Screen>
     );
   }
 
   if (!role) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Screen>
         <Card style={styles.errorCard}>
-          <Body style={{ color: colors.mutedText, textAlign: 'center' }}>Role not found</Body>
+          <Body style={[styles.centerText, { color: colors.mutedText }]}>Role not found</Body>
         </Card>
-      </View>
+      </Screen>
     );
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.section}>
-          <Body style={[styles.sectionTitle, { color: colors.text }]}>Delegation Management</Body>
-          <Body style={[styles.sectionDescription, { color: colors.mutedText }]}>
-            Manage who can grant roles and permissions for "{role.name}"
-          </Body>
-        </View>
+    <Screen contentContainerStyle={styles.content}>
+      <View style={styles.section}>
+        <Body style={[styles.sectionTitle, { color: colors.text }]}>Delegation Management</Body>
+        <Body style={[styles.sectionDescription, { color: colors.mutedText }]}>
+          Manage who can grant roles and permissions for "{role.name}"
+        </Body>
+      </View>
 
-        <View style={styles.cardsContainer}>
-          <NavigationCard
-            title="Role Grant Rules"
-            description="Define which roles can assign other roles to users"
-            icon="users"
-            onPress={() => navigation.navigate('AdminRoleGrantRules', { roleId: role.id })}
-            disabled={!canViewRoleGrants}
-            iconColor={colors.primary}
-            iconBackgroundColor={colors.primary + '20'}
-          />
+      <View style={styles.cardsContainer}>
+        <NavigationCard
+          title="Role Grant Rules"
+          description="Define which roles can assign other roles to users"
+          icon="users"
+          onPress={() => navigation.navigate('AdminRoleGrantRules', { roleId: role.id })}
+          disabled={!canViewRoleGrants}
+          iconColor={colors.primary}
+          iconBackgroundColor={colors.primary + '20'}
+        />
 
-          <NavigationCard
-            title="Permission Grant Rules"
-            description="Define which roles can assign permissions to users"
-            icon="key"
-            onPress={() => navigation.navigate('AdminPermissionGrantRules', { roleId: role.id })}
-            disabled={!canViewPermissionGrants}
-            iconColor={colors.primary}
-            iconBackgroundColor={colors.primary + '20'}
-          />
-        </View>
+        <NavigationCard
+          title="Permission Grant Rules"
+          description="Define which roles can assign permissions to users"
+          icon="key"
+          onPress={() => navigation.navigate('AdminPermissionGrantRules', { roleId: role.id })}
+          disabled={!canViewPermissionGrants}
+          iconColor={colors.primary}
+          iconBackgroundColor={colors.primary + '20'}
+        />
+      </View>
 
-        {!canViewRoleGrants && !canViewPermissionGrants && (
-          <Card style={styles.noAccessCard}>
-            <View style={styles.noAccessContent}>
-              <FontAwesome6 name="shield-halved" iconStyle="solid" size={32} color={colors.mutedText} />
-              <Body style={[styles.noAccessTitle, { color: colors.text }]}>No Access</Body>
-              <Body style={[styles.noAccessDescription, { color: colors.mutedText }]}>
-                You don't have permission to manage delegation rules.
-              </Body>
-            </View>
-          </Card>
-        )}
-      </ScrollView>
-    </View>
+      {!canViewRoleGrants && !canViewPermissionGrants && (
+        <Card style={styles.noAccessCard}>
+          <View style={styles.noAccessContent}>
+            <FontAwesome6 name="shield-halved" iconStyle="solid" size={32} color={colors.mutedText} />
+            <Body style={[styles.noAccessTitle, { color: colors.text }]}>No Access</Body>
+            <Body style={[styles.noAccessDescription, { color: colors.mutedText }]}>
+              You don't have permission to manage delegation rules.
+            </Body>
+          </View>
+        </Card>
+      )}
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  content: { flex: 1, paddingHorizontal: 16 },
+  content: { flex: 1 },
   section: { paddingVertical: 20, paddingBottom: 16 },
   sectionTitle: { fontSize: 20, fontWeight: '600', marginBottom: 8 },
   sectionDescription: { fontSize: 14, lineHeight: 20 },
@@ -126,4 +123,5 @@ const styles = StyleSheet.create({
   noAccessDescription: { fontSize: 14, textAlign: 'center', paddingHorizontal: 16 },
   loadingCard: { marginTop: 32, paddingVertical: 32 },
   errorCard: { marginTop: 32, paddingVertical: 32 },
+  centerText: { textAlign: 'center' },
 });

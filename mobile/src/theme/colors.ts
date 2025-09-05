@@ -11,9 +11,6 @@ export const lightColors = {
   danger: '#EF4444',
   buttonSuccess: '#059669',
   buttonError: '#DC2626',
-  // Screen layout
-  screenPaddingHorizontal: 20,
-  screenPaddingVertical: 20,
 };
 
 export const darkColors = {
@@ -29,9 +26,6 @@ export const darkColors = {
   danger: '#F87171',
   buttonSuccess: '#059669',
   buttonError: '#DC2626',
-  // Screen layout
-  screenPaddingHorizontal: 20,
-  screenPaddingVertical: 20,
 };
 
 export type AppColors = typeof lightColors;

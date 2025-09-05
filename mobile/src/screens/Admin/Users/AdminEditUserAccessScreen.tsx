@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, StyleSheet, Pressable, ScrollView } from 'react-native';
+import { View, StyleSheet, Pressable } from 'react-native';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import { useRoute } from '@react-navigation/native';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { useAppSelector } from '../../../store/hooks';
 import { selectUserPermissions } from '../../../features/auth/selectors';
 import { useMutation, useQuery } from '@apollo/client/react';
-import { Body, Button, Card, PermissionList, BottomSheet } from '../../../components';
+import { Body, Button, Card, PermissionList, BottomSheet, Screen } from '../../../components';
 import {
   QUERY_ADMIN_LIST_ASSIGNABLE_ROLES,
   QUERY_ADMIN_LIST_GRANTABLE_PERMISSIONS,
@@ -99,11 +99,6 @@ export default function AdminEditUserAccessScreen() {
   useEffect(() => {
     if (rawPermsData?.adminGetUserRawPermissions) setRawPermissions(rawPermsData.adminGetUserRawPermissions);
   }, [rawPermsData?.adminGetUserRawPermissions]);
-
-
-
-
-
 
   const canAssignPermission = (permName: string) => {
     // Check if the permission is in the assignable permissions list
@@ -295,11 +290,7 @@ export default function AdminEditUserAccessScreen() {
   };
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: colors.background }}
-      contentContainerStyle={styles.pageContent}
-      keyboardShouldPersistTaps="handled"
-    > 
+    <Screen contentContainerStyle={styles.pageContent}> 
       {isEditingSelf && (
         <Card style={styles.card}>
           <Body style={{ color: '#DC2626', textAlign: 'center' }}>
@@ -309,7 +300,7 @@ export default function AdminEditUserAccessScreen() {
       )}
       {renderRoleSelector()}
       {renderPermissions()}
-    </ScrollView>
+    </Screen>
   );
 }
 

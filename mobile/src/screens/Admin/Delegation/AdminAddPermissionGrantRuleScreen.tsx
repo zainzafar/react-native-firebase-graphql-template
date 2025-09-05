@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
-import { View, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, StyleSheet, Alert } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useTheme } from '../../../theme/ThemeProvider';
-import { Body } from '../../../components';
+import { Body, Screen } from '../../../components';
 import GrantRuleForm from '../../../components/GrantRuleForm';
 import { useAppSelector } from '../../../store/hooks';
 import { selectUserPermissions } from '../../../features/auth/selectors';
@@ -45,6 +45,31 @@ export default function AdminAddPermissionGrantRule() {
     }
   });
 
+  const allPermissions = (permissionsData as any)?.adminListAssignablePermissions || [];
+  const existingPermissionGrantRules = (roleData as any)?.adminGetRole?.canGrantPermissionsRules || [];
+  
+  // Check if there's an "ALL" scope rule - if so, no "All permissions" option should be available
+  const hasAllScopeRule = existingPermissionGrantRules.some((rule: any) => rule.scope === 'ALL');
+  
+  // Get permission IDs that already have grant rules
+  const existingPermissionIds = existingPermissionGrantRules
+    .filter((rule: any) => rule.scope === 'PERMISSION' && rule.permission?.id)
+    .map((rule: any) => rule.permission.id);
+  
+  // Filter out permissions that already have grant rules
+  const availablePermissions = allPermissions.filter((permission: any) => !existingPermissionIds.includes(permission.id));
+
+  // Check if no permissions are available and navigate back with alert
+  useEffect(() => {
+    if (permissionsData && roleData && availablePermissions.length === 0) {
+      Alert.alert(
+        'No Available Permissions',
+        'All permissions already have grant rules assigned for this role.',
+        [{ text: 'OK', onPress: () => navigation.goBack() }]
+      );
+    }
+  }, [permissionsData, roleData, availablePermissions.length, navigation]);
+
   const handleSubmit = async (input: {
     scope: 'ALL' | 'SPECIFIC';
     itemId?: string;
@@ -72,73 +97,40 @@ export default function AdminAddPermissionGrantRule() {
 
   if (!canCreatePermissionGrantRules) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Screen>
         <View style={[styles.noAccessCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <Body style={[styles.noAccessText, { color: colors.text }]}>
             You don't have permission to create permission grant rules.
           </Body>
         </View>
-      </View>
+      </Screen>
     );
   }
 
   if (permissionsLoading) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Screen>
         <View style={styles.loadingContainer}>
           <Body style={[styles.loadingText, { color: colors.text }]}>Loading...</Body>
         </View>
-      </View>
+      </Screen>
     );
   }
 
-  const allPermissions = (permissionsData as any)?.adminListAssignablePermissions || [];
-  const existingPermissionGrantRules = (roleData as any)?.adminGetRole?.canGrantPermissionsRules || [];
-  
-  // Check if there's an "ALL" scope rule - if so, no "All permissions" option should be available
-  const hasAllScopeRule = existingPermissionGrantRules.some(rule => rule.scope === 'ALL');
-  
-  // Get permission IDs that already have grant rules
-  const existingPermissionIds = existingPermissionGrantRules
-    .filter(rule => rule.scope === 'PERMISSION' && rule.permission?.id)
-    .map(rule => rule.permission.id);
-  
-  // Filter out permissions that already have grant rules
-  const availablePermissions = allPermissions.filter(permission => !existingPermissionIds.includes(permission.id));
-
-  // Check if no permissions are available and navigate back with alert
-  useEffect(() => {
-    if (permissionsData && roleData && availablePermissions.length === 0) {
-      Alert.alert(
-        'No Available Permissions',
-        'All permissions already have grant rules assigned for this role.',
-        [{ text: 'OK', onPress: () => navigation.goBack() }]
-      );
-    }
-  }, [permissionsData, roleData, availablePermissions.length, navigation]);
-
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView style={styles.scrollView} contentContainerStyle={[styles.scrollContent, { paddingHorizontal: colors.screenPaddingHorizontal, paddingVertical: colors.screenPaddingVertical }]}>
-        <GrantRuleForm
-          type="permission"
-          items={availablePermissions}
-          granterRoleName="Admin"
-          showAllOption={!hasAllScopeRule}
-          onSubmit={handleSubmit}
-        />
-      </ScrollView>
-    </View>
+    <Screen contentContainerStyle={styles.scrollContent}>
+      <GrantRuleForm
+        type="permission"
+        items={availablePermissions}
+        granterRoleName="Admin"
+        showAllOption={!hasAllScopeRule}
+        onSubmit={handleSubmit}
+      />
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1
-  },
-  scrollView: {
-    flex: 1
-  },
   scrollContent: {
     flexGrow: 1
   },

@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, ScrollView, TextInput, Animated } from 'react-native';
+import { View, StyleSheet, TextInput, Animated } from 'react-native';
 import { useTheme } from '../../../theme/ThemeProvider';
 
 import { useQuery, useMutation } from '@apollo/client/react';
-import { Body, Button, Card, Input } from '../../../components';
+import { Body, Button, Card, Input, Screen } from '../../../components';
 import { useRoute } from '@react-navigation/native';
 import {
   QUERY_ADMIN_GET_ROLE,
@@ -104,27 +104,26 @@ export default function AdminEditRoleBasicInfo() {
 
   if (roleLoading) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Screen>
         <Card style={styles.loadingCard}>
-          <Body style={{ color: colors.mutedText, textAlign: 'center' }}>Loading role details...</Body>
+          <Body style={[styles.centerText, { color: colors.mutedText }]}>Loading role details...</Body>
         </Card>
-      </View>
+      </Screen>
     );
   }
 
   if (!role) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Screen>
         <Card style={styles.errorCard}>
-          <Body style={{ color: colors.mutedText, textAlign: 'center' }}>Role not found</Body>
+          <Body style={[styles.centerText, { color: colors.mutedText }]}>Role not found</Body>
         </Card>
-      </View>
+      </Screen>
     );
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+    <Screen scroll={false}>
         <Card>
           <View style={styles.sectionHeader}>
             <Body style={styles.sectionTitle}>Role Information</Body>
@@ -177,14 +176,11 @@ export default function AdminEditRoleBasicInfo() {
             )}
           </View>
         </Card>
-      </ScrollView>
-    </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  content: { flex: 1, paddingHorizontal: 16, paddingVertical: 20, gap: 20 },
   sectionHeader: { marginBottom: 12 },
   sectionTitle: { fontSize: 16, fontWeight: '600' },
   form: { gap: 16 },
@@ -210,4 +206,5 @@ const styles = StyleSheet.create({
   },
   loadingCard: { marginTop: 32, paddingVertical: 32 },
   errorCard: { marginTop: 32, paddingVertical: 32 },
+  centerText: { textAlign: 'center' },
 });

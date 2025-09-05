@@ -1,10 +1,10 @@
 import React from 'react';
-import { View, StyleSheet, Pressable, ScrollView } from 'react-native';
+import { View, StyleSheet, Pressable } from 'react-native';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { useAppSelector } from '../../../store/hooks';
 import { selectUserPermissions } from '../../../features/auth/selectors';
 import { useQuery } from '@apollo/client/react';
-import { Body, Button, Card } from '../../../components';
+import { Body, Button, Card, Screen } from '../../../components';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -90,9 +90,8 @@ export default function AdminRolesScreen() {
   };
 
   const styles = StyleSheet.create({
-    container: { flex: 1 },
-    addButtonContainer: { paddingHorizontal: colors.screenPaddingHorizontal, paddingVertical: colors.screenPaddingVertical },
-    content: { flex: 1, paddingHorizontal: colors.screenPaddingHorizontal },
+    addButtonContainer: { paddingBottom: 16 },
+    content: { flex: 1 },
     roleCard: { marginVertical: 10 },
     roleCardPressable: { padding: 0 },
     roleHeader: { 
@@ -123,26 +122,10 @@ export default function AdminRolesScreen() {
     emptyTitle: { fontSize: 18, fontWeight: '500' },
     emptyDescription: { fontSize: 14, textAlign: 'center', paddingHorizontal: 16 },
     loadingCard: { marginTop: 32, paddingVertical: 32 },
-    // Form styles
-    formContainer: { padding: 16, gap: 20 },
-    formSection: { gap: 8 },
-    formLabel: { fontSize: 14, fontWeight: '500', marginBottom: 4 },
-    textInput: { 
-      paddingVertical: 12, 
-      paddingHorizontal: 16, 
-      borderRadius: 8, 
-      borderWidth: 1, 
-      fontSize: 14 
-    },
-    formActions: { 
-      flexDirection: 'row', 
-      gap: 12, 
-      marginTop: 8 
-    },
   });
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <Screen contentContainerStyle={styles.content}>
       {/* Create Role Button */}
       {canCreateRoles && (
         <View style={styles.addButtonContainer}>
@@ -156,19 +139,15 @@ export default function AdminRolesScreen() {
       )}
 
       {/* Content */}
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {rolesLoading ? (
-          <Card style={styles.loadingCard}>
-            <Body style={{ color: colors.mutedText, textAlign: 'center' }}>Loading roles...</Body>
-          </Card>
-        ) : roles.length > 0 ? (
-          roles.map(renderRoleCard)
-        ) : (
-          renderEmptyState()
-        )}
-      </ScrollView>
-
-
-    </View>
+      {rolesLoading ? (
+        <Card style={styles.loadingCard}>
+          <Body style={{ color: colors.mutedText, textAlign: 'center' }}>Loading roles...</Body>
+        </Card>
+      ) : roles.length > 0 ? (
+        roles.map(renderRoleCard)
+      ) : (
+        renderEmptyState()
+      )}
+    </Screen>
   );
 }
