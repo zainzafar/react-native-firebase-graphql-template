@@ -45,17 +45,6 @@ export default function AdminHomeScreen() {
         </Card>
       )}
 
-      {canManageRoleGrantRules && (
-        <Card style={styles.card}> 
-          <Pressable onPress={() => navigation.navigate('AdminDelegationMatrix')} style={styles.menuItem}>
-            <View style={styles.menuItemLeft}>
-              <FontAwesome6 name="sitemap" iconStyle="solid" size={20} color={colors.text} />
-              <Body style={styles.menuItemText}>Delegation Matrix</Body>
-            </View>
-            <FontAwesome6 name="chevron-right" iconStyle="solid" size={16} color={colors.mutedText} />
-          </Pressable>
-        </Card>
-      )}
 
       {canAccessDebug && (
         <Card style={styles.card}> 

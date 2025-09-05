@@ -1,14 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, View, Pressable, RefreshControl } from 'react-native';
-import { Body, Button, Card } from '../../components';
-import { useTheme } from '../../theme/ThemeProvider';
+import { Body, Button, Card } from '../../../components';
+import { useTheme } from '../../../theme/ThemeProvider';
 import { useQuery } from '@apollo/client/react';
-import { QUERY_ADMIN_LIST_USERS } from '../../graphql/operations';
+import { QUERY_ADMIN_LIST_USERS } from '../../../graphql/operations';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import { useNavigation } from '@react-navigation/native';
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
 
-import { usePermissions } from '../../features/auth/hooks';
+import { usePermissions } from '../../../features/auth/hooks';
 
 type Edge = { cursor: string; node: { id: string; uid: string; email?: string; phoneNumber?: string; displayName?: string; lastLoginProvider?: string; createdAt?: string; identities?: { providerId: string }[] } };
 type AdminListUsersQuery = {

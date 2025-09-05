@@ -32,18 +32,10 @@ export default function PermissionRow({
 }: PermissionRowProps) {
   const { colors } = useTheme();
   
-  // Debug logging for individual permissions
-  console.log(`🔍 PermissionRow Debug for ${permission.name}:`, {
-    isSelected,
-    canEnable,
-    canDisable,
-    disabled: isSelected ? !canDisable : !canEnable
-  });
 
   return (
     <View 
       style={styles.permissionItem}
-      onTouchEnd={() => console.log(`🔍 Touch test for ${permission.name}`)}
     >
       <View style={styles.permissionInfo}>
         {showName && (

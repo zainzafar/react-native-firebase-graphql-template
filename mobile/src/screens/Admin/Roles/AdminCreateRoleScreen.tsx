@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, TextInput } from 'react-native';
-import { useTheme } from '../../theme/ThemeProvider';
-import { useAppSelector } from '../../store/hooks';
-import { selectUserPermissions } from '../../features/auth/selectors';
+import { useTheme } from '../../../theme/ThemeProvider';
+import { useAppSelector } from '../../../store/hooks';
+import { selectUserPermissions } from '../../../features/auth/selectors';
 import { useQuery, useMutation } from '@apollo/client/react';
-import { Body, Button, Card, PermissionList } from '../../components';
+import { Body, Button, Card, PermissionList } from '../../../components';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import { useNavigation } from '@react-navigation/native';
 import {
   QUERY_ADMIN_LIST_GRANTABLE_PERMISSIONS,
   QUERY_ADMIN_LIST_MANAGEABLE_ROLES,
   MUTATION_ADMIN_CREATE_ROLE,
-} from '../../graphql/operations';
+  QUERY_ADMIN_LIST_ASSIGNABLE_ROLES,
+} from '../../../graphql/operations';
 
 type Permission = {
   id: string;
@@ -45,21 +46,14 @@ export default function AdminCreateRoleScreen() {
   const [createRole] = useMutation(MUTATION_ADMIN_CREATE_ROLE, {
     refetchQueries: [
       { query: QUERY_ADMIN_LIST_MANAGEABLE_ROLES },
-      { query: QUERY_ADMIN_LIST_GRANTABLE_PERMISSIONS }
+      { query: QUERY_ADMIN_LIST_GRANTABLE_PERMISSIONS },
+      { query: QUERY_ADMIN_LIST_ASSIGNABLE_ROLES }
     ],
+    awaitRefetchQueries: true,
   });
 
   const allPermissions = permissionsData?.adminListAssignablePermissions ?? [];
 
-  // Debug logging
-  console.log('🔍 AdminCreateRoleScreen Debug:');
-  console.log('  - canViewPermissions:', canViewPermissions);
-  console.log('  - permissionsData:', permissionsData);
-  console.log('  - allPermissions:', allPermissions);
-  console.log('  - allPermissions.length:', allPermissions.length);
-  if (allPermissions.length > 0) {
-    console.log('  - First permission sample:', allPermissions[0]);
-  }
 
   const handleCreateRole = async () => {
     try {
@@ -74,10 +68,8 @@ export default function AdminCreateRoleScreen() {
         return;
       }
       
-      // Find the permission IDs for the selected permissions
-      const selectedPermissionIds = allPermissions
-        .filter(p => rolePermissions.includes(p.name))
-        .map(p => p.id);
+      // rolePermissions already contains the permission IDs
+      const selectedPermissionIds = rolePermissions;
       
       await createRole({ 
         variables: { 
@@ -91,9 +83,6 @@ export default function AdminCreateRoleScreen() {
       
       setCreateSuccess(true);
       // Navigate back after a short delay to show success state
-      setTimeout(() => {
-        navigation.goBack();
-      }, 1000);
     } catch (error: any) {
       console.error('Failed to create role:', error);
       setCreateError(error?.message || 'Failed to create role');
@@ -153,26 +142,6 @@ export default function AdminCreateRoleScreen() {
         />
       </View>
 
-      <View style={styles.saveButtonContainer}>
-        <Button
-          title="Create Role"
-          onPress={handleCreateRole}
-          disabled={!editData.name.trim()}
-          style={styles.saveButton}
-          loading={createLoading}
-          success={createSuccess}
-          successText="Role Created!"
-          error={createErrorFlash}
-          errorText="Error creating"
-
-
-        />
-        {createError && (
-          <Body style={[styles.errorText, { color: colors.danger }]}>
-            {createError}
-          </Body>
-        )}
-      </View>
     </Card>
   );
 
@@ -246,6 +215,35 @@ export default function AdminCreateRoleScreen() {
         {renderBasicInfo()}
         {renderPermissions()}
       </ScrollView>
+      
+      {/* Create Button - Outside cards at bottom */}
+      <View style={styles.saveButtonContainer}>
+        <Button
+          title="Create Role"
+          onPress={handleCreateRole}
+          disabled={!editData.name.trim()}
+          loading={createLoading}
+          success={createSuccess}
+          successText="Role Created!"
+          error={createErrorFlash}
+          errorText="Error creating"
+          style={styles.saveButton}
+          onSuccessComplete={() => {
+            setCreateSuccess(false);
+            // Navigate back to roles list after success animation
+            navigation.goBack();
+          }}
+          onErrorComplete={() => {
+            setCreateErrorFlash(false);
+            setCreateError(null);
+          }}
+        />
+        {createError && (
+          <Body style={[styles.errorText, { color: colors.danger }]}>
+            {createError}
+          </Body>
+        )}
+      </View>
     </View>
   );
 }

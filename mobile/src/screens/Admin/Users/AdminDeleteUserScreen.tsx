@@ -1,10 +1,10 @@
 import React from 'react';
 import { Alert, View, StyleSheet, ScrollView } from 'react-native';
-import { Body, Button, Card, UserIdentityRow } from '../../components';
-import { useTheme } from '../../theme/ThemeProvider';
+import { Body, Button, Card, UserIdentityRow } from '../../../components';
+import { useTheme } from '../../../theme/ThemeProvider';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useMutation, useQuery } from '@apollo/client/react';
-import { MUTATION_ADMIN_DELETE_USER, QUERY_ADMIN_GET_USER } from '../../graphql/operations';
+import { MUTATION_ADMIN_DELETE_USER, QUERY_ADMIN_GET_USER } from '../../../graphql/operations';
 
 export default function AdminDeleteUserScreen() {
   const { colors } = useTheme();

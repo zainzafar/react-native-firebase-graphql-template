@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Modal, Pressable, ScrollView, View, Animated, PanResponder, Dimensions, StyleSheet, Text } from 'react-native';
 import { useTheme } from '../theme/ThemeProvider';
 
@@ -6,7 +6,10 @@ interface BottomSheetProps {
   visible: boolean;
   onClose: () => void;
   children: React.ReactNode;
-  height?: number; // Percentage of screen height (0-1)
+  height?: number; // Percentage of screen height (0-1) - used when auto-sizing is disabled
+  minHeight?: number; // Minimum percentage of screen height (0-1)
+  maxHeight?: number; // Maximum percentage of screen height (0-1)
+  autoSize?: boolean; // Whether to automatically size based on content (default: true)
   title?: string;
 }
 
@@ -14,12 +17,38 @@ export default function BottomSheet({
   visible, 
   onClose, 
   children, 
-  height = 0.6,
+  height = 0.7,
+  minHeight = 0.25,
+  maxHeight = 0.5,
+  autoSize = true,
   title 
 }: BottomSheetProps) {
   const { colors } = useTheme();
-  const sheetInitialY = Math.round(Dimensions.get('window').height * (1 - height));
+  const screenHeight = Dimensions.get('window').height;
+  const [contentHeight, setContentHeight] = useState(0);
+  const [isContentMeasured, setIsContentMeasured] = useState(false);
+  
+  // Calculate dynamic height based on measured content or fixed height
+  // Add padding for ScrollView content container and bottom sheet spacing
+  const contentPadding = 60; // Extra padding for ScrollView and container spacing
+  const calculatedHeight = autoSize && isContentMeasured
+    ? Math.max(
+        screenHeight * Math.min(minHeight, maxHeight), // Use the smaller of min/max as the minimum
+        Math.min(contentHeight + contentPadding, screenHeight * Math.max(minHeight, maxHeight)) // Use the larger as the maximum
+      )
+    : screenHeight * height;
+  
+  const sheetInitialY = Math.round(screenHeight - calculatedHeight);
   const sheetTranslateY = useRef(new Animated.Value(sheetInitialY)).current;
+
+  // Measure content height when it changes
+  const handleContentLayout = (event: any) => {
+    const { height: measuredHeight } = event.nativeEvent.layout;
+    if (measuredHeight > 0 && measuredHeight !== contentHeight) {
+      setContentHeight(measuredHeight);
+      setIsContentMeasured(true);
+    }
+  };
 
   useEffect(() => {
     if (visible) {
@@ -80,7 +109,7 @@ export default function BottomSheet({
               backgroundColor: colors.card, 
               borderColor: colors.border, 
               transform: [{ translateY: sheetTranslateY }],
-              height: `${height * 100}%`
+              height: calculatedHeight
             },
           ]}
         >
@@ -99,7 +128,9 @@ export default function BottomSheet({
             contentContainerStyle={styles.contentContainer}
             showsVerticalScrollIndicator={false}
           >
-            {children}
+            <View onLayout={handleContentLayout}>
+              {children}
+            </View>
           </ScrollView>
         </Animated.View>
       </Pressable>
@@ -120,7 +151,8 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 16, 
     borderTopRightRadius: 16, 
     borderWidth: 1, 
-    overflow: 'hidden' 
+    overflow: 'hidden',
+    paddingBottom: 40
   },
   dragHandleContainer: { 
     alignItems: 'center', 
@@ -147,6 +179,6 @@ const styles = StyleSheet.create({
   },
   contentContainer: { 
     paddingVertical: 8, 
-    paddingBottom: 16 
+    paddingBottom: 16
   },
 });

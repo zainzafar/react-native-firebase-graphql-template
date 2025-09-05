@@ -1,16 +1,16 @@
 import React from 'react';
 import { ActivityIndicator } from 'react-native';
 import { View, StyleSheet, ScrollView } from 'react-native';
-import { useTheme } from '../../theme/ThemeProvider';
-import { useAppSelector } from '../../store/hooks';
-import { selectUserPermissions } from '../../features/auth/selectors';
+import { useTheme } from '../../../theme/ThemeProvider';
+import { useAppSelector } from '../../../store/hooks';
+import { selectUserPermissions } from '../../../features/auth/selectors';
 import { useQuery } from '@apollo/client/react';
-import { Body, Card, NavigationCard } from '../../components';
+import { Body, Card, NavigationCard } from '../../../components';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import {
   QUERY_ADMIN_GET_ROLE,
-} from '../../graphql/operations';
+} from '../../../graphql/operations';
 
 type Role = {
   id: string;
@@ -146,15 +146,16 @@ export default function AdminRoleDetailScreen() {
           />
 
           {/* Manage Delegation Rules */}
-          <NavigationCard
-            title="Manage Delegation Rules"
-            description="Manage who can assign/revoke this role and related permissions"
-            icon="sitemap"
-            onPress={() => navigation.navigate('AdminManageRoleDelegation', { roleId: role.id })}
-            disabled={!canViewRoleGrants}
-            iconColor={colors.primary}
-            iconBackgroundColor={`${colors.primary}20`}
-          />
+          {canViewRoleGrants && (
+            <NavigationCard
+              title="Manage Delegation Rules"
+              description="Manage who can assign/revoke this role and related permissions"
+              icon="sitemap"
+              onPress={() => navigation.navigate('AdminManageRoleDelegation', { roleId: role.id })}
+              iconColor={colors.primary}
+              iconBackgroundColor={`${colors.primary}20`}
+            />
+          )}
 
           {/* Delete Role */}
           <NavigationCard

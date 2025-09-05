@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
-import { useTheme } from '../../theme/ThemeProvider';
-import { useAppSelector } from '../../store/hooks';
-import { selectUserPermissions } from '../../features/auth/selectors';
+import { useTheme } from '../../../theme/ThemeProvider';
+import { useAppSelector } from '../../../store/hooks';
+import { selectUserPermissions } from '../../../features/auth/selectors';
 import { useQuery, useMutation } from '@apollo/client/react';
-import { Body, Button, Card } from '../../components';
+import { Body, Button, Card } from '../../../components';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import {
   QUERY_ADMIN_GET_ROLE,
   QUERY_ADMIN_LIST_MANAGEABLE_ROLES,
   MUTATION_ADMIN_DELETE_ROLE,
-} from '../../graphql/operations';
+  QUERY_ADMIN_LIST_ASSIGNABLE_ROLES,
+} from '../../../graphql/operations';
 
 type Role = {
   id: string;
@@ -57,6 +58,7 @@ export default function AdminDeleteRoleScreen() {
   const [deleteRole] = useMutation(MUTATION_ADMIN_DELETE_ROLE, {
     refetchQueries: [
       { query: QUERY_ADMIN_LIST_MANAGEABLE_ROLES },
+      { query: QUERY_ADMIN_LIST_ASSIGNABLE_ROLES },
     ],
   });
 

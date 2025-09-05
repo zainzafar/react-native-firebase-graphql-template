@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
-import { useTheme } from '../../theme/ThemeProvider';
-import { useAppSelector } from '../../store/hooks';
-import { selectUserPermissions } from '../../features/auth/selectors';
+import { useTheme } from '../../../theme/ThemeProvider';
+import { useAppSelector } from '../../../store/hooks';
+import { selectUserPermissions } from '../../../features/auth/selectors';
 import { useQuery, useMutation } from '@apollo/client/react';
-import { Body, Card, PermissionList } from '../../components';
+import { Body, Card, PermissionList } from '../../../components';
 import { useRoute } from '@react-navigation/native';
 import {
   QUERY_ADMIN_GET_ROLE,
   QUERY_ADMIN_LIST_GRANTABLE_PERMISSIONS,
   MUTATION_ADMIN_SET_ROLE_PERMISSION,
-} from '../../graphql/operations';
+} from '../../../graphql/operations';
 
 type Role = {
   id: string;
@@ -122,16 +122,27 @@ export default function AdminEditRolePermissions() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <Card style={styles.mainCard}>
-          <PermissionList
-            permissions={allPermissions}
-            selectedPermissions={rolePermissions}
-            onPermissionToggle={handleTogglePermission}
-            disabled={!canUpdateRoles}
-            showDescriptions={true}
-            showNames={false}
-          />
-        </Card>
+        {allPermissions.length === 0 ? (
+          <Card style={styles.emptyCard}>
+            <View style={styles.emptyContainer}>
+              <Body style={[styles.emptyText, { color: colors.mutedText }]}>
+                No permissions are available to assign to this role
+              </Body>
+            </View>
+          </Card>
+        ) : (
+          <Card style={styles.mainCard}>
+            <PermissionList
+              permissions={allPermissions}
+              selectedPermissions={rolePermissions}
+              onPermissionToggle={handleTogglePermission}
+              canEnable={Object.fromEntries(allPermissions.map(p => [p.id, canUpdateRoles]))}
+              canDisable={Object.fromEntries(allPermissions.map(p => [p.id, canUpdateRoles]))}
+              showDescriptions={true}
+              showNames={false}
+            />
+          </Card>
+        )}
       </ScrollView>
     </View>
   );
@@ -142,6 +153,9 @@ const styles = StyleSheet.create({
   content: { flex: 1, paddingHorizontal: 4, paddingVertical: 12 },
   loadingCard: { marginTop: 32, paddingVertical: 32 },
   errorCard: { marginTop: 32, paddingVertical: 32 },
+  emptyCard: { margin: 8, marginBottom: 16 },
+  emptyContainer: { padding: 32, alignItems: 'center' },
+  emptyText: { fontSize: 16, textAlign: 'center' },
   mainCard: {
     margin: 8,
   },

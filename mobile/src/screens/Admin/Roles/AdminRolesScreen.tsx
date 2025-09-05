@@ -1,15 +1,15 @@
 import React from 'react';
 import { View, StyleSheet, Pressable, ScrollView } from 'react-native';
-import { useTheme } from '../../theme/ThemeProvider';
-import { useAppSelector } from '../../store/hooks';
-import { selectUserPermissions } from '../../features/auth/selectors';
+import { useTheme } from '../../../theme/ThemeProvider';
+import { useAppSelector } from '../../../store/hooks';
+import { selectUserPermissions } from '../../../features/auth/selectors';
 import { useQuery } from '@apollo/client/react';
-import { Body, Button, Card } from '../../components';
+import { Body, Button, Card } from '../../../components';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import { useNavigation } from '@react-navigation/native';
 import {
   QUERY_ADMIN_LIST_MANAGEABLE_ROLES,
-} from '../../graphql/operations';
+} from '../../../graphql/operations';
 
 type Role = {
   id: string;

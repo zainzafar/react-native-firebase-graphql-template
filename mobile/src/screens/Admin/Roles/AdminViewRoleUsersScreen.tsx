@@ -1,14 +1,14 @@
 import React from 'react';
 import { View, StyleSheet, ScrollView, Pressable } from 'react-native';
-import { useTheme } from '../../theme/ThemeProvider';
+import { useTheme } from '../../../theme/ThemeProvider';
 
 import { useQuery } from '@apollo/client/react';
-import { Body, Card, UserIdentityRow } from '../../components';
+import { Body, Card, UserIdentityRow } from '../../../components';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import {
   QUERY_ADMIN_GET_ROLE,
-} from '../../graphql/operations';
+} from '../../../graphql/operations';
 
 type Role = {
   id: string;

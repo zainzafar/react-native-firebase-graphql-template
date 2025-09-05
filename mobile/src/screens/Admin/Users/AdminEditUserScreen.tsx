@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
-import { Button, Card, Input, Body, UserIdentityRow } from '../../components';
-import { useTheme } from '../../theme/ThemeProvider';
-import { useAppSelector } from '../../store/hooks';
-import { selectUserPermissions } from '../../features/auth/selectors';
+import { Button, Card, Input, Body, UserIdentityRow } from '../../../components';
+import { useTheme } from '../../../theme/ThemeProvider';
+import { useAppSelector } from '../../../store/hooks';
+import { selectUserPermissions } from '../../../features/auth/selectors';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useMutation, useQuery } from '@apollo/client/react';
-import { MUTATION_ADMIN_UPDATE_USER, MUTATION_ADMIN_UPDATE_USER_PASSWORD, QUERY_ADMIN_GET_USER, MUTATION_ADMIN_RESET_PASSWORD } from '../../graphql/operations';
+import { MUTATION_ADMIN_UPDATE_USER, MUTATION_ADMIN_UPDATE_USER_PASSWORD, QUERY_ADMIN_GET_USER, MUTATION_ADMIN_RESET_PASSWORD } from '../../../graphql/operations';
 
 export default function AdminEditUserScreen() {
   const { colors } = useTheme();

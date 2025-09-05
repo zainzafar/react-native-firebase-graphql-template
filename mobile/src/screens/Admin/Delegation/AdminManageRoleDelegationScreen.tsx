@@ -1,20 +1,65 @@
 import React from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
-import { useTheme } from '../../theme/ThemeProvider';
-import { useAppSelector } from '../../store/hooks';
-import { selectUserPermissions } from '../../features/auth/selectors';
-import { useNavigation } from '@react-navigation/native';
-import { Body, Card, NavigationCard } from '../../components';
+import { useTheme } from '../../../theme/ThemeProvider';
+import { useAppSelector } from '../../../store/hooks';
+import { selectUserPermissions } from '../../../features/auth/selectors';
+import { useQuery } from '@apollo/client/react';
+import { Body, Card, NavigationCard } from '../../../components';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
+import {
+  QUERY_ADMIN_GET_ROLE,
+} from '../../../graphql/operations';
 
-export default function AdminDelegationMatrixScreen() {
+type Role = {
+  id: string;
+  name: string;
+  description?: string;
+};
+
+
+export default function AdminManageRoleDelegation() {
   const { colors } = useTheme();
+  const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const permissions = useAppSelector(selectUserPermissions) as string[];
+  
+  const roleId = route.params?.roleId;
   
   // Permission checks
   const canViewRoleGrants = permissions.includes('ADMIN_ROLE_GRANT_RULES_VIEW');
   const canViewPermissionGrants = permissions.includes('ADMIN_PERMISSION_GRANT_RULES_VIEW');
+
+  // Queries
+  const { data: roleData, loading: roleLoading } = useQuery<{ adminGetRole: Role }>(
+    QUERY_ADMIN_GET_ROLE,
+    { 
+      variables: { id: roleId },
+      skip: !roleId 
+    }
+  );
+
+  const role = roleData?.adminGetRole;
+
+  if (roleLoading) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <Card style={styles.loadingCard}>
+          <Body style={{ color: colors.mutedText, textAlign: 'center' }}>Loading delegation rules...</Body>
+        </Card>
+      </View>
+    );
+  }
+
+  if (!role) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <Card style={styles.errorCard}>
+          <Body style={{ color: colors.mutedText, textAlign: 'center' }}>Role not found</Body>
+        </Card>
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -22,26 +67,26 @@ export default function AdminDelegationMatrixScreen() {
         <View style={styles.section}>
           <Body style={[styles.sectionTitle, { color: colors.text }]}>Delegation Management</Body>
           <Body style={[styles.sectionDescription, { color: colors.mutedText }]}>
-            Manage who can grant roles and permissions to users
+            Manage who can grant roles and permissions for "{role.name}"
           </Body>
         </View>
 
         <View style={styles.cardsContainer}>
           <NavigationCard
-            title="Role Grants"
+            title="Role Grant Rules"
             description="Define which roles can assign other roles to users"
             icon="users"
-            onPress={() => navigation.navigate('AdminRoleGrants')}
+            onPress={() => navigation.navigate('AdminRoleGrantRules', { roleId: role.id })}
             disabled={!canViewRoleGrants}
             iconColor={colors.primary}
             iconBackgroundColor={colors.primary + '20'}
           />
 
           <NavigationCard
-            title="Permission Grants"
+            title="Permission Grant Rules"
             description="Define which roles can assign permissions to users"
             icon="key"
-            onPress={() => navigation.navigate('AdminPermissionGrants')}
+            onPress={() => navigation.navigate('AdminPermissionGrantRules', { roleId: role.id })}
             disabled={!canViewPermissionGrants}
             iconColor={colors.primary}
             iconBackgroundColor={colors.primary + '20'}
@@ -79,4 +124,6 @@ const styles = StyleSheet.create({
   },
   noAccessTitle: { fontSize: 18, fontWeight: '500' },
   noAccessDescription: { fontSize: 14, textAlign: 'center', paddingHorizontal: 16 },
+  loadingCard: { marginTop: 32, paddingVertical: 32 },
+  errorCard: { marginTop: 32, paddingVertical: 32 },
 });

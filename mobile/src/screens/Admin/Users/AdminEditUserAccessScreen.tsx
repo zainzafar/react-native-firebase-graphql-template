@@ -1,12 +1,12 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { View, StyleSheet, Modal, Pressable, ScrollView, Animated, PanResponder, Dimensions } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { View, StyleSheet, Pressable, ScrollView } from 'react-native';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import { useRoute } from '@react-navigation/native';
-import { useTheme } from '../../theme/ThemeProvider';
-import { useAppSelector } from '../../store/hooks';
-import { selectUserPermissions } from '../../features/auth/selectors';
+import { useTheme } from '../../../theme/ThemeProvider';
+import { useAppSelector } from '../../../store/hooks';
+import { selectUserPermissions } from '../../../features/auth/selectors';
 import { useMutation, useQuery } from '@apollo/client/react';
-import { Body, Button, Card, PermissionList } from '../../components';
+import { Body, Button, Card, PermissionList, BottomSheet } from '../../../components';
 import {
   QUERY_ADMIN_LIST_ASSIGNABLE_ROLES,
   QUERY_ADMIN_LIST_GRANTABLE_PERMISSIONS,
@@ -14,7 +14,7 @@ import {
   QUERY_ADMIN_GET_USER_RAW_PERMISSIONS,
   MUTATION_ADMIN_SET_USER_ROLE,
   MUTATION_ADMIN_SET_USER_PERMISSION,
-} from '../../graphql/operations';
+} from '../../../graphql/operations';
 
 // Utility function to titleize role names
 const titleizeRoleName = (roleName: string): string => {
@@ -55,32 +55,26 @@ export default function AdminEditUserAccessScreen() {
       { query: QUERY_ADMIN_GET_USER_RAW_PERMISSIONS, variables: { id: userId } }
     ]
   });
-  const [setUserPermission] = useMutation(MUTATION_ADMIN_SET_USER_PERMISSION);
+  const [setUserPermission] = useMutation(MUTATION_ADMIN_SET_USER_PERMISSION, {
+    refetchQueries: [
+      { query: QUERY_ADMIN_GET_USER, variables: { id: userId } },
+      { query: QUERY_ADMIN_GET_USER_RAW_PERMISSIONS, variables: { id: userId } }
+    ],
+    awaitRefetchQueries: true,
+  });
 
   const roles = useMemo(() => (rolesData?.adminListAssignableRoles ?? []) as Role[], [rolesData?.adminListAssignableRoles]);
   const permissions = useMemo(() => (permsData?.adminListAssignablePermissions ?? []) as Permission[], [permsData?.adminListAssignablePermissions]);
   const [localRoleId, setLocalRoleId] = useState<string | null>(null);
   const [roleModalVisible, setRoleModalVisible] = useState(false);
-  const sheetInitialY = Math.round(Dimensions.get('window').height * 0.60);
-  const sheetTranslateY = useRef(new Animated.Value(sheetInitialY)).current;
-  useEffect(() => {
-    if (roleModalVisible) {
-      sheetTranslateY.setValue(sheetInitialY);
-      Animated.timing(sheetTranslateY, { toValue: 0, duration: 220, useNativeDriver: true }).start();
-    }
-  }, [roleModalVisible, sheetInitialY, sheetTranslateY]);
-  const panResponder = useMemo(() => PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onMoveShouldSetPanResponder: (_e, g) => Math.abs(g.dy) > 4,
-    onPanResponderMove: (_e, g) => { if (g.dy > 0) sheetTranslateY.setValue(g.dy); },
-    onPanResponderRelease: (_e, g) => {
-      if (g.dy > 120) {
-        Animated.timing(sheetTranslateY, { toValue: sheetInitialY, duration: 180, useNativeDriver: true }).start(() => setRoleModalVisible(false));
-      } else {
-        Animated.timing(sheetTranslateY, { toValue: 0, duration: 160, useNativeDriver: true }).start();
-      }
-    },
-  }), [sheetInitialY, sheetTranslateY]);
+  
+  // Filter roles to only show those the current admin can assign
+  const assignableRoles = useMemo(() => {
+    // The backend already filters roles based on delegation rules via canGrantRole()
+    // We just need to respect what's returned
+    return roles;
+  }, [roles]);
+  
   
   // Sync localRoleId with the user's role whenever userData changes
   useEffect(() => {
@@ -106,12 +100,6 @@ export default function AdminEditUserAccessScreen() {
     if (rawPermsData?.adminGetUserRawPermissions) setRawPermissions(rawPermsData.adminGetUserRawPermissions);
   }, [rawPermsData?.adminGetUserRawPermissions]);
 
-  // Filter roles to only show those the current admin can assign
-  const assignableRoles = useMemo(() => {
-    // The backend already filters roles based on delegation rules via canGrantRole()
-    // We just need to respect what's returned
-    return roles;
-  }, [roles]);
 
 
 
@@ -163,73 +151,51 @@ export default function AdminEditUserAccessScreen() {
             iconRight
             disabled={isEditingSelf}
           />
-          <Modal
+          <BottomSheet
             visible={roleModalVisible}
-            transparent
-            animationType="none"
-            onRequestClose={() => setRoleModalVisible(false)}
-            presentationStyle="overFullScreen"
+            onClose={() => setRoleModalVisible(false)}
           >
             <Pressable
-              style={styles.modalBackdrop}
-              onPress={() => {
-                Animated.timing(sheetTranslateY, { toValue: sheetInitialY, duration: 180, useNativeDriver: true }).start(() => setRoleModalVisible(false));
-              }}
+              accessibilityRole="button"
+              onPress={() => { setRoleModalVisible(false); onSelectRole(null); }}
+              disabled={settingRole}
+              style={styles.optionRow}
             >
-              <Animated.View
-                style={[
-                  styles.modalSheetBottom,
-                  { backgroundColor: colors.card, borderColor: colors.border, transform: [{ translateY: sheetTranslateY }] },
-                ]}
-              >
-                <View style={styles.dragHandleContainer} {...panResponder.panHandlers}>
-                  <View style={[styles.dragHandle, { backgroundColor: colors.border }]} />
-                </View>
-                <ScrollView style={styles.modalList} contentContainerStyle={styles.modalListContent}>
-                  <Pressable
-                    accessibilityRole="button"
-                    onPress={() => { setRoleModalVisible(false); onSelectRole(null); }}
-                    disabled={settingRole}
-                    style={styles.optionRow}
-                  >
-                    <View style={styles.optionText}>
-                      <Body style={styles.optionTitle}>Manual Permissions</Body>
-                      <Body style={styles.optionDesc}>Manage direct user permissions (no role)</Body>
-                    </View>
-                    {!localRoleId && (
-                      <FontAwesome6 name="check" iconStyle="solid" size={18} color="#22C55E" />
-                    )}
-                  </Pressable>
-                  {assignableRoles.length > 0 ? (
-                    assignableRoles.map((r) => (
-                      <Pressable
-                        key={r.id}
-                        accessibilityRole="button"
-                        onPress={() => { setRoleModalVisible(false); onSelectRole(r.id); }}
-                        disabled={settingRole}
-                        style={styles.optionRow}
-                      >
-                        <View style={styles.optionText}>
-                          <Body style={styles.optionTitle}>{titleizeRoleName(r.name)}</Body>
-                          {!!r.description && <Body style={styles.optionDesc}>{r.description}</Body>}
-                        </View>
-                        {localRoleId === r.id && (
-                          <FontAwesome6 name="check" iconStyle="solid" size={18} color="#22C55E" />
-                        )}
-                      </Pressable>
-                    ))
-                  ) : (
-                    <View style={styles.optionRow}>
-                      <View style={styles.optionText}>
-                        <Body style={[styles.optionTitle, { color: colors.mutedText }]}>No roles available</Body>
-                        <Body style={styles.optionDesc}>You don't have permission to assign any roles</Body>
-                      </View>
-                    </View>
-                  )}
-                </ScrollView>
-              </Animated.View>
+              <View style={styles.optionText}>
+                <Body style={styles.optionTitle}>Manual Permissions</Body>
+                <Body style={styles.optionDesc}>Manage direct user permissions (no role)</Body>
+              </View>
+              {!localRoleId && (
+                <FontAwesome6 name="check" iconStyle="solid" size={18} color="#22C55E" />
+              )}
             </Pressable>
-          </Modal>
+            {assignableRoles.length > 0 ? (
+              assignableRoles.map((r) => (
+                <Pressable
+                  key={r.id}
+                  accessibilityRole="button"
+                  onPress={() => { setRoleModalVisible(false); onSelectRole(r.id); }}
+                  disabled={settingRole}
+                  style={styles.optionRow}
+                >
+                  <View style={styles.optionText}>
+                    <Body style={styles.optionTitle}>{titleizeRoleName(r.name)}</Body>
+                    {!!r.description && <Body style={styles.optionDesc}>{r.description}</Body>}
+                  </View>
+                  {localRoleId === r.id && (
+                    <FontAwesome6 name="check" iconStyle="solid" size={18} color="#22C55E" />
+                  )}
+                </Pressable>
+              ))
+            ) : (
+              <View style={styles.optionRow}>
+                <View style={styles.optionText}>
+                  <Body style={[styles.optionTitle, { color: colors.mutedText }]}>No roles available</Body>
+                  <Body style={styles.optionDesc}>There are no available roles to assign</Body>
+                </View>
+              </View>
+            )}
+          </BottomSheet>
           {setRoleError && <Body style={{ color: '#DC2626' }}>{String(setRoleError.message || setRoleError)}</Body>}
         </View>
       </Card>
@@ -355,17 +321,11 @@ const styles = StyleSheet.create({
   roleRow: { marginTop: 0 },
 
   separator: { height: 1, width: '100%' },
-  modalBackdrop: { flex: 1, justifyContent: 'flex-end', alignItems: 'center', padding: 0, backgroundColor: 'rgba(0,0,0,0.4)' },
-  modalSheetBottom: { width: '100%', height: '60%', borderTopLeftRadius: 16, borderTopRightRadius: 16, borderWidth: 1, overflow: 'hidden' },
-  modalList: { maxHeight: '100%' },
-  modalListContent: { paddingVertical: 8, paddingBottom: 16 },
   optionRow: { paddingHorizontal: 16, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   optionTitle: { fontWeight: '600' },
   optionDesc: { opacity: 0.7, marginTop: 2 },
   optionText: { flex: 1, paddingRight: 12 },
   triggerButton: { alignSelf: 'stretch' },
-  dragHandleContainer: { alignItems: 'center', paddingVertical: 8 },
-  dragHandle: { width: 40, height: 4, borderRadius: 2, opacity: 0.7 },
 });
 
 
