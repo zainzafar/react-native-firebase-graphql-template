@@ -62,7 +62,7 @@ export default function PhoneForm({ onBack }: PhoneFormProps) {
         </>
       ) : (
         <>
-          <Input value={code} onChangeText={setCode} placeholder="Code" keyboardType="number-pad" />
+          <Input value={code} onChangeText={setCode} placeholder="Code" keyboardType="number-pad" textContentType="oneTimeCode" autoComplete="sms-otp" />
           {error ? <Body style={styles.errorText}>{error}</Body> : null}
           <Button title="Confirm" onPress={confirmCode} loading={loading} />
           <Button title="Back" onPress={onBack} variant="ghost" />
