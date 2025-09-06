@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
+import { AppState, AppStateStatus } from 'react-native';
 import { getApp } from '@react-native-firebase/app';
 import {
   getAuth,
@@ -117,6 +118,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     })();
   }, [dispatch]);
+
+  // Refetch user data when app comes to foreground
+  useEffect(() => {
+    const handleAppStateChange = async (nextAppState: AppStateStatus) => {
+      if (nextAppState === 'active' && user) {
+        // App has come to the foreground and user is logged in
+        try {
+          console.log('[Auth] App came to foreground, refetching user data...');
+          const { data } = await apolloClient.query({ 
+            query: QUERY_ME, 
+            fetchPolicy: 'network-only' 
+          });
+          const userData = (data as any)?.me;
+          if (userData) {
+            // Update Redux state with fresh database user data
+            dispatch(setUserAction(createUserProfile(userData)));
+            console.log('[Auth] User data refreshed successfully');
+          }
+        } catch (error) {
+          console.log('[Auth] Failed to refetch user data on app foreground:', error);
+          // Don't logout on error - just log it, as the user might still be valid
+        }
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    return () => subscription?.remove();
+  }, [user, dispatch]);
 
   const exchangeIdTokenForAppJWT = useCallback(async (authMethod: string) => {
     const app = getApp();
