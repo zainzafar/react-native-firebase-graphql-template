@@ -117,7 +117,7 @@ export default function AdminPermissionGrantRules() {
   }
 
   return (
-    <Screen>
+    <Screen scroll={true}>
       {/* Add Permission Grant Rule Button */}
       {canCreatePermissionGrants && (
         <View style={styles.addButtonContainer}>

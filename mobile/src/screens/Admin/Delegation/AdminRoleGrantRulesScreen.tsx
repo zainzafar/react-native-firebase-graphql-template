@@ -118,7 +118,7 @@ export default function AdminRoleGrantRules() {
   }
 
   return (
-    <Screen>
+    <Screen scroll={true}>
       {/* Add Role Grant Rule Button */}
       {canCreateRoleGrants && (
         <View style={styles.addButtonContainer}>

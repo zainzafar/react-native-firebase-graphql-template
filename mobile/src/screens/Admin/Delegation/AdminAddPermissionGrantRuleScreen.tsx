@@ -118,7 +118,7 @@ export default function AdminAddPermissionGrantRule() {
   }
 
   return (
-    <Screen contentContainerStyle={styles.scrollContent}>
+    <Screen scroll={true} contentContainerStyle={styles.scrollContent}>
       <GrantRuleForm
         type="permission"
         items={availablePermissions}

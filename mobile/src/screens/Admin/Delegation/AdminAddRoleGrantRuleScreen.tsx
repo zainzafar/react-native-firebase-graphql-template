@@ -122,7 +122,7 @@ export default function AdminAddRoleGrantRule() {
 
 
   return (
-    <Screen contentContainerStyle={styles.scrollContent}>
+    <Screen scroll={true} contentContainerStyle={styles.scrollContent}>
       <GrantRuleForm
         type="role"
         items={availableRoles}
