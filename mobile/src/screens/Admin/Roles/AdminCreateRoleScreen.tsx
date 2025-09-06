@@ -139,6 +139,8 @@ export default function AdminCreateRoleScreen() {
           onChangeText={(text) => setEditData(prev => ({ ...prev, description: text }))}
           multiline
           numberOfLines={3}
+          textContentType="none"
+          autoComplete="off"
         />
       </View>
 

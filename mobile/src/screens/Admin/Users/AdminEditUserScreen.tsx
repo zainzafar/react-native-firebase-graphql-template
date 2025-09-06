@@ -153,6 +153,10 @@ export default function AdminEditUserScreen() {
             value={email} 
             onChangeText={setEmail} 
             placeholder="Email" 
+            keyboardType="email-address"
+            autoCapitalize="none"
+            textContentType="emailAddress"
+            autoComplete="email"
             editable={canUpdateProfile}
           />
           <Input 
@@ -165,6 +169,9 @@ export default function AdminEditUserScreen() {
             value={phoneNumber} 
             onChangeText={setPhoneNumber} 
             placeholder="Phone number" 
+            keyboardType="phone-pad"
+            textContentType="telephoneNumber"
+            autoComplete="tel"
             editable={canUpdateProfile}
           />
           <Input 
@@ -199,6 +206,9 @@ export default function AdminEditUserScreen() {
               value={password} 
               onChangeText={setPassword} 
               placeholder="New password (optional)" 
+              secureTextEntry
+              textContentType="newPassword"
+              autoComplete="new-password"
               editable={canUpdatePassword}
             />
             <Button

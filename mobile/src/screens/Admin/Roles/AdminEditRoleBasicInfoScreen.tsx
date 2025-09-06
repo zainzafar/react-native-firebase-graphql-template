@@ -138,6 +138,8 @@ export default function AdminEditRoleBasicInfo() {
               placeholder="Role description"
               multiline
               numberOfLines={3}
+              textContentType="none"
+              autoComplete="off"
               style={[styles.textArea, { 
                 backgroundColor: colors.card, 
                 borderColor: colors.border,

@@ -120,6 +120,8 @@ export default function AccountScreen() {
             value={displayName} 
             onChangeText={setDisplayName} 
             placeholder="Display name" 
+            textContentType="name"
+            autoComplete="name"
           />
           <Button 
             title="Update Profile" 
@@ -148,12 +150,16 @@ export default function AccountScreen() {
               onChangeText={setNewPassword} 
               placeholder="New password" 
               secureTextEntry
+              textContentType="newPassword"
+              autoComplete="new-password"
             />
             <Input 
               value={confirmPassword} 
               onChangeText={setConfirmPassword} 
               placeholder="Confirm new password" 
               secureTextEntry
+              textContentType="newPassword"
+              autoComplete="new-password"
             />
             {passwordValidationError && (
               <Body style={styles.errorText}>{passwordValidationError}</Body>

@@ -138,8 +138,11 @@ export default function AdminManageUsersScreen() {
               placeholder="Enter user email or ID"
               placeholderTextColor={colors.mutedText}
               style={[{ color: colors.text }, styles.searchInput]}
+              keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
+              textContentType="emailAddress"
+              autoComplete="email"
             />
             {search.length > 0 ? (
               <Pressable onPress={() => setSearch('')} hitSlop={8}>
