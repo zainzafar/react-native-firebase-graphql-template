@@ -12,6 +12,7 @@ import {
   QUERY_ADMIN_LIST_GRANTABLE_PERMISSIONS,
   QUERY_ADMIN_GET_USER,
   QUERY_ADMIN_GET_USER_RAW_PERMISSIONS,
+  QUERY_ADMIN_GET_ROLE,
   MUTATION_ADMIN_SET_USER_ROLE,
   MUTATION_ADMIN_SET_USER_PERMISSION,
 } from '../../../graphql/operations';
@@ -50,10 +51,26 @@ export default function AdminEditUserAccessScreen() {
   );
 
   const [setRole, { loading: settingRole, error: setRoleError }] = useMutation(MUTATION_ADMIN_SET_USER_ROLE, {
-    refetchQueries: [
-      { query: QUERY_ADMIN_GET_USER, variables: { id: userId } },
-      { query: QUERY_ADMIN_GET_USER_RAW_PERMISSIONS, variables: { id: userId } }
-    ]
+    refetchQueries: (result) => {
+      const refetchQueries = [
+        { query: QUERY_ADMIN_GET_USER, variables: { id: userId } },
+        { query: QUERY_ADMIN_GET_USER_RAW_PERMISSIONS, variables: { id: userId } },
+        { query: QUERY_ADMIN_LIST_ASSIGNABLE_ROLES }
+      ];
+      
+      // Refetch the old role if it exists
+      if (localRoleId) {
+        refetchQueries.push({ query: QUERY_ADMIN_GET_ROLE, variables: { id: localRoleId } });
+      }
+      
+      // Refetch the new role if it exists
+      const newRoleId = (result?.data as any)?.adminSetUserRole?.role?.id;
+      if (newRoleId && newRoleId !== localRoleId) {
+        refetchQueries.push({ query: QUERY_ADMIN_GET_ROLE, variables: { id: newRoleId } });
+      }
+      
+      return refetchQueries;
+    }
   });
   const [setUserPermission] = useMutation(MUTATION_ADMIN_SET_USER_PERMISSION, {
     refetchQueries: [
