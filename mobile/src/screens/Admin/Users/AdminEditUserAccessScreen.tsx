@@ -133,9 +133,9 @@ export default function AdminEditUserAccessScreen() {
   const renderRoleSelector = () => {
     if (!canViewRoles) return null;
     return (
-      <Card style={styles.card}>
-        <View style={styles.section}>
-          <Body style={{ marginBottom: 12 }}>Select a role to inherit its permissions, or choose Manual Permissions to set direct user permissions. Only roles you can assign are shown.</Body>
+      <Card>
+        <View>
+          <Body>Select a role to inherit its permissions, or choose Manual Permissions to set direct user permissions. Only roles you can assign are shown.</Body>
           <Button
             title={localRoleId ? (titleizeRoleName(roleById.get(localRoleId!)?.name ?? 'Select role')) : 'Manual Permissions'}
             onPress={() => setRoleModalVisible(true)}
@@ -247,7 +247,7 @@ export default function AdminEditUserAccessScreen() {
     });
     
     return (
-      <Card style={styles.card}>
+      <Card>
         <PermissionList
           permissions={permissions}
           selectedPermissions={permissions.filter(p => {
@@ -290,9 +290,9 @@ export default function AdminEditUserAccessScreen() {
   };
 
   return (
-    <Screen contentContainerStyle={styles.pageContent}> 
+    <Screen scroll={true} contentContainerStyle={styles.container}> 
       {isEditingSelf && (
-        <Card style={styles.card}>
+        <Card>
           <Body style={{ color: '#DC2626', textAlign: 'center' }}>
             You cannot modify your own roles and permissions.
           </Body>
@@ -305,18 +305,12 @@ export default function AdminEditUserAccessScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16 },
-  pageContent: { padding: 16 },
-  section: { gap: 12 },
-  card: { marginBottom: 16 },
-  roleRow: { marginTop: 0 },
-
-  separator: { height: 1, width: '100%' },
+  container: { gap: 16 },
   optionRow: { paddingHorizontal: 16, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   optionTitle: { fontWeight: '600' },
   optionDesc: { opacity: 0.7, marginTop: 2 },
   optionText: { flex: 1, paddingRight: 12 },
-  triggerButton: { alignSelf: 'stretch' },
+  triggerButton: { marginTop: 16, alignSelf: 'stretch' },
 });
 
 

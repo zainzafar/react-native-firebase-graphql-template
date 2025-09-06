@@ -120,7 +120,7 @@ export default function AdminEditRolePermissions() {
   }
 
   return (
-    <Screen>
+    <Screen scroll={true}>
       {allPermissions.length === 0 ? (
         <Card>
           <View>

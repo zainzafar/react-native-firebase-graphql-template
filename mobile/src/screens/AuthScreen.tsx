@@ -67,7 +67,7 @@ export default function AuthScreen() {
   };
 
   return (
-    <Screen scroll={false} contentContainerStyle={styles.container}>
+    <Screen contentContainerStyle={styles.container}>
       <View style={styles.header}>
         <Heading>Let's get started…</Heading>
       </View>

@@ -203,8 +203,6 @@ const styles = StyleSheet.create({
   content: { flex: 1 },
   warningCard: { 
     marginBottom: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: '#DC2626'
   },
   warningHeader: { 
     flexDirection: 'row', 

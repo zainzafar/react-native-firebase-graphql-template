@@ -199,8 +199,8 @@ export default function AdminPermissionGrantRules() {
 }
 
 const styles = StyleSheet.create({
-  addButtonContainer: { paddingHorizontal: 16, paddingVertical: 20 },
-  content: { flex: 1, paddingHorizontal: 16 },
+  addButtonContainer: {  },
+  content: { flex: 1 },
   rulesContainer: { gap: 12 },
   ruleCard: { marginTop: 10 },
   ruleHeader: { 

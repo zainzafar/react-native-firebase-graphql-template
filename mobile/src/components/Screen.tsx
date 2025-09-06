@@ -35,7 +35,7 @@ type ScreenProps = {
 
 export function Screen({
   children,
-  scroll = true,
+  scroll = false,
   style,
   contentContainerStyle,
   edges,

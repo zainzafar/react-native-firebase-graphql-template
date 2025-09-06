@@ -27,7 +27,7 @@ export default function SettingsScreen() {
   };
 
   return (
-    <Screen scroll={false} contentContainerStyle={styles.scrollContent}>
+    <Screen contentContainerStyle={styles.scrollContent}>
       {/* Admin - only visible to users with admin access */}
       {canAccessAdmin && (
         <>

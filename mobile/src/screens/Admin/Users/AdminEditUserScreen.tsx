@@ -143,13 +143,13 @@ export default function AdminEditUserScreen() {
   }
 
   return (
-    <Screen> 
-      <Card style={styles.card}>
+    <Screen scroll={true} contentContainerStyle={styles.container}>
+      <Card>
         <View style={styles.form}>
           <UserIdentityRow email={user.email} phoneNumber={user.phoneNumber} identities={user.identities} />
         </View>
       </Card>
-      <Card style={styles.card}>
+      <Card>
         <View style={styles.form}> 
           <Input 
             value={email} 
@@ -195,7 +195,7 @@ export default function AdminEditUserScreen() {
 
       {/* Security section - show if user has password/google/apple and update password permission */}
       {showSecuritySection && canUpdatePassword && (
-        <Card style={styles.card}>
+        <Card>
           <View style={styles.form}> 
             <Input 
               value={password} 
@@ -238,7 +238,7 @@ export default function AdminEditUserScreen() {
       
       {/* Danger zone: Delete user */}
       {(canOpenAccess || canDeleteUser) && (
-        <Card style={styles.card}>
+        <Card>
           <View style={styles.form}>
             {canOpenAccess && (
               <Button
@@ -267,7 +267,7 @@ export default function AdminEditUserScreen() {
 
 const styles = StyleSheet.create({
   form: { gap: 12 },
-  card: { marginBottom: 16 },
+  container: { gap: 16 },
 });
 
 

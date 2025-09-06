@@ -62,7 +62,7 @@ export default function AdminViewRoleUsers() {
   }
 
   return (
-    <Screen contentContainerStyle={styles.content}>
+    <Screen scroll={true} contentContainerStyle={styles.content}>
       {role.users.length === 0 ? (
         <Card style={styles.emptyCard}>
           <View style={styles.emptyContainer}>

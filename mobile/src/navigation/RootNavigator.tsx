@@ -5,7 +5,7 @@ import HomeScreen from '../screens/HomeScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import AccountScreen from '../screens/AccountScreen';
 import AuthScreen from '../screens/AuthScreen';
-import DebugScreen from '../screens/DebugScreen';
+import DebugScreen from '../screens/Admin/DebugScreen';
 import AdminHomeScreen from '../screens/Admin/AdminHomeScreen';
 import AdminManageUsersScreen from '../screens/Admin/Users/AdminManageUsersScreen';
 import AdminEditUserScreen from '../screens/Admin/Users/AdminEditUserScreen';

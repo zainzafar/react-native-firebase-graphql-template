@@ -82,7 +82,7 @@ export default function AdminRoleDetailScreen() {
   }
 
   return (
-    <Screen>
+    <Screen scroll={true}>
       {/* Role Header */}
       <Card style={styles.headerCard}>
         <Body style={[styles.roleTitle, { color: colors.text }]}>{role.name}</Body>

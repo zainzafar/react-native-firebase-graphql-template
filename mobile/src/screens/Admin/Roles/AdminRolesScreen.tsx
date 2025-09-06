@@ -89,43 +89,9 @@ export default function AdminRolesScreen() {
     );
   };
 
-  const styles = StyleSheet.create({
-    addButtonContainer: { paddingBottom: 16 },
-    content: { flex: 1 },
-    roleCard: { marginVertical: 10 },
-    roleCardPressable: { padding: 0 },
-    roleHeader: { 
-      flexDirection: 'row', 
-      alignItems: 'flex-start', 
-      justifyContent: 'space-between', 
-      marginBottom: 12 
-    },
-    roleInfo: { flex: 1 },
-    roleTitle: { fontSize: 18, fontWeight: '600', marginBottom: 4 },
-    roleDescription: { fontSize: 14, lineHeight: 18 },
-    roleStats: { 
-      flexDirection: 'row', 
-      gap: 16, 
-    },
-    statItem: { 
-      flexDirection: 'row', 
-      alignItems: 'center', 
-      gap: 6 
-    },
-    statText: { fontSize: 12 },
-    emptyCard: { marginTop: 32 },
-    emptyContent: { 
-      alignItems: 'center', 
-      paddingVertical: 32, 
-      gap: 12 
-    },
-    emptyTitle: { fontSize: 18, fontWeight: '500' },
-    emptyDescription: { fontSize: 14, textAlign: 'center', paddingHorizontal: 16 },
-    loadingCard: { marginTop: 32, paddingVertical: 32 },
-  });
 
   return (
-    <Screen contentContainerStyle={styles.content}>
+    <Screen scroll={true} contentContainerStyle={styles.content}>
       {/* Create Role Button */}
       {canCreateRoles && (
         <View style={styles.addButtonContainer}>
@@ -151,3 +117,38 @@ export default function AdminRolesScreen() {
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  addButtonContainer: { paddingBottom: 16 },
+  content: { flex: 1 },
+  roleCard: { marginVertical: 10 },
+  roleCardPressable: { padding: 0 },
+  roleHeader: { 
+    flexDirection: 'row', 
+    alignItems: 'flex-start', 
+    justifyContent: 'space-between', 
+    marginBottom: 12 
+  },
+  roleInfo: { flex: 1 },
+  roleTitle: { fontSize: 18, fontWeight: '600', marginBottom: 4 },
+  roleDescription: { fontSize: 14, lineHeight: 18 },
+  roleStats: { 
+    flexDirection: 'row', 
+    gap: 16, 
+  },
+  statItem: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    gap: 6 
+  },
+  statText: { fontSize: 12 },
+  emptyCard: { marginTop: 32 },
+  emptyContent: { 
+    alignItems: 'center', 
+    paddingVertical: 32, 
+    gap: 12 
+  },
+  emptyTitle: { fontSize: 18, fontWeight: '500' },
+  emptyDescription: { fontSize: 14, textAlign: 'center', paddingHorizontal: 16 },
+  loadingCard: { marginTop: 32, paddingVertical: 32 },
+});

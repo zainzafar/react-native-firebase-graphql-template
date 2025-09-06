@@ -20,7 +20,7 @@ export default function AdminHomeScreen() {
   const canManageRolesAndPermissions = canViewRoles || canViewPermissions;
 
   return (
-    <Screen scroll={false} contentContainerStyle={styles.container}>
+    <Screen contentContainerStyle={styles.container}>
       {canManageUsers && (
         <Card style={styles.card}> 
           <Pressable onPress={() => navigation.navigate('AdminManageUsers')} style={styles.menuItem}>

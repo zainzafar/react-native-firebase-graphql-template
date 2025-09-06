@@ -176,38 +176,8 @@ export default function AdminCreateRoleScreen() {
     );
   };
 
-  const styles = StyleSheet.create({
-    saveButtonContainer: { 
-      marginTop: 16 
-    },
-    saveButton: { width: '100%' },
-    content: { flex: 1 },
-    sectionCard: { marginBottom: 16 },
-    sectionHeader: { 
-      flexDirection: 'row', 
-      alignItems: 'center', 
-      gap: 8, 
-      marginBottom: 16 
-    },
-    sectionTitle: { fontSize: 16, fontWeight: '600' },
-    formSection: { gap: 8, marginBottom: 16 },
-    formLabel: { fontSize: 14, fontWeight: '500', marginBottom: 4 },
-    textInput: { 
-      paddingVertical: 12, 
-      paddingHorizontal: 16, 
-      borderRadius: 8, 
-      borderWidth: 1, 
-      fontSize: 14 
-    },
-    errorText: { 
-      fontSize: 14, 
-      marginTop: 8, 
-      textAlign: 'center' 
-    },
-  });
-
   return (
-    <Screen contentContainerStyle={styles.content}>
+    <Screen scroll={true} contentContainerStyle={styles.content}>
       {renderBasicInfo()}
       {renderPermissions()}
       
@@ -242,3 +212,33 @@ export default function AdminCreateRoleScreen() {
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  saveButtonContainer: { 
+    marginTop: 16 
+  },
+  saveButton: { width: '100%' },
+  content: { },
+  sectionCard: { marginBottom: 16 },
+  sectionHeader: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    gap: 8, 
+    marginBottom: 16 
+  },
+  sectionTitle: { fontSize: 16, fontWeight: '600' },
+  formSection: { gap: 8, marginBottom: 16 },
+  formLabel: { fontSize: 14, fontWeight: '500', marginBottom: 4 },
+  textInput: { 
+    paddingVertical: 12, 
+    paddingHorizontal: 16, 
+    borderRadius: 8, 
+    borderWidth: 1, 
+    fontSize: 14 
+  },
+  errorText: { 
+    fontSize: 14, 
+    marginTop: 8, 
+    textAlign: 'center' 
+  },
+});

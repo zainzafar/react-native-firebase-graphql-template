@@ -108,8 +108,7 @@ export default function AdminManageRoleDelegation() {
 }
 
 const styles = StyleSheet.create({
-  content: { flex: 1 },
-  section: { paddingVertical: 20, paddingBottom: 16 },
+  section: { paddingBottom: 16 },
   sectionTitle: { fontSize: 20, fontWeight: '600', marginBottom: 8 },
   sectionDescription: { fontSize: 14, lineHeight: 20 },
   cardsContainer: { gap: 12 },

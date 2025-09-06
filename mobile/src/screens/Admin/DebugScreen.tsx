@@ -5,17 +5,17 @@ import Config from 'react-native-config';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { getApp } from '@react-native-firebase/app';
 import { getAuth, getIdToken } from '@react-native-firebase/auth';
-import { Card, Screen } from '../components';
+import { Card, Screen } from '../../components';
 import Clipboard from '@react-native-clipboard/clipboard';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
-import { QUERY_ME } from '../graphql/operations';
-import { getAccessToken, saveAccessToken } from '../auth/tokenStorage';
+import { QUERY_ME } from '../../graphql/operations';
+import { getAccessToken, saveAccessToken } from '../../auth/tokenStorage';
 import { jwtDecode } from 'jwt-decode';
-import { apolloClient } from '../graphql/client';
-import { MUTATION_LOGIN_WITH_ID_TOKEN } from '../graphql/operations';
-import { useAppSelector } from '../store/hooks';
-import { selectAuth } from '../features/auth/selectors';
-import { useTheme } from '../theme/ThemeProvider';
+import { apolloClient } from '../../graphql/client';
+import { MUTATION_LOGIN_WITH_ID_TOKEN } from '../../graphql/operations';
+import { useAppSelector } from '../../store/hooks';
+import { selectAuth } from '../../features/auth/selectors';
+import { useTheme } from '../../theme/ThemeProvider';
 import { useQuery } from '@apollo/client/react';
 
 type TokenInfo = {
@@ -273,7 +273,7 @@ export default function DebugScreen() {
   ];
 
   return (
-    <Screen>
+    <Screen scroll={true}>
       {sections.map((section, index) => (
         <View key={section.id} style={index > 0 ? styles.sectionSpacer : undefined}>
           <AccordionSection

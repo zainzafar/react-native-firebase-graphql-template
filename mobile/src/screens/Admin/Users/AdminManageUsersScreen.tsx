@@ -141,7 +141,7 @@ export default function AdminManageUsersScreen() {
   };
 
   return (
-    <Screen scroll={false}>
+    <Screen>
       {canSearchUsers && (
         <Card style={styles.searchCard}>
           <View style={styles.searchRow}>

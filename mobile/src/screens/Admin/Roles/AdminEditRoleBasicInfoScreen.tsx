@@ -123,7 +123,7 @@ export default function AdminEditRoleBasicInfo() {
   }
 
   return (
-    <Screen scroll={false}>
+    <Screen>
         <Card>
           <View style={styles.sectionHeader}>
             <Body style={styles.sectionTitle}>Role Information</Body>
