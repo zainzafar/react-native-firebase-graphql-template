@@ -87,8 +87,111 @@ const errorLink = new ErrorLink(({ error, operation, forward }) => {
   });
 });
 
+// Helper function to extract field names from GraphQL query
+const extractFieldNames = (selectionSet: any, fragments: any = {}): string[] => {
+  if (!selectionSet || !selectionSet.selections) return [];
+  
+  return selectionSet.selections.map((selection: any) => {
+    if (selection.kind === 'Field') {
+      const fieldName = selection.name.value;
+      const subFields = selection.selectionSet ? extractFieldNames(selection.selectionSet, fragments) : [];
+      return subFields.length > 0 ? `${fieldName} { ${subFields.join(', ')} }` : fieldName;
+    } else if (selection.kind === 'FragmentSpread') {
+      const fragmentName = selection.name.value;
+      const fragment = fragments[fragmentName];
+      if (fragment && fragment.selectionSet) {
+        const fragmentFields = extractFieldNames(fragment.selectionSet, fragments);
+        return fragmentFields.length > 0 ? fragmentFields.join(', ') : fragmentName;
+      }
+      return `...${fragmentName}`;
+    } else if (selection.kind === 'InlineFragment') {
+      const subFields = extractFieldNames(selection.selectionSet, fragments);
+      return `... on ${selection.typeCondition.name.value} { ${subFields.join(', ')} }`;
+    }
+    return '';
+  }).filter(Boolean);
+};
+
+// Helper function to build fragments map from query definitions
+const buildFragmentsMap = (definitions: readonly any[]): any => {
+  const fragments: any = {};
+  definitions.forEach(def => {
+    if (def.kind === 'FragmentDefinition') {
+      fragments[def.name.value] = def;
+    }
+  });
+  return fragments;
+};
+
+// Development logging link - only active in __DEV__ mode
+const devLoggingLink = new ApolloLink((operation, forward) => {
+  if (__DEV__) {
+    const startTime = Date.now();
+    const operationType = operation.query.definitions[0]?.kind === 'OperationDefinition' 
+      ? operation.query.definitions[0].operation 
+      : 'unknown';
+    const operationName = operation.operationName || 'unnamed';
+    
+    // Extract field names from the query, both raw and resolved
+    const fragments = buildFragmentsMap(operation.query.definitions);
+    const operationDef = operation.query.definitions[0];
+    const rawFieldNames = operationDef?.kind === 'OperationDefinition' 
+      ? extractFieldNames(operationDef.selectionSet, {}) // Empty fragments map for raw view
+      : [];
+    const resolvedFieldNames = operationDef?.kind === 'OperationDefinition' 
+      ? extractFieldNames(operationDef.selectionSet, fragments) // Full fragments map for resolved view
+      : [];
+    
+    console.log(`🚀 [GraphQL ${operationType.toUpperCase()}] ${operationName}`);
+    if (rawFieldNames.length > 0) {
+      console.log('🔍 Fields:', rawFieldNames.join(', '));
+    }
+    if (resolvedFieldNames.length > 0 && JSON.stringify(rawFieldNames) !== JSON.stringify(resolvedFieldNames)) {
+      console.log('🔍 Fields with resolved fragments:', resolvedFieldNames.join(', '));
+    }
+    console.log('📤 Variables:', JSON.stringify(operation.variables, null, 2));
+    
+    return new Observable(observer => {
+      const subscription = forward(operation).subscribe({
+        next: (result) => {
+          const duration = Date.now() - startTime;
+          console.log(`📥 [GraphQL ${operationType.toUpperCase()}] ${operationName} completed in ${duration}ms`);
+          
+          if (result.errors) {
+            console.log('❌ Errors:', JSON.stringify(result.errors, null, 2));
+          }
+          
+          if (result.data) {
+            // Log a summary of the response data (truncated for readability)
+            const dataSummary = JSON.stringify(result.data, null, 2);
+            const truncatedData = dataSummary.length > 1000 
+              ? dataSummary.substring(0, 1000) + '... (truncated)'
+              : dataSummary;
+            console.log('✅ Response:', truncatedData);
+          }
+          
+          observer.next(result);
+        },
+        error: (error) => {
+          const duration = Date.now() - startTime;
+          console.log(`❌ [GraphQL ${operationType.toUpperCase()}] ${operationName} failed after ${duration}ms`);
+          console.log('❌ Error:', error);
+          observer.error(error);
+        },
+        complete: () => {
+          observer.complete();
+        }
+      });
+      
+      return () => subscription.unsubscribe();
+    });
+  }
+  
+  return forward(operation);
+});
+
 export const apolloClient = new ApolloClient({
-  link: ApolloLink.from([errorLink, authLink, httpLink]),
+  link: ApolloLink.from([devLoggingLink, errorLink, authLink, httpLink]),
   cache: new InMemoryCache({
     typePolicies: {
       Query: {
