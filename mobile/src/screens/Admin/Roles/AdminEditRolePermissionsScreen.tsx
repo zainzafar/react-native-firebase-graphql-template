@@ -4,7 +4,7 @@ import { useTheme } from '../../../theme/ThemeProvider';
 import { useAppSelector } from '../../../store/hooks';
 import { selectUserPermissions } from '../../../features/auth/selectors';
 import { useQuery, useMutation } from '@apollo/client/react';
-import { Body, Card, PermissionList, Screen } from '../../../components';
+import { Body, Card, PermissionList, Screen, LoadingContainer } from '../../../components';
 import { useRoute } from '@react-navigation/native';
 import {
   QUERY_ADMIN_GET_ROLE,
@@ -102,9 +102,7 @@ export default function AdminEditRolePermissions() {
   if (roleLoading || permissionsLoading) {
     return (
       <Screen>
-        <Card>
-          <Body style={[{ color: colors.mutedText }]}>Loading role permissions...</Body>
-        </Card>
+        <LoadingContainer text="Loading role permissions..." />
       </Screen>
     );
   }

@@ -4,7 +4,7 @@ import { useTheme } from '../../../theme/ThemeProvider';
 import { useAppSelector } from '../../../store/hooks';
 import { selectUserPermissions } from '../../../features/auth/selectors';
 import { useQuery } from '@apollo/client/react';
-import { Body, Card, NavigationCard, Screen } from '../../../components';
+import { Body, Card, NavigationCard, Screen, LoadingContainer } from '../../../components';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import {
@@ -19,7 +19,7 @@ type Role = {
 
 
 export default function AdminManageRoleDelegation() {
-  const { colors } = useTheme();
+  const { colors, layout } = useTheme();
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const permissions = useAppSelector(selectUserPermissions) as string[];
@@ -44,9 +44,7 @@ export default function AdminManageRoleDelegation() {
   if (roleLoading) {
     return (
       <Screen>
-        <Card style={styles.loadingCard}>
-          <Body style={[styles.centerText, { color: colors.mutedText }]}>Loading delegation rules...</Body>
-        </Card>
+        <LoadingContainer text="Loading delegation rules..." />
       </Screen>
     );
   }
@@ -62,7 +60,7 @@ export default function AdminManageRoleDelegation() {
   }
 
   return (
-    <Screen contentContainerStyle={styles.content}>
+    <Screen contentContainerStyle={{ gap: layout.containerGap }}>
       <View style={styles.section}>
         <Body style={[styles.sectionTitle, { color: colors.text }]}>Delegation Management</Body>
         <Body style={[styles.sectionDescription, { color: colors.mutedText }]}>
@@ -70,7 +68,7 @@ export default function AdminManageRoleDelegation() {
         </Body>
       </View>
 
-      <View style={styles.cardsContainer}>
+      <View style={[styles.cardsContainer, { gap: layout.containerGap }]}>
         <NavigationCard
           title="Role Grant Rules"
           description="Define which roles can assign other roles to users"
@@ -111,7 +109,7 @@ const styles = StyleSheet.create({
   section: { paddingBottom: 16 },
   sectionTitle: { fontSize: 20, fontWeight: '600', marginBottom: 8 },
   sectionDescription: { fontSize: 14, lineHeight: 20 },
-  cardsContainer: { gap: 12 },
+  cardsContainer: { },
   noAccessCard: { marginTop: 32 },
   noAccessContent: { 
     alignItems: 'center', 
@@ -120,7 +118,6 @@ const styles = StyleSheet.create({
   },
   noAccessTitle: { fontSize: 18, fontWeight: '500' },
   noAccessDescription: { fontSize: 14, textAlign: 'center', paddingHorizontal: 16 },
-  loadingCard: { marginTop: 32, paddingVertical: 32 },
   errorCard: { marginTop: 32, paddingVertical: 32 },
   centerText: { textAlign: 'center' },
 });

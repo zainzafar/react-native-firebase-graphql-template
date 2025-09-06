@@ -31,7 +31,7 @@ const getCountryFlag = (countryCode: string): string => {
 };
 
 export default function PhoneNumberInput({ value, onChange, placeholder = 'Phone', showError = false }: Props) {
-  const { colors } = useTheme();
+  const { colors, layout } = useTheme();
   const [pickerOpen, setPickerOpen] = useState(false);
   const deviceRegion = Intl.DateTimeFormat().resolvedOptions().locale.split('-')[1] || 'US';
 
@@ -73,7 +73,7 @@ export default function PhoneNumberInput({ value, onChange, placeholder = 'Phone
   }, [e164, countryCode, callingCode, national, valid, onChange, parsed]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { gap: layout.formGap }]}>
       <View style={[styles.inputContainer, { borderColor: colors.border }]}>
         <Pressable style={styles.ccButton} onPress={() => setPickerOpen(true)}>
           <Text style={styles.flagText}>{getCountryFlag(countryCode)}</Text>
@@ -116,7 +116,7 @@ export default function PhoneNumberInput({ value, onChange, placeholder = 'Phone
 }
 
 const styles = StyleSheet.create({
-  container: { gap: 8 },
+  container: { },
   inputContainer: { 
     flexDirection: 'row', 
     alignItems: 'center', 

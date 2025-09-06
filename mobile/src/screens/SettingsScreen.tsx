@@ -8,6 +8,7 @@ import { usePermissions } from '../features/auth/hooks';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 
 export default function SettingsScreen() {
+  const { layout } = useTheme();
   const { signOut } = useAuth();
   const { canAccessAdmin } = usePermissions();
   const [loading, setLoading] = useState(false);
@@ -27,7 +28,7 @@ export default function SettingsScreen() {
   };
 
   return (
-    <Screen contentContainerStyle={styles.scrollContent}>
+    <Screen contentContainerStyle={[styles.scrollContent, { gap: layout.menuGap }]}>
       {/* Admin - only visible to users with admin access */}
       {canAccessAdmin && (
         <>
@@ -74,7 +75,7 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  scrollContent: { gap: 20 },
+  scrollContent: { },
   compactCard: { padding: 12 },
   menuItem: { 
     flexDirection: 'row', 

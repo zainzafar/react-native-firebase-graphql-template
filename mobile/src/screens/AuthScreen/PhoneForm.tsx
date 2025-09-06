@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Body, Button, Input } from '../../components';
+import { useTheme } from '../../theme/ThemeProvider';
 import PhoneNumberInput, { PhoneNumberValue } from '../../components/PhoneNumberInput';
 import { useAuth } from '../../auth/AuthProvider';
 
@@ -9,6 +10,7 @@ type PhoneFormProps = {
 };
 
 export default function PhoneForm({ onBack }: PhoneFormProps) {
+  const { layout } = useTheme();
   const { signInWithPhone, confirmPhoneCode } = useAuth();
   const [phone, setPhone] = useState<PhoneNumberValue>({ e164: null, countryCode: 'US', callingCode: '+1', national: '', valid: false });
   const [code, setCode] = useState('');
@@ -50,7 +52,7 @@ export default function PhoneForm({ onBack }: PhoneFormProps) {
   };
 
   return (
-    <View style={styles.formContainer}>
+    <View style={[styles.formContainer, { gap: layout.formGap }]}>
       {!confirmation ? (
         <>
           <PhoneNumberInput value={phone} onChange={setPhone} showError={showPhoneError} />
@@ -71,6 +73,6 @@ export default function PhoneForm({ onBack }: PhoneFormProps) {
 }
 
 const styles = StyleSheet.create({
-  formContainer: { gap: 12 },
+  formContainer: { },
   errorText: { color: '#EF4444' },
 });

@@ -1,11 +1,13 @@
 import React from 'react';
 import { Alert, View, StyleSheet } from 'react-native';
 import { Body, Button, Card, UserIdentityRow, Screen } from '../../../components';
+import { useTheme } from '../../../theme/ThemeProvider';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useMutation, useQuery } from '@apollo/client/react';
 import { MUTATION_ADMIN_DELETE_USER, QUERY_ADMIN_GET_USER } from '../../../graphql/operations';
 
 export default function AdminDeleteUserScreen() {
+  const { layout } = useTheme();
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const id = route.params?.id as string;
@@ -58,7 +60,7 @@ export default function AdminDeleteUserScreen() {
   return (
     <Screen>
       <Card>
-        <View style={styles.list}> 
+        <View style={[styles.list, { gap: layout.containerGap }]}> 
           <UserIdentityRow email={user?.email} phoneNumber={user?.phoneNumber} identities={user?.identities} style={{ marginBottom: 8 }} />
           <Body>• This is a destructive action.</Body>
           <Body>• The user and related data will be permanently removed.</Body>
@@ -80,7 +82,7 @@ export default function AdminDeleteUserScreen() {
 }
 
 const styles = StyleSheet.create({
-  list: { marginVertical: 12, gap: 6 },
+  list: { marginVertical: 12 },
 });
 
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, TextInput, View, Platform, StatusBar } from 'react-native';
+import { StyleSheet, Text, TextInput, View, Platform, StatusBar, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeProvider';
 
@@ -55,12 +55,36 @@ export function Input(props: InputProps) {
   );
 }
 
+// Standardized Loading Components
+export function LoadingContainer({ children, text }: { children?: React.ReactNode; text?: string }) {
+  const { colors, layout } = useTheme();
+  return (
+    <View style={[layout.loadingContainer, { backgroundColor: colors.background }]}>
+      {children || <ActivityIndicator size="large" color={colors.mutedText} />}
+      {text && <Text style={[styles.loadingText, { color: colors.mutedText }]}>{text}</Text>}
+    </View>
+  );
+}
+
+export function InlineLoader({ text }: { text?: string }) {
+  const { colors } = useTheme();
+  return (
+    <View style={styles.inlineLoader}>
+      <ActivityIndicator size="small" color={colors.mutedText} />
+      {text && <Text style={[styles.inlineLoadingText, { color: colors.mutedText }]}>{text}</Text>}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  screen: { flex: 1, padding: 16, gap: 16, justifyContent: 'center' },
-  card: { borderWidth: 1, borderRadius: 16, padding: 20, gap: 12, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 2 },
+  screen: { flex: 1, padding: 16, justifyContent: 'center' },
+  card: { borderWidth: 1, borderRadius: 16, padding: 20, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 2 },
   heading: { fontSize: 24, fontWeight: '700', letterSpacing: 0.3 },
   body: { fontSize: 14 },
   input: { borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 16 },
+  loadingText: { fontSize: 16, textAlign: 'center', marginTop: 8 },
+  inlineLoader: { flexDirection: 'row', alignItems: 'center' },
+  inlineLoadingText: { fontSize: 14, fontStyle: 'italic' },
 });
 
 

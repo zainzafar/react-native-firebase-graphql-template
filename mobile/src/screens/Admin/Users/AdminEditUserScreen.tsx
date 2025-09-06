@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
-import { Button, Card, Input, Body, UserIdentityRow, Screen } from '../../../components';
+import { View, StyleSheet } from 'react-native';
+import { Button, Card, Input, Body, UserIdentityRow, Screen, LoadingContainer } from '../../../components';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { useAppSelector } from '../../../store/hooks';
 import { selectUserPermissions } from '../../../features/auth/selectors';
@@ -9,7 +9,7 @@ import { useMutation, useQuery } from '@apollo/client/react';
 import { MUTATION_ADMIN_UPDATE_USER, MUTATION_ADMIN_UPDATE_USER_PASSWORD, QUERY_ADMIN_GET_USER, MUTATION_ADMIN_RESET_PASSWORD } from '../../../graphql/operations';
 
 export default function AdminEditUserScreen() {
-  const { colors } = useTheme();
+  const { layout } = useTheme();
   const myPerms = useAppSelector(selectUserPermissions) as string[];
   
   // Check for new simplified permissions
@@ -136,21 +136,19 @@ export default function AdminEditUserScreen() {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
-        <ActivityIndicator size="large" color={colors.text} />
-      </View>
+      <LoadingContainer />
     );
   }
 
   return (
-    <Screen scroll={true} contentContainerStyle={styles.container}>
+    <Screen scroll={true} contentContainerStyle={[styles.container, { gap: layout.containerGap }]}>
       <Card>
-        <View style={styles.form}>
+        <View style={[styles.form, { gap: layout.formGap }]}>
           <UserIdentityRow email={user.email} phoneNumber={user.phoneNumber} identities={user.identities} />
         </View>
       </Card>
       <Card>
-        <View style={styles.form}> 
+        <View style={[styles.form, { gap: layout.formGap }]}> 
           <Input 
             value={email} 
             onChangeText={setEmail} 
@@ -196,7 +194,7 @@ export default function AdminEditUserScreen() {
       {/* Security section - show if user has password/google/apple and update password permission */}
       {showSecuritySection && canUpdatePassword && (
         <Card>
-          <View style={styles.form}> 
+          <View style={[styles.form, { gap: layout.formGap }]}> 
             <Input 
               value={password} 
               onChangeText={setPassword} 
@@ -239,7 +237,7 @@ export default function AdminEditUserScreen() {
       {/* Danger zone: Delete user */}
       {(canOpenAccess || canDeleteUser) && (
         <Card>
-          <View style={styles.form}>
+          <View style={[styles.form, { gap: layout.formGap }]}>
             {canOpenAccess && (
               <Button
                 title="Roles & Permissions"
@@ -266,8 +264,8 @@ export default function AdminEditUserScreen() {
 }
 
 const styles = StyleSheet.create({
-  form: { gap: 12 },
-  container: { gap: 16 },
+  form: { },
+  container: { },
 });
 
 

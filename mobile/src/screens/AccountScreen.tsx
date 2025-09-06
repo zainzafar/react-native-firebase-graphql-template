@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Body, Button, Card, Input, UserIdentityRow, Screen } from '../components';
+import { useTheme } from '../theme/ThemeProvider';
 import { useAuth } from '../auth/AuthProvider';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { selectUser } from '../features/auth/selectors';
@@ -10,6 +11,7 @@ import { MUTATION_UPDATE_PROFILE } from '../graphql/operations';
 import { updateUser as updateUserAction } from '../features/auth/authSlice';
 
 export default function AccountScreen() {
+  const { layout } = useTheme();
   const dispatch = useAppDispatch();
   const { updatePassword } = useAuth();
   const [mutateUpdateProfile] = useMutation(MUTATION_UPDATE_PROFILE);
@@ -96,7 +98,7 @@ export default function AccountScreen() {
 
 
   return (
-    <Screen contentContainerStyle={styles.scrollContent}>
+    <Screen contentContainerStyle={[styles.scrollContent, { gap: layout.sectionGap }]}>
       {/* Authentication Method Info - Show for all users */}
       {user && (
         <Card>
@@ -113,7 +115,7 @@ export default function AccountScreen() {
         <View style={styles.sectionHeader}>
           <Body style={styles.sectionTitle}>Profile Information</Body>
         </View>
-        <View style={styles.form}>
+        <View style={[styles.form, { gap: layout.formGap }]}>
           <Input 
             value={displayName} 
             onChangeText={setDisplayName} 
@@ -140,7 +142,7 @@ export default function AccountScreen() {
           <View style={styles.sectionHeader}>
             <Body style={styles.sectionTitle}>Change Password</Body>
           </View>
-          <View style={styles.form}>
+          <View style={[styles.form, { gap: layout.formGap }]}>
             <Input 
               value={newPassword} 
               onChangeText={setNewPassword} 
@@ -176,10 +178,10 @@ export default function AccountScreen() {
 }
 
 const styles = StyleSheet.create({
-  scrollContent: { gap: 20 },
+  scrollContent: { },
   sectionHeader: { marginBottom: 12 },
   sectionTitle: { fontSize: 16, fontWeight: '600' },
-  form: { gap: 16 },
+  form: { },
   button: { marginTop: 12 },
   errorText: { color: '#EF4444', fontSize: 14 },
   successText: { color: '#059669', fontSize: 14 },

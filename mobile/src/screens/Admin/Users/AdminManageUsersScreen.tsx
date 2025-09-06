@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, View, Pressable, RefreshControl } from 'react-native';
-import { Body, Button, Card, Screen } from '../../../components';
+import { Body, Button, Card, Screen, InlineLoader, UserIdentityRow } from '../../../components';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { useQuery } from '@apollo/client/react';
 import { QUERY_ADMIN_LIST_USERS } from '../../../graphql/operations';
@@ -21,7 +21,7 @@ type AdminListUsersQuery = {
 const USERS_PER_PAGE = 20;
 
 export default function AdminManageUsersScreen() {
-  const { colors } = useTheme();
+  const { colors, layout } = useTheme();
   const navigation = useNavigation<any>();
   const [search, setSearch] = useState('');
   const [debounced, setDebounced] = useState('');
@@ -85,29 +85,15 @@ export default function AdminManageUsersScreen() {
     };
     const signupStr = formatTimestamp((u as any).createdAt);
     return (
-      <Card style={styles.row}>
+      <Card style={[styles.row, { gap: layout.formGap }]}>
         <View style={styles.rowHeader}>
           <View style={styles.headerLeft}>
-            <View style={styles.providersRow}>
-              {Array.isArray(u.identities) && u.identities.map((id) => {
-                if (id.providerId === 'google.com') {
-                  return <FontAwesome6 key="google" name="google" iconStyle="brand" size={14} color="#EA4335" />;
-                }
-                if (id.providerId === 'apple.com') {
-                  return <FontAwesome6 key="apple" name="apple" iconStyle="brand" size={16} color={colors.text} />;
-                }
-                if (id.providerId === 'password') {
-                  return <FontAwesome6 key="password" name="key" iconStyle="solid" size={14} color={colors.text} />;
-                }
-                if (id.providerId === 'phone') {
-                  return <FontAwesome6 key="phone" name="phone" iconStyle="solid" size={14} color={colors.text} />;
-                }
-                return null;
-              })}
-            </View>
-            <Text style={[styles.email, { color: colors.text }]} numberOfLines={1}>
-              {u.email || formatPhone(u.phoneNumber) || u.uid}
-            </Text>
+            <UserIdentityRow 
+              email={u.email} 
+              phoneNumber={u.phoneNumber} 
+              identities={u.identities}
+              style={styles.userIdentity}
+            />
           </View>
           {canDeleteUsers && (
             <Pressable onPress={() => navigation.navigate('AdminDeleteUser', { id: u.uid })} hitSlop={8} style={styles.deleteIconButton}>
@@ -115,7 +101,7 @@ export default function AdminManageUsersScreen() {
             </Pressable>
           )}
         </View>
-        <View style={styles.meta}>
+        <View style={[styles.meta, { gap: layout.containerGap }]}>
           {u.displayName ? <Body style={styles.metaText}>{u.displayName}</Body> : null}
           {u.phoneNumber ? <Body style={styles.metaText}>{formatPhone(u.phoneNumber)}</Body> : null}
           <Body style={styles.metaText}>ID: {u.uid}</Body>
@@ -144,7 +130,7 @@ export default function AdminManageUsersScreen() {
     <Screen>
       {canSearchUsers && (
         <Card style={styles.searchCard}>
-          <View style={styles.searchRow}>
+          <View style={[styles.searchRow, { gap: layout.formGap }]}>
             <FontAwesome6 name="magnifying-glass" iconStyle="solid" size={16} color={colors.mutedText} />
             <TextInput
               value={search}
@@ -169,7 +155,7 @@ export default function AdminManageUsersScreen() {
         keyExtractor={(e) => e.cursor}
         renderItem={renderItem}
         contentContainerStyle={{ 
-          gap: 12,
+          gap: layout.containerGap,
         }}
         onEndReached={onEndReached}
         onEndReachedThreshold={0.5}
@@ -183,20 +169,20 @@ export default function AdminManageUsersScreen() {
             progressBackgroundColor="transparent"
           />
         }
-        ListEmptyComponent={loading ? (
-          <View style={styles.initialLoader}> 
-            <ActivityIndicator color={colors.mutedText} />
+        ListEmptyComponent={
+          <View style={[styles.emptyState, { gap: layout.containerGap }]}>
+            {loading ? (
+              <ActivityIndicator size="large" color={colors.mutedText} />
+            ) : (
+              <Body style={[styles.emptyText, { color: colors.mutedText }]}>
+                {debounced ? 'No users found matching your search' : 'No users found'}
+              </Body>
+            )}
           </View>
-        ) : (
-          <View style={styles.emptyState}>
-            <Body style={[styles.emptyText, { color: colors.mutedText }]}>
-              {debounced ? 'No users found matching your search' : 'No users found'}
-            </Body>
-          </View>
-        )}
+        }
         ListFooterComponent={loadingMore && hasNextPage ? (
           <View style={styles.footerLoader}>
-            <ActivityIndicator color={colors.mutedText} />
+            <InlineLoader />
           </View>
         ) : null}
       />
@@ -206,24 +192,22 @@ export default function AdminManageUsersScreen() {
 
 const styles = StyleSheet.create({
   searchCard: { marginBottom: 16 },
-  searchRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  searchRow: { flexDirection: 'row', alignItems: 'center' },
   searchInput: { flex: 1, paddingVertical: 0 },
-  row: { padding: 12, gap: 12 },
-  rowHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, justifyContent: 'space-between' },
-  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
-  email: { fontSize: 16, fontWeight: '600', flexShrink: 1 },
-  meta: { gap: 2 },
+  row: { padding: 12 },
+  rowHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', flexShrink: 1 },
+  userIdentity: { flexShrink: 1 },
+  meta: { },
   metaText: { opacity: 0.7 },
-  providersRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   deleteIconButton: { padding: 6 },
   rowActions: { flexDirection: 'row', alignItems: 'stretch', marginTop: 4 },
   actionCol: { flex: 1, paddingHorizontal: 4 },
   actionButton: { width: '100%' },
   compactButton: { paddingVertical: 8, paddingHorizontal: 10 },
-  initialLoader: { paddingTop: 10, alignItems: 'center' },
   headerLoader: { paddingVertical: 0, alignItems: 'center' },
   footerLoader: { paddingVertical: 16, alignItems: 'center' },
-  emptyState: { paddingTop: 40, alignItems: 'center', gap: 16 },
+  emptyState: { paddingTop: 40, alignItems: 'center' },
   emptyText: { textAlign: 'center', fontSize: 16 },
 });
 

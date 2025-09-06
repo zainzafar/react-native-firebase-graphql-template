@@ -21,7 +21,7 @@ type Permission = {
 };
 
 export default function AdminCreateRoleScreen() {
-  const { colors } = useTheme();
+  const { colors, layout } = useTheme();
   const navigation = useNavigation<any>();
   const permissions = useAppSelector(selectUserPermissions) as string[];
   
@@ -110,7 +110,7 @@ export default function AdminCreateRoleScreen() {
 
   const renderBasicInfo = () => (
     <Card style={styles.sectionCard}>
-      <View style={styles.formSection}>
+      <View style={[styles.formSection, { gap: layout.formGap }]}>
         <Body style={[styles.formLabel, { color: colors.text }]}>Role Name *</Body>
         <TextInput
           style={[styles.textInput, { 
@@ -125,7 +125,7 @@ export default function AdminCreateRoleScreen() {
         />
       </View>
       
-      <View style={styles.formSection}>
+      <View style={[styles.formSection, { gap: layout.formGap }]}>
         <Body style={[styles.formLabel, { color: colors.text }]}>Description</Body>
         <TextInput
           style={[styles.textInput, { 
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
     marginBottom: 16 
   },
   sectionTitle: { fontSize: 16, fontWeight: '600' },
-  formSection: { gap: 8, marginBottom: 16 },
+  formSection: { marginBottom: 16 },
   formLabel: { fontSize: 14, fontWeight: '500', marginBottom: 4 },
   textInput: { 
     paddingVertical: 12, 

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Alert, View, StyleSheet, LayoutAnimation, Platform, UIManager, Animated, Easing } from 'react-native';
 //
 import { Card, Heading, Screen } from '../components';
+import { useTheme } from '../theme/ThemeProvider';
 import { GoogleButton, EmailButton, PhoneButton, AppleButton as AppleSignInButton } from '../components/auth-buttons';
 import { useAuth } from '../auth/AuthProvider';
 import AppleAuth from '@invertase/react-native-apple-authentication';
@@ -11,6 +12,7 @@ import PhoneForm from './AuthScreen/PhoneForm';
 type Mode = 'methods' | 'email' | 'phone';
 
 export default function AuthScreen() {
+  const { layout } = useTheme();
   const { signInWithGoogle, signInWithApple } = useAuth();
   const [googleLoading, setGoogleLoading] = useState(false);
   const [appleLoading, setAppleLoading] = useState(false);
@@ -67,8 +69,8 @@ export default function AuthScreen() {
   };
 
   return (
-    <Screen contentContainerStyle={styles.container}>
-      <View style={styles.header}>
+    <Screen contentContainerStyle={[styles.container, { gap: layout.containerGap }]}>
+      <View style={[styles.header, { gap: layout.containerGap }]}>
         <Heading>Let's get started…</Heading>
       </View>
       <Card>
@@ -103,8 +105,8 @@ export default function AuthScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { justifyContent: 'center', gap: 20 },
-  header: { alignItems: 'center', gap: 6 },
+  container: { justifyContent: 'center' },
+  header: { alignItems: 'center' },
   subheading: { textAlign: 'center' },
   buttonGroup: { gap: 12 },
 });

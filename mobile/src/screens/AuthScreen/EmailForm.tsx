@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { View, StyleSheet, Text, Pressable, ActivityIndicator } from 'react-native';
-import { Body, Button, Input } from '../../components';
+import { Body, Button, Input, InlineLoader } from '../../components';
+import { useTheme } from '../../theme/ThemeProvider';
 import { GoogleButton, AppleButton as AppleSignInButton } from '../../components/auth-buttons';
 import { useAuth } from '../../auth/AuthProvider';
 import { getAuth, sendPasswordResetEmail } from '@react-native-firebase/auth';
@@ -15,6 +16,7 @@ type EmailFormProps = {
 };
 
 export default function EmailForm({ onBack, onGoogleSignIn, googleLoading, onAppleSignIn, appleLoading, appleSupported }: EmailFormProps) {
+  const { layout } = useTheme();
   const { signInWithEmail, createUserWithEmail, getSignInMethodsForEmail, signInWithGoogle } = useAuth();
   const [stage, setStage] = useState<'email' | 'signin' | 'signup' | 'useProvider'>('email');
   const [email, setEmail] = useState('');
@@ -99,7 +101,7 @@ export default function EmailForm({ onBack, onGoogleSignIn, googleLoading, onApp
   };
 
   return (
-    <View style={styles.formContainer}>
+    <View style={[styles.formContainer, { gap: layout.formGap }]}>
       {stage === 'email' && (
         <>
           <Input 
@@ -146,10 +148,7 @@ export default function EmailForm({ onBack, onGoogleSignIn, googleLoading, onApp
             </View>
           )}
           {resetLoading && (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="small" color="#6B7280" />
-              <Body style={styles.loadingText}>Sending reset email...</Body>
-            </View>
+            <InlineLoader text="Sending reset email..." />
           )}
           {resetSent && (
             <Body style={styles.successText}>Please check your email, reset the password and then try again.</Body>
@@ -229,12 +228,10 @@ export default function EmailForm({ onBack, onGoogleSignIn, googleLoading, onApp
 }
 
 const styles = StyleSheet.create({
-  formContainer: { gap: 12 },
+  formContainer: { },
   centerText: { textAlign: 'center' },
   errorText: { color: '#EF4444' },
   resetLink: { marginTop: 4 },
   resetLinkText: { color: '#2563EB', textDecorationLine: 'underline' },
-  loadingContainer: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  loadingText: { color: '#6B7280', fontStyle: 'italic' },
   successText: { color: '#059669' },
 });

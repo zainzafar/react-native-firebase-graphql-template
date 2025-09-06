@@ -3,7 +3,7 @@ import { View, StyleSheet, TextInput, Animated } from 'react-native';
 import { useTheme } from '../../../theme/ThemeProvider';
 
 import { useQuery, useMutation } from '@apollo/client/react';
-import { Body, Button, Card, Input, Screen } from '../../../components';
+import { Body, Button, Card, Input, Screen, LoadingContainer } from '../../../components';
 import { useRoute } from '@react-navigation/native';
 import {
   QUERY_ADMIN_GET_ROLE,
@@ -17,7 +17,7 @@ type Role = {
 };
 
 export default function AdminEditRoleBasicInfo() {
-  const { colors } = useTheme();
+  const { colors, layout } = useTheme();
   const route = useRoute<any>();
   
   const roleId = route.params?.roleId;
@@ -105,9 +105,7 @@ export default function AdminEditRoleBasicInfo() {
   if (roleLoading) {
     return (
       <Screen>
-        <Card style={styles.loadingCard}>
-          <Body style={[styles.centerText, { color: colors.mutedText }]}>Loading role details...</Body>
-        </Card>
+        <LoadingContainer text="Loading role details..." />
       </Screen>
     );
   }
@@ -128,7 +126,7 @@ export default function AdminEditRoleBasicInfo() {
           <View style={styles.sectionHeader}>
             <Body style={styles.sectionTitle}>Role Information</Body>
           </View>
-          <View style={styles.form}>
+          <View style={[styles.form, { gap: layout.formGap }]}>
             <Input 
               value={editData.name} 
               onChangeText={(text) => setEditData(prev => ({ ...prev, name: text }))}
@@ -183,7 +181,7 @@ export default function AdminEditRoleBasicInfo() {
 const styles = StyleSheet.create({
   sectionHeader: { marginBottom: 12 },
   sectionTitle: { fontSize: 16, fontWeight: '600' },
-  form: { gap: 16 },
+  form: { },
   button: { marginTop: 12 },
   textArea: { 
     paddingVertical: 12, 
@@ -204,7 +202,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
   },
-  loadingCard: { marginTop: 32, paddingVertical: 32 },
   errorCard: { marginTop: 32, paddingVertical: 32 },
   centerText: { textAlign: 'center' },
 });

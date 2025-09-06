@@ -29,7 +29,7 @@ type Role = {
 };
 
 export default function AdminDeleteRoleScreen() {
-  const { colors } = useTheme();
+  const { colors, layout } = useTheme();
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const permissions = useAppSelector(selectUserPermissions) as string[];
@@ -155,7 +155,7 @@ export default function AdminDeleteRoleScreen() {
             </Body>
           )}
           
-          <View style={styles.roleStats}>
+          <View style={[styles.roleStats, { gap: layout.containerGap }]}>
             <View style={styles.statItem}>
               <FontAwesome6 name="users" iconStyle="solid" size={16} color={colors.mutedText} />
               <Body style={[styles.statText, { color: colors.mutedText }]}>
@@ -233,7 +233,6 @@ const styles = StyleSheet.create({
     marginBottom: 16 
   },
   roleStats: { 
-    gap: 12 
   },
   statItem: { 
     flexDirection: 'row', 

@@ -7,7 +7,7 @@ import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import { usePermissions } from '../../features/auth/hooks';
 
 export default function AdminHomeScreen() {
-  const { colors } = useTheme();
+  const { colors, layout } = useTheme();
   const navigation = useNavigation<any>();
 
   // Permission checks for user management
@@ -20,7 +20,7 @@ export default function AdminHomeScreen() {
   const canManageRolesAndPermissions = canViewRoles || canViewPermissions;
 
   return (
-    <Screen contentContainerStyle={styles.container}>
+    <Screen contentContainerStyle={[styles.container, { gap: layout.menuGap }]}>
       {canManageUsers && (
         <Card style={styles.card}> 
           <Pressable onPress={() => navigation.navigate('AdminManageUsers')} style={styles.menuItem}>
@@ -62,7 +62,7 @@ export default function AdminHomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { gap: 16, flex: 1 },
+  container: { flex: 1 },
   card: { padding: 12 },
   menuItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8, paddingHorizontal: 4 },
   menuItemLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },

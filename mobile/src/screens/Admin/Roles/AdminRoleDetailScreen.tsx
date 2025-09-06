@@ -1,11 +1,10 @@
 import React from 'react';
-import { ActivityIndicator } from 'react-native';
 import { View, StyleSheet } from 'react-native';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { useAppSelector } from '../../../store/hooks';
 import { selectUserPermissions } from '../../../features/auth/selectors';
 import { useQuery } from '@apollo/client/react';
-import { Body, Card, NavigationCard, Screen } from '../../../components';
+import { Body, Card, NavigationCard, Screen, LoadingContainer } from '../../../components';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import {
@@ -27,7 +26,7 @@ type Role = {
 };
 
 export default function AdminRoleDetailScreen() {
-  const { colors } = useTheme();
+  const { colors, layout } = useTheme();
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const permissions = useAppSelector(selectUserPermissions) as string[];
@@ -63,10 +62,7 @@ export default function AdminRoleDetailScreen() {
   if (roleLoading) {
     return (
       <Screen>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Body style={[styles.loadingText, { color: colors.mutedText }]}>Loading role details...</Body>
-        </View>
+        <LoadingContainer text="Loading role details..." />
       </Screen>
     );
   }
@@ -91,7 +87,7 @@ export default function AdminRoleDetailScreen() {
             {role.description}
           </Body>
         )}
-        <View style={styles.roleStats}>
+        <View style={[styles.roleStats, { gap: layout.containerGap }]}>
           <View style={styles.statItem}>
             <FontAwesome6 name="users" iconStyle="solid" size={12} color={colors.mutedText} />
             <Body style={[styles.statText, { color: colors.mutedText }]}>
@@ -108,12 +104,12 @@ export default function AdminRoleDetailScreen() {
       </Card>
 
       {/* Navigation Cards */}
-      <View style={styles.navigationCards}>
+      <View style={[styles.navigationCards, { gap: layout.containerGap }]}>
         {/* Update Basic Information */}
         <NavigationCard
           title="Update Basic Information"
           description="Update the name and description of this role"
-          icon="edit"
+          icon="pen"
           onPress={() => navigation.navigate('AdminEditRoleBasicInfo', { roleId: role.id })}
           disabled={!canUpdateRoles}
           iconColor={colors.primary}
@@ -175,7 +171,6 @@ const styles = StyleSheet.create({
   roleDescription: { fontSize: 16, lineHeight: 22, marginBottom: 16 },
   roleStats: { 
     flexDirection: 'row', 
-    gap: 16 
   },
   statItem: { 
     flexDirection: 'row', 
@@ -183,17 +178,7 @@ const styles = StyleSheet.create({
     gap: 6 
   },
   statText: { fontSize: 14 },
-  navigationCards: { gap: 12 },
-  loadingContainer: { 
-    flex: 1, 
-    justifyContent: 'center', 
-    alignItems: 'center',
-    gap: 16
-  },
-  loadingText: { 
-    fontSize: 16, 
-    textAlign: 'center' 
-  },
+  navigationCards: { },
   errorCard: { 
     marginTop: 16, 
     paddingVertical: 16 

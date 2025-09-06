@@ -4,7 +4,7 @@ import { useTheme } from '../../../theme/ThemeProvider';
 import { useAppSelector } from '../../../store/hooks';
 import { selectUserPermissions } from '../../../features/auth/selectors';
 import { useQuery } from '@apollo/client/react';
-import { Body, Button, Card, Screen } from '../../../components';
+import { Body, Button, Card, Screen, LoadingContainer } from '../../../components';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -20,7 +20,7 @@ type Role = {
 };
 
 export default function AdminRolesScreen() {
-  const { colors } = useTheme();
+  const { colors, layout } = useTheme();
   const navigation = useNavigation<any>();
   const permissions = useAppSelector(selectUserPermissions) as string[];
   
@@ -54,8 +54,8 @@ export default function AdminRolesScreen() {
           <FontAwesome6 name="chevron-right" iconStyle="solid" size={16} color={colors.mutedText} />
         </View>
         
-        <View style={styles.roleStats}>
-          <View style={styles.statItem}>
+        <View style={[styles.roleStats, { gap: layout.containerGap }]}>
+          <View style={[styles.statItem, { gap: layout.containerGap }]}>
             <FontAwesome6 name="users" iconStyle="solid" size={12} color={colors.mutedText} />
             <Body style={[styles.statText, { color: colors.mutedText }]}>
               {role.users.length} users
@@ -74,8 +74,8 @@ export default function AdminRolesScreen() {
 
   const renderEmptyState = () => {
     return (
-      <Card style={styles.emptyCard}>
-        <View style={styles.emptyContent}>
+      <Card style={[styles.emptyCard, layout.emptyCard]}>
+        <View style={[styles.emptyContent, { gap: layout.containerGap }]}>
           <FontAwesome6 name="shield-halved" iconStyle="solid" size={32} color={colors.mutedText} />
           <Body style={[styles.emptyTitle, { color: colors.text }]}>No Roles Yet</Body>
           <Body style={[styles.emptyDescription, { color: colors.mutedText }]}>
@@ -91,7 +91,7 @@ export default function AdminRolesScreen() {
 
 
   return (
-    <Screen scroll={true} contentContainerStyle={styles.content}>
+    <Screen scroll={true} contentContainerStyle={[styles.content, { gap: layout.containerGap }]}>
       {/* Create Role Button */}
       {canCreateRoles && (
         <View style={styles.addButtonContainer}>
@@ -106,9 +106,7 @@ export default function AdminRolesScreen() {
 
       {/* Content */}
       {rolesLoading ? (
-        <Card style={styles.loadingCard}>
-          <Body style={{ color: colors.mutedText, textAlign: 'center' }}>Loading roles...</Body>
-        </Card>
+        <LoadingContainer text="Loading roles..." />
       ) : roles.length > 0 ? (
         roles.map(renderRoleCard)
       ) : (
@@ -119,9 +117,9 @@ export default function AdminRolesScreen() {
 }
 
 const styles = StyleSheet.create({
-  addButtonContainer: { paddingBottom: 16 },
   content: { flex: 1 },
-  roleCard: { marginVertical: 10 },
+  roleCard: { },
+  addButtonContainer: { },
   roleCardPressable: { padding: 0 },
   roleHeader: { 
     flexDirection: 'row', 
@@ -134,21 +132,17 @@ const styles = StyleSheet.create({
   roleDescription: { fontSize: 14, lineHeight: 18 },
   roleStats: { 
     flexDirection: 'row', 
-    gap: 16, 
   },
   statItem: { 
     flexDirection: 'row', 
     alignItems: 'center', 
-    gap: 6 
   },
   statText: { fontSize: 12 },
-  emptyCard: { marginTop: 32 },
+  emptyCard: { },
   emptyContent: { 
     alignItems: 'center', 
     paddingVertical: 32, 
-    gap: 12 
   },
   emptyTitle: { fontSize: 18, fontWeight: '500' },
   emptyDescription: { fontSize: 14, textAlign: 'center', paddingHorizontal: 16 },
-  loadingCard: { marginTop: 32, paddingVertical: 32 },
 });

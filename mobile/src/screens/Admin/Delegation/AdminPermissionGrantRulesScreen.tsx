@@ -4,7 +4,7 @@ import { useTheme } from '../../../theme/ThemeProvider';
 import { useAppSelector } from '../../../store/hooks';
 import { selectUserPermissions } from '../../../features/auth/selectors';
 import { useQuery, useMutation } from '@apollo/client/react';
-import { Body, Button, Card, Screen } from '../../../components';
+import { Body, Button, Card, Screen, LoadingContainer } from '../../../components';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import {
@@ -27,7 +27,7 @@ type PermissionGrantRule = {
 };
 
 export default function AdminPermissionGrantRules() {
-  const { colors } = useTheme();
+  const { colors, layout } = useTheme();
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const userPermissions = useAppSelector(selectUserPermissions) as string[];
@@ -85,9 +85,7 @@ export default function AdminPermissionGrantRules() {
   if (roleLoading) {
     return (
       <Screen>
-        <Card style={styles.loadingCard}>
-          <Body style={{ textAlign: 'center', color: colors.mutedText }}>Loading permission grant rules...</Body>
-        </Card>
+        <LoadingContainer text="Loading permission grant rules..." />
       </Screen>
     );
   }
@@ -135,7 +133,7 @@ export default function AdminPermissionGrantRules() {
       {/* Content */}
       <View style={styles.content}>
         {(role.canGrantPermissionsRules?.length ?? 0) === 0 ? (
-          <Card style={styles.emptyCard}>
+          <Card style={[layout.emptyCard, styles.emptyCard]}>
             <View style={styles.emptyContent}>
               <FontAwesome6 name="key" iconStyle="solid" size={32} color={colors.mutedText} />
               <Body style={[styles.emptyTitle, { color: colors.text }]}>No Permission Grant Rules</Body>
@@ -148,7 +146,7 @@ export default function AdminPermissionGrantRules() {
             </View>
           </Card>
         ) : (
-          <View style={styles.rulesContainer}>
+          <View style={[styles.rulesContainer, { gap: layout.containerGap }]}>
             {(role.canGrantPermissionsRules ?? []).map((rule) => (
               <Card key={rule.id} style={styles.ruleCard}>
                 <View style={styles.ruleHeader}>
@@ -201,7 +199,7 @@ export default function AdminPermissionGrantRules() {
 const styles = StyleSheet.create({
   addButtonContainer: {  },
   content: { flex: 1 },
-  rulesContainer: { gap: 12 },
+  rulesContainer: { },
   ruleCard: { marginTop: 10 },
   ruleHeader: { 
     flexDirection: 'row', 
@@ -219,7 +217,7 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 4
   },
-  emptyCard: { marginTop: 32 },
+  emptyCard: { },
   emptyContent: { 
     alignItems: 'center', 
     paddingVertical: 32, 
@@ -227,7 +225,6 @@ const styles = StyleSheet.create({
   },
   emptyTitle: { fontSize: 18, fontWeight: '500' },
   emptyDescription: { fontSize: 14, textAlign: 'center', paddingHorizontal: 16 },
-  loadingCard: { marginTop: 32, paddingVertical: 32 },
   errorCard: { marginTop: 32, paddingVertical: 32 },
   noAccessCard: { marginTop: 32 },
   noAccessContent: { 

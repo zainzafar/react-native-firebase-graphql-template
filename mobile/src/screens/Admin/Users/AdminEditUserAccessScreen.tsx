@@ -28,7 +28,7 @@ type Role = { id: string; name: string; description?: string | null; permissions
 type Permission = { id: string; name: string; description?: string | null };
 
 export default function AdminEditUserAccessScreen() {
-  const { colors } = useTheme();
+  const { colors, layout } = useTheme();
   const route = useRoute<any>();
   const userId = route.params?.id as string;
   const adminPerms = useAppSelector(selectUserPermissions) as string[];
@@ -191,7 +191,7 @@ export default function AdminEditUserAccessScreen() {
               </View>
             )}
           </BottomSheet>
-          {setRoleError && <Body style={{ color: '#DC2626' }}>{String(setRoleError.message || setRoleError)}</Body>}
+          {setRoleError && <Body style={styles.errorText}>{String(setRoleError.message || setRoleError)}</Body>}
         </View>
       </Card>
     );
@@ -228,15 +228,15 @@ export default function AdminEditUserAccessScreen() {
     return { userManagement, system };
   }, [assignablePermissions]);
 
-  const renderPermissionSection = (title: string, permissions: Permission[]) => {
-    if (permissions.length === 0) return null;
+  const renderPermissionSection = (title: string, sectionPermissions: Permission[]) => {
+    if (sectionPermissions.length === 0) return null;
     
     // Pre-compute the maps for this permission section
     const helpTexts: { [permissionId: string]: string | undefined } = {};
     const canEnable: { [permissionId: string]: boolean } = {};
     const canDisable: { [permissionId: string]: boolean } = {};
     
-    permissions.forEach(permission => {
+    sectionPermissions.forEach(permission => {
       const inherited = selectedRole ? rolePermissionNames.has(permission.name) : false;
       const isGranularDisabled = isGranularPermissionDisabled(permission.name);
       const canAssign = canAssignPermission(permission.name);
@@ -249,8 +249,8 @@ export default function AdminEditUserAccessScreen() {
     return (
       <Card>
         <PermissionList
-          permissions={permissions}
-          selectedPermissions={permissions.filter(p => {
+          permissions={sectionPermissions}
+          selectedPermissions={sectionPermissions.filter(p => {
             const inherited = selectedRole ? rolePermissionNames.has(p.name) : false;
             const direct = rawPermissions.includes(p.name);
             const isGranularDisabled = isGranularPermissionDisabled(p.name);
@@ -264,7 +264,7 @@ export default function AdminEditUserAccessScreen() {
             return effective;
           }).map(p => p.id)}
           onPermissionToggle={(permissionId, enabled) => {
-            const permission = permissions.find(p => p.id === permissionId);
+            const permission = sectionPermissions.find(p => p.id === permissionId);
             if (permission) {
               onTogglePermission(permission, enabled);
             }
@@ -290,10 +290,10 @@ export default function AdminEditUserAccessScreen() {
   };
 
   return (
-    <Screen scroll={true} contentContainerStyle={styles.container}> 
+    <Screen scroll={true} contentContainerStyle={[styles.container, { gap: layout.containerGap }]}> 
       {isEditingSelf && (
         <Card>
-          <Body style={{ color: '#DC2626', textAlign: 'center' }}>
+          <Body style={styles.warningText}>
             You cannot modify your own roles and permissions.
           </Body>
         </Card>
@@ -305,12 +305,14 @@ export default function AdminEditUserAccessScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { gap: 16 },
+  container: { },
   optionRow: { paddingHorizontal: 16, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   optionTitle: { fontWeight: '600' },
   optionDesc: { opacity: 0.7, marginTop: 2 },
   optionText: { flex: 1, paddingRight: 12 },
   triggerButton: { marginTop: 16, alignSelf: 'stretch' },
+  warningText: { color: '#DC2626', textAlign: 'center' },
+  errorText: { color: '#DC2626' },
 });
 
 

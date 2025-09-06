@@ -19,7 +19,7 @@ type GrantRuleFormProps = {
 };
 
 export default function GrantRuleForm({ type, items, granterRoleName = 'Admin', showAllOption = true, onSubmit }: GrantRuleFormProps) {
-  const { colors } = useTheme();
+  const { colors, layout } = useTheme();
   const [scope, setScope] = useState<'ALL' | 'SPECIFIC'>('SPECIFIC');
   const [selectedItemId, setSelectedItemId] = useState('');
   const [canAssign, setCanAssign] = useState(true);
@@ -128,7 +128,7 @@ export default function GrantRuleForm({ type, items, granterRoleName = 'Admin', 
   };
 
   return (
-    <View style={styles.formContainer}>
+    <View style={[styles.formContainer, { gap: layout.formGap }]}>
       {/* Header */}
       <Card>
         <View style={styles.headerSection}>
@@ -143,7 +143,7 @@ export default function GrantRuleForm({ type, items, granterRoleName = 'Admin', 
 
       {/* Scope Selection */}
       <Card>
-        <View style={styles.formSection}>
+        <View style={[styles.formSection, { gap: layout.formGap }]}>
           <Body style={[styles.formLabel, { color: colors.text }]}>Scope</Body>
           <Body style={[styles.helperText, { color: colors.mutedText }]}>
             Choose which {type === 'role' ? 'roles' : 'permissions'} this grant rule targets.
@@ -186,12 +186,12 @@ export default function GrantRuleForm({ type, items, granterRoleName = 'Admin', 
 
       {/* Actions Section */}
       <Card>
-        <View style={styles.formSection}>
+        <View style={[styles.formSection, { gap: layout.formGap }]}>
           <Body style={[styles.formLabel, { color: colors.text }]}>Actions</Body>
           <Body style={[styles.helperText, { color: colors.mutedText }]}>
             Enable what users with {granterRoleName} can do on the targeted role(s).
           </Body>
-          <View style={styles.togglesContainer}>
+          <View style={[styles.togglesContainer, { gap: layout.formGap }]}>
             <View style={styles.toggleRow}>
               <View style={styles.toggleLabelContainer}>
                 <Body style={[styles.toggleLabel, { color: colors.text }]}>Can Assign</Body>
@@ -317,7 +317,7 @@ export default function GrantRuleForm({ type, items, granterRoleName = 'Admin', 
 }
 
 const styles = StyleSheet.create({
-  formContainer: { gap: 20 },
+  formContainer: { },
   headerSection: {
     gap: 8
   },
@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
   boldText: {
     fontWeight: 'bold'
   },
-  formSection: { gap: 8, position: 'relative' },
+  formSection: { position: 'relative' },
   formLabel: { fontSize: 14, fontWeight: '500', marginBottom: 4 },
   helperText: { 
     fontSize: 12, 
@@ -386,7 +386,7 @@ const styles = StyleSheet.create({
   optionTitle: { fontWeight: '600' },
   optionDesc: { opacity: 0.7, marginTop: 2 },
   optionText: { flex: 1, paddingRight: 12 },
-  togglesContainer: { gap: 16 },
+  togglesContainer: { },
   toggleRow: { 
     flexDirection: 'row', 
     alignItems: 'flex-start', 

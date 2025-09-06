@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 
 import { Body } from './ui';
+import { useTheme } from '../theme/ThemeProvider';
 
 import PermissionRow from './PermissionRow';
 
@@ -32,6 +33,7 @@ export default function PermissionList({
   canEnable = {},
   canDisable = {}
 }: PermissionListProps) {
+  const { layout } = useTheme();
 
 
   // Smart grouping logic (exactly like AdminCreateRoleScreen.tsx)
@@ -81,7 +83,7 @@ export default function PermissionList({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { gap: layout.sectionGap }]}>
       {renderPermissionSection('User Management', userManagement)}
       {renderPermissionSection('System', system)}
     </View>
@@ -89,7 +91,7 @@ export default function PermissionList({
 }
 
 const styles = StyleSheet.create({
-  container: { gap: 30 },
+  container: { },
   sectionTitle: { 
     fontSize: 16, 
     fontWeight: '700', 

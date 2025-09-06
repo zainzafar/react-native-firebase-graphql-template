@@ -66,10 +66,10 @@ export function Screen({
       backgroundColor: colors.background, 
       paddingHorizontal: layout.screenGutter,
       paddingVertical: layout.screenGutter,
-      ...(DEBUG_BORDERS && {
+      ...(DEBUG_BORDERS ? {
         borderWidth: 2,
         borderColor: '#FF0000', // Red border for SafeAreaView container
-      }),
+      } : {}),
     },
     style,
   ];
@@ -103,11 +103,6 @@ export function Screen({
     contentContainerStyle,
   ];
 
-  // Debug logging for final computed styles
-  console.log('Screen component - SafeAreaView containerStyle:', containerStyle);
-  console.log('Screen component - staticContent style:', staticContent);
-  console.log('Screen component - scroll prop:', scroll, 'hasHeader:', hasHeader, 'hasBottomTabBar:', hasBottomTabBar);
-  console.log('Screen component - safeAreaEdges:', safeAreaEdges);
 
   return (
     <SafeAreaView style={containerStyle} edges={safeAreaEdges}>

@@ -3,7 +3,7 @@ import { View, StyleSheet, Pressable } from 'react-native';
 import { useTheme } from '../../../theme/ThemeProvider';
 
 import { useQuery } from '@apollo/client/react';
-import { Body, Card, UserIdentityRow, Screen } from '../../../components';
+import { Body, Card, UserIdentityRow, Screen, LoadingContainer } from '../../../components';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import {
@@ -23,7 +23,7 @@ type Role = {
 };
 
 export default function AdminViewRoleUsers() {
-  const { colors } = useTheme();
+  const { colors, layout } = useTheme();
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const roleId = route.params?.roleId;
@@ -44,9 +44,7 @@ export default function AdminViewRoleUsers() {
   if (roleLoading) {
     return (
       <Screen>
-        <Card style={styles.loadingCard}>
-          <Body style={[styles.centerText, { color: colors.mutedText }]}>Loading role users...</Body>
-        </Card>
+        <LoadingContainer text="Loading role users..." />
       </Screen>
     );
   }
@@ -64,7 +62,7 @@ export default function AdminViewRoleUsers() {
   return (
     <Screen scroll={true} contentContainerStyle={styles.content}>
       {role.users.length === 0 ? (
-        <Card style={styles.emptyCard}>
+        <Card style={[styles.emptyCard, layout.emptyCard]}>
           <View style={styles.emptyContainer}>
             <Body style={[styles.emptyText, { color: colors.mutedText }]}>
               No users are currently assigned to this role
@@ -73,7 +71,7 @@ export default function AdminViewRoleUsers() {
         </Card>
       ) : (
         <Card style={styles.usersCard}>
-          <View style={styles.usersContainer}>
+          <View style={[styles.usersContainer, { gap: layout.containerGap }]}>
             {role.users.map((user) => (
               <Pressable 
                 key={user.id}
@@ -99,13 +97,12 @@ export default function AdminViewRoleUsers() {
 
 const styles = StyleSheet.create({
   content: { flex: 1 },
-  emptyCard: { marginBottom: 16 },
+  emptyCard: { },
   emptyContainer: { padding: 32, alignItems: 'center' },
   emptyText: { fontSize: 16, textAlign: 'center' },
   usersCard: { marginBottom: 16 },
   usersContainer: {
     flexDirection: 'column',
-    gap: 16
   },
   userRow: { 
     flexDirection: 'row', 
@@ -114,7 +111,6 @@ const styles = StyleSheet.create({
     padding: 8
   },
   userInfo: { flex: 1 },
-  loadingCard: { marginTop: 32, paddingVertical: 32 },
   errorCard: { marginTop: 32, paddingVertical: 32 },
   centerText: { textAlign: 'center' },
 });
