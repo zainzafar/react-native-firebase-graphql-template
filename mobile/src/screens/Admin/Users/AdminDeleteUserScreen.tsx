@@ -60,7 +60,7 @@ export default function AdminDeleteUserScreen() {
   return (
     <Screen>
       <Card>
-        <View style={[styles.list, { gap: layout.containerGap }]}> 
+        <View style={[{ gap: layout.containerGap }, styles.list]}> 
           <UserIdentityRow email={user?.email} phoneNumber={user?.phoneNumber} identities={user?.identities} style={{ marginBottom: 8 }} />
           <Body>• This is a destructive action.</Body>
           <Body>• The user and related data will be permanently removed.</Body>

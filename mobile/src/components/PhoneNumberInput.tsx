@@ -73,11 +73,11 @@ export default function PhoneNumberInput({ value, onChange, placeholder = 'Phone
   }, [e164, countryCode, callingCode, national, valid, onChange, parsed]);
 
   return (
-    <View style={[styles.container, { gap: layout.formGap }]}>
-      <View style={[styles.inputContainer, { borderColor: colors.border }]}>
+    <View style={[{ gap: layout.formGap }, styles.container]}>
+      <View style={[{ borderColor: colors.border }, styles.inputContainer]}>
         <Pressable style={styles.ccButton} onPress={() => setPickerOpen(true)}>
           <Text style={styles.flagText}>{getCountryFlag(countryCode)}</Text>
-          <Text style={[styles.ccText, { color: colors.text }]}>{callingCode}</Text>
+          <Text style={[{ color: colors.text }, styles.ccText]}>{callingCode}</Text>
         </Pressable>
         <View style={styles.separator} />
         <TextInput
@@ -86,11 +86,11 @@ export default function PhoneNumberInput({ value, onChange, placeholder = 'Phone
           placeholder={placeholder}
           keyboardType="phone-pad"
           placeholderTextColor={colors.mutedText}
-          style={[styles.input, { color: colors.text }]}
+          style={[{ color: colors.text }, styles.input]}
         />
       </View>
       {showError && !valid && national.length > 0 ? (
-        <Body style={[styles.error, { color: colors.danger }]}>Invalid phone number</Body>
+        <Body style={[{ color: colors.danger }, styles.error]}>Invalid phone number</Body>
       ) : null}
       <CountryPicker
         show={pickerOpen}

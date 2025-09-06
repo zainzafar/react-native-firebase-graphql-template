@@ -28,7 +28,7 @@ export default function SettingsScreen() {
   };
 
   return (
-    <Screen contentContainerStyle={[styles.scrollContent, { gap: layout.menuGap }]}>
+    <Screen contentContainerStyle={[{ gap: layout.menuGap }, styles.scrollContent]}>
       {/* Admin - only visible to users with admin access */}
       {canAccessAdmin && (
         <>

@@ -104,14 +104,14 @@ export default function AdminCreateRoleScreen() {
   const renderSectionHeader = (title: string, icon: string) => (
     <View style={styles.sectionHeader}>
       <FontAwesome6 name={icon as any} iconStyle="solid" size={16} color={colors.primary} />
-      <Body style={[styles.sectionTitle, { color: colors.text }]}>{title}</Body>
+      <Body style={[{ color: colors.text }, styles.sectionTitle]}>{title}</Body>
     </View>
   );
 
   const renderBasicInfo = () => (
     <Card style={styles.sectionCard}>
-      <View style={[styles.formSection, { gap: layout.formGap }]}>
-        <Body style={[styles.formLabel, { color: colors.text }]}>Role Name *</Body>
+      <View style={[{ gap: layout.formGap }, styles.formSection]}>
+        <Body style={[{ color: colors.text }, styles.formLabel]}>Role Name *</Body>
         <TextInput
           style={[styles.textInput, { 
             borderColor: colors.border, 
@@ -125,8 +125,8 @@ export default function AdminCreateRoleScreen() {
         />
       </View>
       
-      <View style={[styles.formSection, { gap: layout.formGap }]}>
-        <Body style={[styles.formLabel, { color: colors.text }]}>Description</Body>
+      <View style={[{ gap: layout.formGap }, styles.formSection]}>
+        <Body style={[{ color: colors.text }, styles.formLabel]}>Description</Body>
         <TextInput
           style={[styles.textInput, { 
             borderColor: colors.border, 
@@ -204,7 +204,7 @@ export default function AdminCreateRoleScreen() {
           }}
         />
         {createError && (
-          <Body style={[styles.errorText, { color: colors.danger }]}>
+          <Body style={[{ color: colors.danger }, styles.errorText]}>
             {createError}
           </Body>
         )}

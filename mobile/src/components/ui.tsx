@@ -12,22 +12,22 @@ export function useTopInset() {
 
 export function ScreenContainer({ children }: { children: React.ReactNode }) {
   const { colors } = useTheme();
-  return <View style={[styles.screen, { backgroundColor: colors.background }]}>{children}</View>;
+  return <View style={[{ backgroundColor: colors.background }, styles.screen]}>{children}</View>;
 }
 
 export function Card({ children, style }: { children: React.ReactNode; style?: any }) {
   const { colors } = useTheme();
-  return <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }, style]}>{children}</View>;
+  return <View style={[{ backgroundColor: colors.card, borderColor: colors.cardBorder }, styles.card, style]}>{children}</View>;
 }
 
 export function Heading({ children }: { children: React.ReactNode }) {
   const { colors } = useTheme();
-  return <Text style={[styles.heading, { color: colors.text }]}>{children}</Text>;
+  return <Text style={[{ color: colors.text }, styles.heading]}>{children}</Text>;
 }
 
 export function Body({ children, style }: { children: React.ReactNode; style?: any }) {
   const { colors } = useTheme();
-  return <Text style={[styles.body, { color: colors.mutedText }, style]}>{children}</Text>;
+  return <Text style={[{ color: colors.mutedText }, styles.body, style]}>{children}</Text>;
 }
 
 type InputProps = {
@@ -48,7 +48,7 @@ export function Input(props: InputProps) {
     <TextInput
       {...props}
       placeholderTextColor={colors.mutedText}
-      style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+      style={[{ color: colors.text, borderColor: colors.border }, styles.input]}
       autoCorrect={false}
       spellCheck={false}
     />
@@ -61,7 +61,7 @@ export function LoadingContainer({ children, text }: { children?: React.ReactNod
   return (
     <View style={[layout.loadingContainer, { backgroundColor: colors.background }]}>
       {children || <ActivityIndicator size="large" color={colors.mutedText} />}
-      {text && <Text style={[styles.loadingText, { color: colors.mutedText }]}>{text}</Text>}
+      {text && <Text style={[{ color: colors.mutedText }, styles.loadingText]}>{text}</Text>}
     </View>
   );
 }
@@ -71,7 +71,7 @@ export function InlineLoader({ text }: { text?: string }) {
   return (
     <View style={styles.inlineLoader}>
       <ActivityIndicator size="small" color={colors.mutedText} />
-      {text && <Text style={[styles.inlineLoadingText, { color: colors.mutedText }]}>{text}</Text>}
+      {text && <Text style={[{ color: colors.mutedText }, styles.inlineLoadingText]}>{text}</Text>}
     </View>
   );
 }

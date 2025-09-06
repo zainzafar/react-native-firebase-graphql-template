@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, View, Pressable, RefreshControl } from 'react-native';
+import { ActivityIndicator, FlatList, StyleSheet, TextInput, View, Pressable, RefreshControl } from 'react-native';
 import { Body, Button, Card, Screen, InlineLoader, UserIdentityRow } from '../../../components';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { useQuery } from '@apollo/client/react';
@@ -85,7 +85,7 @@ export default function AdminManageUsersScreen() {
     };
     const signupStr = formatTimestamp((u as any).createdAt);
     return (
-      <Card style={[styles.row, { gap: layout.formGap }]}>
+      <Card style={[{ gap: layout.formGap }, styles.row]}>
         <View style={styles.rowHeader}>
           <View style={styles.headerLeft}>
             <UserIdentityRow 
@@ -101,7 +101,7 @@ export default function AdminManageUsersScreen() {
             </Pressable>
           )}
         </View>
-        <View style={[styles.meta, { gap: layout.containerGap }]}>
+        <View style={[{ gap: layout.containerGap }, styles.meta]}>
           {u.displayName ? <Body style={styles.metaText}>{u.displayName}</Body> : null}
           {u.phoneNumber ? <Body style={styles.metaText}>{formatPhone(u.phoneNumber)}</Body> : null}
           <Body style={styles.metaText}>ID: {u.uid}</Body>
@@ -130,14 +130,14 @@ export default function AdminManageUsersScreen() {
     <Screen>
       {canSearchUsers && (
         <Card style={styles.searchCard}>
-          <View style={[styles.searchRow, { gap: layout.formGap }]}>
+          <View style={[{ gap: layout.formGap }, styles.searchRow]}>
             <FontAwesome6 name="magnifying-glass" iconStyle="solid" size={16} color={colors.mutedText} />
             <TextInput
               value={search}
               onChangeText={setSearch}
               placeholder="Enter user email or ID"
               placeholderTextColor={colors.mutedText}
-              style={[styles.searchInput, { color: colors.text }]}
+              style={[{ color: colors.text }, styles.searchInput]}
               autoCapitalize="none"
               autoCorrect={false}
             />
@@ -170,11 +170,11 @@ export default function AdminManageUsersScreen() {
           />
         }
         ListEmptyComponent={
-          <View style={[styles.emptyState, { gap: layout.containerGap }]}>
+          <View style={[{ gap: layout.containerGap }, styles.emptyState]}>
             {loading ? (
               <ActivityIndicator size="large" color={colors.mutedText} />
             ) : (
-              <Body style={[styles.emptyText, { color: colors.mutedText }]}>
+              <Body style={[{ color: colors.mutedText }, styles.emptyText]}>
                 {debounced ? 'No users found matching your search' : 'No users found'}
               </Body>
             )}

@@ -114,7 +114,7 @@ export default function AdminEditRoleBasicInfo() {
     return (
       <Screen>
         <Card style={styles.errorCard}>
-          <Body style={[styles.centerText, { color: colors.mutedText }]}>Role not found</Body>
+          <Body style={[{ color: colors.mutedText }, styles.centerText]}>Role not found</Body>
         </Card>
       </Screen>
     );
@@ -126,7 +126,7 @@ export default function AdminEditRoleBasicInfo() {
           <View style={styles.sectionHeader}>
             <Body style={styles.sectionTitle}>Role Information</Body>
           </View>
-          <View style={[styles.form, { gap: layout.formGap }]}>
+          <View style={[{ gap: layout.formGap }, styles.form]}>
             <Input 
               value={editData.name} 
               onChangeText={(text) => setEditData(prev => ({ ...prev, name: text }))}

@@ -44,9 +44,9 @@ export default function AdminRolesScreen() {
       >
         <View style={styles.roleHeader}>
           <View style={styles.roleInfo}>
-            <Body style={[styles.roleTitle, { color: colors.text }]}>{role.name}</Body>
+            <Body style={[{ color: colors.text }, styles.roleTitle]}>{role.name}</Body>
             {role.description && (
-              <Body style={[styles.roleDescription, { color: colors.mutedText }]}>
+              <Body style={[{ color: colors.mutedText }, styles.roleDescription]}>
                 {role.description}
               </Body>
             )}
@@ -54,16 +54,16 @@ export default function AdminRolesScreen() {
           <FontAwesome6 name="chevron-right" iconStyle="solid" size={16} color={colors.mutedText} />
         </View>
         
-        <View style={[styles.roleStats, { gap: layout.containerGap }]}>
-          <View style={[styles.statItem, { gap: layout.containerGap }]}>
+        <View style={[{ gap: layout.containerGap }, styles.roleStats]}>
+          <View style={[{ gap: layout.containerGap }, styles.statItem]}>
             <FontAwesome6 name="users" iconStyle="solid" size={12} color={colors.mutedText} />
-            <Body style={[styles.statText, { color: colors.mutedText }]}>
+            <Body style={[{ color: colors.mutedText }, styles.statText]}>
               {role.users.length} users
             </Body>
           </View>
           <View style={styles.statItem}>
             <FontAwesome6 name="key" iconStyle="solid" size={12} color={colors.mutedText} />
-            <Body style={[styles.statText, { color: colors.mutedText }]}>
+            <Body style={[{ color: colors.mutedText }, styles.statText]}>
               {role.permissions.length} permissions
             </Body>
           </View>
@@ -74,11 +74,11 @@ export default function AdminRolesScreen() {
 
   const renderEmptyState = () => {
     return (
-      <Card style={[styles.emptyCard, layout.emptyCard]}>
-        <View style={[styles.emptyContent, { gap: layout.containerGap }]}>
+      <Card style={[layout.emptyCard, styles.emptyCard]}>
+        <View style={[{ gap: layout.containerGap }, styles.emptyContent]}>
           <FontAwesome6 name="shield-halved" iconStyle="solid" size={32} color={colors.mutedText} />
-          <Body style={[styles.emptyTitle, { color: colors.text }]}>No Roles Yet</Body>
-          <Body style={[styles.emptyDescription, { color: colors.mutedText }]}>
+          <Body style={[{ color: colors.text }, styles.emptyTitle]}>No Roles Yet</Body>
+          <Body style={[{ color: colors.mutedText }, styles.emptyDescription]}>
             {canCreateRoles 
               ? 'Create your first role to start managing permissions.'
               : 'You don\'t have permission to create roles.'
@@ -91,7 +91,7 @@ export default function AdminRolesScreen() {
 
 
   return (
-    <Screen scroll={true} contentContainerStyle={[styles.content, { gap: layout.containerGap }]}>
+    <Screen scroll={true} contentContainerStyle={[{ gap: layout.containerGap }, styles.content]}>
       {/* Create Role Button */}
       {canCreateRoles && (
         <View style={styles.addButtonContainer}>

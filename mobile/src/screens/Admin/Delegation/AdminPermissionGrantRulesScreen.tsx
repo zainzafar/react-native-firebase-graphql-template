@@ -94,7 +94,7 @@ export default function AdminPermissionGrantRules() {
     return (
       <Screen>
         <Card style={styles.errorCard}>
-          <Body style={{ textAlign: 'center', color: colors.mutedText }}>Role not found</Body>
+          <Body style={[{ color: colors.mutedText }, styles.centerText]}>Role not found</Body>
         </Card>
       </Screen>
     );
@@ -106,8 +106,8 @@ export default function AdminPermissionGrantRules() {
         <Card style={styles.noAccessCard}>
           <View style={styles.noAccessContent}>
             <FontAwesome6 name="shield-halved" iconStyle="solid" size={32} color={colors.mutedText} />
-            <Body style={[styles.noAccessTitle, { color: colors.text }]}>No Access</Body>
-            <Body style={[styles.noAccessDescription, { color: colors.mutedText }]}>
+            <Body style={[{ color: colors.text }, styles.noAccessTitle]}>No Access</Body>
+            <Body style={[{ color: colors.mutedText }, styles.noAccessDescription]}>
               You don't have permission to view permission grant rules.
             </Body>
           </View>
@@ -136,8 +136,8 @@ export default function AdminPermissionGrantRules() {
           <Card style={[layout.emptyCard, styles.emptyCard]}>
             <View style={styles.emptyContent}>
               <FontAwesome6 name="key" iconStyle="solid" size={32} color={colors.mutedText} />
-              <Body style={[styles.emptyTitle, { color: colors.text }]}>No Permission Grant Rules</Body>
-              <Body style={[styles.emptyDescription, { color: colors.mutedText }]}>
+              <Body style={[{ color: colors.text }, styles.emptyTitle]}>No Permission Grant Rules</Body>
+              <Body style={[{ color: colors.mutedText }, styles.emptyDescription]}>
                 {canCreatePermissionGrants 
                   ? 'Create your first permission grant rule to start managing permission assignments.'
                   : 'You don\'t have permission to create permission grant rules.'
@@ -146,19 +146,19 @@ export default function AdminPermissionGrantRules() {
             </View>
           </Card>
         ) : (
-          <View style={[styles.rulesContainer, { gap: layout.containerGap }]}>
+          <View style={[{ gap: layout.containerGap }, styles.rulesContainer]}>
             {(role.canGrantPermissionsRules ?? []).map((rule) => (
               <Card key={rule.id} style={styles.ruleCard}>
                 <View style={styles.ruleHeader}>
                   <View style={styles.ruleInfo}>
-                    <Body style={[styles.ruleScope, { color: colors.text }]}>
+                    <Body style={[{ color: colors.text }, styles.ruleScope]}>
                       {rule.scope === 'ALL' 
                         ? 'All Permissions' 
                         : rule.permission?.name?.replace(/^ADMIN_/, '').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Unknown'
                       }
                     </Body>
                     {rule.scope !== 'ALL' && rule.permission?.description && (
-                      <Body style={[styles.ruleDescription, { color: colors.mutedText }]}>
+                      <Body style={[{ color: colors.mutedText }, styles.ruleDescription]}>
                         {rule.permission.description}
                       </Body>
                     )}
@@ -172,18 +172,18 @@ export default function AdminPermissionGrantRules() {
                     </Pressable>
                   )}
                 </View>
-                <View style={[styles.ruleDivider, { backgroundColor: colors.border }]} />
+                <View style={[{ backgroundColor: colors.border }, styles.ruleDivider]} />
                 <View style={styles.ruleActions}>
                   {rule.canAssign && (
                     <View style={styles.actionItem}>
                       <FontAwesome6 name="check" iconStyle="solid" size={12} color="#22C55E" />
-                      <Body style={[styles.actionText, { color: colors.mutedText }]}>Assign</Body>
+                      <Body style={[{ color: colors.mutedText }, styles.actionText]}>Assign</Body>
                     </View>
                   )}
                   {rule.canRevoke && (
                     <View style={styles.actionItem}>
                       <FontAwesome6 name="check" iconStyle="solid" size={12} color="#22C55E" />
-                      <Body style={[styles.actionText, { color: colors.mutedText }]}>Revoke</Body>
+                      <Body style={[{ color: colors.mutedText }, styles.actionText]}>Revoke</Body>
                     </View>
                   )}
                 </View>
@@ -234,4 +234,5 @@ const styles = StyleSheet.create({
   },
   noAccessTitle: { fontSize: 18, fontWeight: '500' },
   noAccessDescription: { fontSize: 14, textAlign: 'center', paddingHorizontal: 16 },
+  centerText: { textAlign: 'center' },
 });

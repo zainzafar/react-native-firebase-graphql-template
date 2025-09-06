@@ -141,14 +141,14 @@ export default function AdminEditUserScreen() {
   }
 
   return (
-    <Screen scroll={true} contentContainerStyle={[styles.container, { gap: layout.containerGap }]}>
+    <Screen scroll={true} contentContainerStyle={[{ gap: layout.containerGap }, styles.container]}>
       <Card>
-        <View style={[styles.form, { gap: layout.formGap }]}>
+        <View style={[{ gap: layout.formGap }, styles.form]}>
           <UserIdentityRow email={user.email} phoneNumber={user.phoneNumber} identities={user.identities} />
         </View>
       </Card>
       <Card>
-        <View style={[styles.form, { gap: layout.formGap }]}> 
+        <View style={[{ gap: layout.formGap }, styles.form]}> 
           <Input 
             value={email} 
             onChangeText={setEmail} 
@@ -194,7 +194,7 @@ export default function AdminEditUserScreen() {
       {/* Security section - show if user has password/google/apple and update password permission */}
       {showSecuritySection && canUpdatePassword && (
         <Card>
-          <View style={[styles.form, { gap: layout.formGap }]}> 
+          <View style={[{ gap: layout.formGap }, styles.form]}> 
             <Input 
               value={password} 
               onChangeText={setPassword} 
@@ -237,7 +237,7 @@ export default function AdminEditUserScreen() {
       {/* Danger zone: Delete user */}
       {(canOpenAccess || canDeleteUser) && (
         <Card>
-          <View style={[styles.form, { gap: layout.formGap }]}>
+          <View style={[{ gap: layout.formGap }, styles.form]}>
             {canOpenAccess && (
               <Button
                 title="Roles & Permissions"

@@ -39,7 +39,7 @@ export default function PermissionRow({
     >
       <View style={styles.permissionInfo}>
         {showName && (
-          <Body style={[styles.permissionName, { color: colors.text }]}>
+          <Body style={[{ color: colors.text }, styles.permissionName]}>
             {permission.name}
           </Body>
         )}
@@ -56,7 +56,7 @@ export default function PermissionRow({
           </Body>
         )}
         {helpText && (
-          <Body style={[styles.helpText, { color: colors.mutedText }]}>
+          <Body style={[{ color: colors.mutedText }, styles.helpText]}>
             {helpText}
           </Body>
         )}

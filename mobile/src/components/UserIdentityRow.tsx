@@ -47,7 +47,7 @@ export function UserIdentityRow({ email, phoneNumber, identities, style }: UserI
           return null;
         })}
       </View>
-      <Text style={[styles.value, { color: colors.text }]} numberOfLines={1}>
+      <Text style={[{ color: colors.text }, styles.value]} numberOfLines={1}>
         {value}
       </Text>
     </View>

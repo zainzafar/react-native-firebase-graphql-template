@@ -13,7 +13,7 @@ export default function HomeScreen() {
   const firstName = firstToken ? firstToken.charAt(0).toUpperCase() + firstToken.slice(1) : undefined;
   
   return (
-    <Screen contentContainerStyle={[styles.content, { gap: layout.containerGap }]}>
+    <Screen contentContainerStyle={[{ gap: layout.containerGap }, styles.content]}>
       <View style={styles.header}><Heading>{firstName ? `Hello ${firstName}` : 'Hello'}</Heading></View>
       <Card>
         <Body>Welcome!</Body>

@@ -98,7 +98,7 @@ export default function AccountScreen() {
 
 
   return (
-    <Screen contentContainerStyle={[styles.scrollContent, { gap: layout.sectionGap }]}>
+    <Screen contentContainerStyle={[{ gap: layout.sectionGap }, styles.scrollContent]}>
       {/* Authentication Method Info - Show for all users */}
       {user && (
         <Card>
@@ -115,7 +115,7 @@ export default function AccountScreen() {
         <View style={styles.sectionHeader}>
           <Body style={styles.sectionTitle}>Profile Information</Body>
         </View>
-        <View style={[styles.form, { gap: layout.formGap }]}>
+        <View style={[{ gap: layout.formGap }, styles.form]}>
           <Input 
             value={displayName} 
             onChangeText={setDisplayName} 
@@ -142,7 +142,7 @@ export default function AccountScreen() {
           <View style={styles.sectionHeader}>
             <Body style={styles.sectionTitle}>Change Password</Body>
           </View>
-          <View style={[styles.form, { gap: layout.formGap }]}>
+          <View style={[{ gap: layout.formGap }, styles.form]}>
             <Input 
               value={newPassword} 
               onChangeText={setNewPassword} 

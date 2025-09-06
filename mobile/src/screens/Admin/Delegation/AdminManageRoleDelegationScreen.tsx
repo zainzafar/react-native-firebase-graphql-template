@@ -53,7 +53,7 @@ export default function AdminManageRoleDelegation() {
     return (
       <Screen>
         <Card style={styles.errorCard}>
-          <Body style={[styles.centerText, { color: colors.mutedText }]}>Role not found</Body>
+          <Body style={[{ color: colors.mutedText }, styles.centerText]}>Role not found</Body>
         </Card>
       </Screen>
     );
@@ -62,13 +62,13 @@ export default function AdminManageRoleDelegation() {
   return (
     <Screen contentContainerStyle={{ gap: layout.containerGap }}>
       <View style={styles.section}>
-        <Body style={[styles.sectionTitle, { color: colors.text }]}>Delegation Management</Body>
-        <Body style={[styles.sectionDescription, { color: colors.mutedText }]}>
+        <Body style={[{ color: colors.text }, styles.sectionTitle]}>Delegation Management</Body>
+        <Body style={[{ color: colors.mutedText }, styles.sectionDescription]}>
           Manage who can grant roles and permissions for "{role.name}"
         </Body>
       </View>
 
-      <View style={[styles.cardsContainer, { gap: layout.containerGap }]}>
+      <View style={[{ gap: layout.containerGap }, styles.cardsContainer]}>
         <NavigationCard
           title="Role Grant Rules"
           description="Define which roles can assign other roles to users"
@@ -94,8 +94,8 @@ export default function AdminManageRoleDelegation() {
         <Card style={styles.noAccessCard}>
           <View style={styles.noAccessContent}>
             <FontAwesome6 name="shield-halved" iconStyle="solid" size={32} color={colors.mutedText} />
-            <Body style={[styles.noAccessTitle, { color: colors.text }]}>No Access</Body>
-            <Body style={[styles.noAccessDescription, { color: colors.mutedText }]}>
+            <Body style={[{ color: colors.text }, styles.noAccessTitle]}>No Access</Body>
+            <Body style={[{ color: colors.mutedText }, styles.noAccessDescription]}>
               You don't have permission to manage delegation rules.
             </Body>
           </View>

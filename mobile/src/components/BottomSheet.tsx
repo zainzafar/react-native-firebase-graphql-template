@@ -114,12 +114,12 @@ export default function BottomSheet({
           ]}
         >
           <View style={styles.dragHandleContainer} {...panResponder.panHandlers}>
-            <View style={[styles.dragHandle, { backgroundColor: colors.border }]} />
+            <View style={[{ backgroundColor: colors.border }, styles.dragHandle]} />
           </View>
           
           {title && (
             <View style={styles.titleContainer}>
-              <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+              <Text style={[{ color: colors.text }, styles.title]}>{title}</Text>
             </View>
           )}
           

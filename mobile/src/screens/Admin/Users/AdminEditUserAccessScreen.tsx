@@ -185,7 +185,7 @@ export default function AdminEditUserAccessScreen() {
             ) : (
               <View style={styles.optionRow}>
                 <View style={styles.optionText}>
-                  <Body style={[styles.optionTitle, { color: colors.mutedText }]}>No roles available</Body>
+                  <Body style={[{ color: colors.mutedText }, styles.optionTitle]}>No roles available</Body>
                   <Body style={styles.optionDesc}>There are no available roles to assign</Body>
                 </View>
               </View>
@@ -290,7 +290,7 @@ export default function AdminEditUserAccessScreen() {
   };
 
   return (
-    <Screen scroll={true} contentContainerStyle={[styles.container, { gap: layout.containerGap }]}> 
+    <Screen scroll={true} contentContainerStyle={[{ gap: layout.containerGap }, styles.container]}> 
       {isEditingSelf && (
         <Card>
           <Body style={styles.warningText}>

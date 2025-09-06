@@ -101,8 +101,8 @@ export default function AdminAddRoleGrantRule() {
   if (!canCreateRoleGrantRules) {
     return (
       <Screen>
-        <View style={[styles.noAccessCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Body style={[styles.noAccessText, { color: colors.text }]}>
+        <View style={[{ backgroundColor: colors.card, borderColor: colors.border }, styles.noAccessCard]}>
+          <Body style={[{ color: colors.text }, styles.noAccessText]}>
             You don't have permission to create role grant rules.
           </Body>
         </View>
@@ -114,7 +114,7 @@ export default function AdminAddRoleGrantRule() {
     return (
       <Screen>
         <View style={styles.loadingContainer}>
-          <Body style={[styles.loadingText, { color: colors.text }]}>Loading...</Body>
+          <Body style={[{ color: colors.text }, styles.loadingText]}>Loading...</Body>
         </View>
       </Screen>
     );

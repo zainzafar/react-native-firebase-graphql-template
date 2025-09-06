@@ -128,14 +128,14 @@ export default function GrantRuleForm({ type, items, granterRoleName = 'Admin', 
   };
 
   return (
-    <View style={[styles.formContainer, { gap: layout.formGap }]}>
+    <View style={[{ gap: layout.formGap }, styles.formContainer]}>
       {/* Header */}
       <Card>
         <View style={styles.headerSection}>
-          <Body style={[styles.headerTitle, { color: colors.text }]}>
+          <Body style={[{ color: colors.text }, styles.headerTitle]}>
             {granterRoleName} Role
           </Body>
-          <Body style={[styles.headerText, { color: colors.text }]}>
+          <Body style={[{ color: colors.text }, styles.headerText]}>
             This rule defines what members of the <Body style={styles.boldText}>{granterRoleName}</Body> role are allowed to do to other roles in the system.
           </Body>
         </View>
@@ -143,23 +143,23 @@ export default function GrantRuleForm({ type, items, granterRoleName = 'Admin', 
 
       {/* Scope Selection */}
       <Card>
-        <View style={[styles.formSection, { gap: layout.formGap }]}>
-          <Body style={[styles.formLabel, { color: colors.text }]}>Scope</Body>
-          <Body style={[styles.helperText, { color: colors.mutedText }]}>
+        <View style={[{ gap: layout.formGap }, styles.formSection]}>
+          <Body style={[{ color: colors.text }, styles.formLabel]}>Scope</Body>
+          <Body style={[{ color: colors.mutedText }, styles.helperText]}>
             Choose which {type === 'role' ? 'roles' : 'permissions'} this grant rule targets.
           </Body>
           
           {/* Scope Selection Button */}
           <Pressable
-            style={[styles.scopeButton, { borderColor: colors.border }]}
+            style={[{ borderColor: colors.border }, styles.scopeButton]}
             onPress={() => setIsBottomSheetVisible(true)}
           >
             <View style={styles.selectedOptionContent}>
-              <Body style={[styles.selectedOptionLabel, { color: colors.text }]}>
+              <Body style={[{ color: colors.text }, styles.selectedOptionLabel]}>
                 {selectedOption?.name || 'Select...'}
               </Body>
               {selectedOption?.description && (
-                <Body style={[styles.selectedOptionDescription, { color: colors.mutedText }]}>
+                <Body style={[{ color: colors.mutedText }, styles.selectedOptionDescription]}>
                   {selectedOption.description}
                 </Body>
               )}
@@ -174,9 +174,9 @@ export default function GrantRuleForm({ type, items, granterRoleName = 'Admin', 
           
           {/* Global Scope Warning */}
           {scope === 'ALL' && (
-            <View style={[styles.warningBox, { backgroundColor: colors.danger + '10', borderColor: colors.danger + '30' }]}>
+            <View style={[{ backgroundColor: colors.danger + '10', borderColor: colors.danger + '30' }, styles.warningBox]}>
               <FontAwesome6 name="triangle-exclamation" iconStyle="solid" size={16} color={colors.danger} />
-              <Body style={[styles.warningText, { color: colors.danger }]}>
+              <Body style={[{ color: colors.danger }, styles.warningText]}>
                 This grants {granterRoleName} power over every {type === 'role' ? 'role' : 'permission'} in the system.
               </Body>
             </View>
@@ -186,16 +186,16 @@ export default function GrantRuleForm({ type, items, granterRoleName = 'Admin', 
 
       {/* Actions Section */}
       <Card>
-        <View style={[styles.formSection, { gap: layout.formGap }]}>
-          <Body style={[styles.formLabel, { color: colors.text }]}>Actions</Body>
-          <Body style={[styles.helperText, { color: colors.mutedText }]}>
+        <View style={[{ gap: layout.formGap }, styles.formSection]}>
+          <Body style={[{ color: colors.text }, styles.formLabel]}>Actions</Body>
+          <Body style={[{ color: colors.mutedText }, styles.helperText]}>
             Enable what users with {granterRoleName} can do on the targeted role(s).
           </Body>
-          <View style={[styles.togglesContainer, { gap: layout.formGap }]}>
+          <View style={[{ gap: layout.formGap }, styles.togglesContainer]}>
             <View style={styles.toggleRow}>
               <View style={styles.toggleLabelContainer}>
-                <Body style={[styles.toggleLabel, { color: colors.text }]}>Can Assign</Body>
-                <Body style={[styles.toggleHelp, { color: colors.mutedText }]}>
+                <Body style={[{ color: colors.text }, styles.toggleLabel]}>Can Assign</Body>
+                <Body style={[{ color: colors.mutedText }, styles.toggleHelp]}>
                   Allow users with {granterRoleName} to assign the targeted role(s) to users.
                 </Body>
               </View>
@@ -207,8 +207,8 @@ export default function GrantRuleForm({ type, items, granterRoleName = 'Admin', 
 
             <View style={styles.toggleRow}>
               <View style={styles.toggleLabelContainer}>
-                <Body style={[styles.toggleLabel, { color: colors.text }]}>Can Revoke</Body>
-                <Body style={[styles.toggleHelp, { color: colors.mutedText }]}>
+                <Body style={[{ color: colors.text }, styles.toggleLabel]}>Can Revoke</Body>
+                <Body style={[{ color: colors.mutedText }, styles.toggleHelp]}>
                   Allow users with {granterRoleName} to remove the targeted role(s) from users.
                 </Body>
               </View>
@@ -221,10 +221,10 @@ export default function GrantRuleForm({ type, items, granterRoleName = 'Admin', 
             {type === 'role' && (
               <View style={styles.toggleRow}>
                 <View style={styles.toggleLabelContainer}>
-                  <Body style={[styles.toggleLabel, { color: colors.text }]}>Can Manage</Body>
-                                  <Body style={[styles.toggleHelp, { color: colors.mutedText }]}>
-                  Allow users with {granterRoleName} to modify or delete delegation rules where {granterRoleName} is the granter (governance power). Use sparingly.
-                </Body>
+                  <Body style={[{ color: colors.text }, styles.toggleLabel]}>Can Manage</Body>
+                  <Body style={[{ color: colors.mutedText }, styles.toggleHelp]}>
+                    Allow users with {granterRoleName} to modify or delete delegation rules where {granterRoleName} is the granter (governance power). Use sparingly.
+                  </Body>
                 </View>
                 <Switch
                   value={canManage}

@@ -71,7 +71,7 @@ export default function AdminRoleDetailScreen() {
     return (
       <Screen>
         <Card style={styles.errorCard}>
-          <Body style={[styles.centerText, { color: colors.mutedText }]}>Role not found</Body>
+          <Body style={[{ color: colors.mutedText }, styles.centerText]}>Role not found</Body>
         </Card>
       </Screen>
     );
@@ -81,22 +81,22 @@ export default function AdminRoleDetailScreen() {
     <Screen scroll={true}>
       {/* Role Header */}
       <Card style={styles.headerCard}>
-        <Body style={[styles.roleTitle, { color: colors.text }]}>{role.name}</Body>
+        <Body style={[{ color: colors.text }, styles.roleTitle]}>{role.name}</Body>
         {role.description && (
-          <Body style={[styles.roleDescription, { color: colors.mutedText }]}>
+          <Body style={[{ color: colors.mutedText }, styles.roleDescription]}>
             {role.description}
           </Body>
         )}
-        <View style={[styles.roleStats, { gap: layout.containerGap }]}>
+        <View style={[{ gap: layout.containerGap }, styles.roleStats]}>
           <View style={styles.statItem}>
             <FontAwesome6 name="users" iconStyle="solid" size={12} color={colors.mutedText} />
-            <Body style={[styles.statText, { color: colors.mutedText }]}>
+            <Body style={[{ color: colors.mutedText }, styles.statText]}>
               {role.users.length} users
             </Body>
           </View>
           <View style={styles.statItem}>
             <FontAwesome6 name="key" iconStyle="solid" size={12} color={colors.mutedText} />
-            <Body style={[styles.statText, { color: colors.mutedText }]}>
+            <Body style={[{ color: colors.mutedText }, styles.statText]}>
               {role.permissions.length} permissions
             </Body>
           </View>
@@ -104,7 +104,7 @@ export default function AdminRoleDetailScreen() {
       </Card>
 
       {/* Navigation Cards */}
-      <View style={[styles.navigationCards, { gap: layout.containerGap }]}>
+      <View style={[{ gap: layout.containerGap }, styles.navigationCards]}>
         {/* Update Basic Information */}
         <NavigationCard
           title="Update Basic Information"

@@ -49,8 +49,8 @@ export default function NavigationCard({
               />
             </View>
             <View style={styles.textContainer}>
-              <Body style={[styles.navigationTitle, { color: colors.text }]}>{title}</Body>
-              <Body style={[styles.navigationDescription, { color: colors.mutedText }]}>{description}</Body>
+              <Body style={[{ color: colors.text }, styles.navigationTitle]}>{title}</Body>
+              <Body style={[{ color: colors.mutedText }, styles.navigationDescription]}>{description}</Body>
             </View>
           </View>
           <FontAwesome6 

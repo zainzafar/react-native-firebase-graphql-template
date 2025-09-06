@@ -101,7 +101,7 @@ export default function EmailForm({ onBack, onGoogleSignIn, googleLoading, onApp
   };
 
   return (
-    <View style={[styles.formContainer, { gap: layout.formGap }]}>
+    <View style={[{ gap: layout.formGap }, styles.formContainer]}>
       {stage === 'email' && (
         <>
           <Input 

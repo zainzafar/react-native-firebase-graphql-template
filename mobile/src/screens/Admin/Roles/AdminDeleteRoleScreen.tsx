@@ -107,7 +107,7 @@ export default function AdminDeleteRoleScreen() {
       <Screen>
         <View style={styles.loadingContainer}>
           <FontAwesome6 name="spinner" iconStyle="solid" size={32} color={colors.primary} />
-          <Body style={[styles.loadingText, { color: colors.mutedText }]}>Loading role details...</Body>
+          <Body style={[{ color: colors.mutedText }, styles.loadingText]}>Loading role details...</Body>
         </View>
       </Screen>
     );
@@ -117,7 +117,7 @@ export default function AdminDeleteRoleScreen() {
     return (
       <Screen>
         <Card style={styles.errorCard}>
-          <Body style={[styles.centerText, { color: colors.danger }]}>Role not found</Body>
+          <Body style={[{ color: colors.danger }, styles.centerText]}>Role not found</Body>
         </Card>
       </Screen>
     );
@@ -127,7 +127,7 @@ export default function AdminDeleteRoleScreen() {
     return (
       <Screen>
         <Card style={styles.errorCard}>
-          <Body style={[styles.centerText, { color: colors.danger }]}>You don't have permission to delete roles</Body>
+          <Body style={[{ color: colors.danger }, styles.centerText]}>You don't have permission to delete roles</Body>
         </Card>
       </Screen>
     );
@@ -139,32 +139,32 @@ export default function AdminDeleteRoleScreen() {
         <Card style={styles.warningCard}>
           <View style={styles.warningHeader}>
             <FontAwesome6 name="triangle-exclamation" iconStyle="solid" size={24} color="#DC2626" />
-            <Body style={[styles.warningTitle, { color: colors.text }]}>Delete Role</Body>
+            <Body style={[{ color: colors.text }, styles.warningTitle]}>Delete Role</Body>
           </View>
-          <Body style={[styles.warningText, { color: colors.mutedText }]}>
+          <Body style={[{ color: colors.mutedText }, styles.warningText]}>
             This action cannot be undone. All users currently assigned to this role will lose access granted by it.
           </Body>
         </Card>
 
         {/* Role Details */}
         <Card style={styles.roleCard}>
-          <Body style={[styles.roleTitle, { color: colors.text }]}>{role.name}</Body>
+          <Body style={[{ color: colors.text }, styles.roleTitle]}>{role.name}</Body>
           {role.description && (
-            <Body style={[styles.roleDescription, { color: colors.mutedText }]}>
+            <Body style={[{ color: colors.mutedText }, styles.roleDescription]}>
               {role.description}
             </Body>
           )}
           
-          <View style={[styles.roleStats, { gap: layout.containerGap }]}>
+          <View style={[{ gap: layout.containerGap }, styles.roleStats]}>
             <View style={styles.statItem}>
               <FontAwesome6 name="users" iconStyle="solid" size={16} color={colors.mutedText} />
-              <Body style={[styles.statText, { color: colors.mutedText }]}>
+              <Body style={[{ color: colors.mutedText }, styles.statText]}>
                 {role.users.length} users will lose access
               </Body>
             </View>
             <View style={styles.statItem}>
               <FontAwesome6 name="key" iconStyle="solid" size={16} color={colors.mutedText} />
-              <Body style={[styles.statText, { color: colors.mutedText }]}>
+              <Body style={[{ color: colors.mutedText }, styles.statText]}>
                 {role.permissions.length} permissions will be removed
               </Body>
             </View>
@@ -190,7 +190,7 @@ export default function AdminDeleteRoleScreen() {
         {/* Error Display */}
         {deleteError && (
           <Card style={styles.errorCard}>
-            <Body style={[styles.errorText, { color: colors.danger }]}>
+            <Body style={[{ color: colors.danger }, styles.errorText]}>
               {deleteError}
             </Body>
           </Card>

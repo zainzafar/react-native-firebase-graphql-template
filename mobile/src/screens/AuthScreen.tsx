@@ -69,8 +69,8 @@ export default function AuthScreen() {
   };
 
   return (
-    <Screen contentContainerStyle={[styles.container, { gap: layout.containerGap }]}>
-      <View style={[styles.header, { gap: layout.containerGap }]}>
+    <Screen contentContainerStyle={[{ gap: layout.containerGap }, styles.container]}>
+      <View style={[{ gap: layout.containerGap }, styles.header]}>
         <Heading>Let's get started…</Heading>
       </View>
       <Card>

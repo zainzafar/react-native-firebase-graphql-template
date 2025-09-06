@@ -95,7 +95,7 @@ export default function AdminRoleGrantRules() {
     return (
       <Screen>
         <Card style={styles.errorCard}>
-          <Body style={[styles.centerText, { color: colors.mutedText }]}>Role not found</Body>
+          <Body style={[{ color: colors.mutedText }, styles.centerText]}>Role not found</Body>
         </Card>
       </Screen>
     );
@@ -107,8 +107,8 @@ export default function AdminRoleGrantRules() {
         <Card style={styles.noAccessCard}>
           <View style={styles.noAccessContent}>
             <FontAwesome6 name="shield-halved" iconStyle="solid" size={32} color={colors.mutedText} />
-            <Body style={[styles.noAccessTitle, { color: colors.text }]}>No Access</Body>
-            <Body style={[styles.noAccessDescription, { color: colors.mutedText }]}>
+            <Body style={[{ color: colors.text }, styles.noAccessTitle]}>No Access</Body>
+            <Body style={[{ color: colors.mutedText }, styles.noAccessDescription]}>
               You don't have permission to view role grant rules.
             </Body>
           </View>
@@ -134,11 +134,11 @@ export default function AdminRoleGrantRules() {
       {/* Content */}
       <View style={styles.content}>
         {(role.canGrantRolesRules?.length ?? 0) === 0 ? (
-          <Card style={[styles.emptyCard, layout.emptyCard]}>
+          <Card style={[layout.emptyCard, styles.emptyCard]}>
             <View style={styles.emptyContent}>
               <FontAwesome6 name="users" iconStyle="solid" size={32} color={colors.mutedText} />
-              <Body style={[styles.emptyTitle, { color: colors.text }]}>No Role Grant Rules</Body>
-              <Body style={[styles.emptyDescription, { color: colors.mutedText }]}>
+              <Body style={[{ color: colors.text }, styles.emptyTitle]}>No Role Grant Rules</Body>
+              <Body style={[{ color: colors.mutedText }, styles.emptyDescription]}>
                 {canCreateRoleGrants 
                   ? 'Create your first role grant rule to start managing role assignments.'
                   : 'You don\'t have permission to create role grant rules.'
@@ -147,16 +147,16 @@ export default function AdminRoleGrantRules() {
             </View>
           </Card>
         ) : (
-          <View style={[styles.rulesContainer, { gap: layout.containerGap }]}>
+          <View style={[{ gap: layout.containerGap }, styles.rulesContainer]}>
             {(role.canGrantRolesRules ?? []).map((rule) => (
               <Card key={rule.id} style={styles.ruleCard}>
                 <View style={styles.ruleHeader}>
                   <View style={styles.ruleInfo}>
-                    <Body style={[styles.ruleScope, { color: colors.text }]}>
+                    <Body style={[{ color: colors.text }, styles.ruleScope]}>
                       {rule.scope === 'ALL' ? 'All Roles' : rule.granteeRole?.name || 'Unknown'}
                     </Body>
                     {rule.granteeRole?.description && (
-                      <Body style={[styles.ruleDescription, { color: colors.mutedText }]}>
+                      <Body style={[{ color: colors.mutedText }, styles.ruleDescription]}>
                         {rule.granteeRole.description}
                       </Body>
                     )}
@@ -170,24 +170,24 @@ export default function AdminRoleGrantRules() {
                     </Pressable>
                   )}
                 </View>
-                <View style={[styles.ruleDivider, { backgroundColor: colors.border }]} />
+                <View style={[{ backgroundColor: colors.border }, styles.ruleDivider]} />
                 <View style={styles.ruleActions}>
                   {rule.canAssign && (
                     <View style={styles.actionItem}>
                       <FontAwesome6 name="check" iconStyle="solid" size={12} color="#22C55E" />
-                      <Body style={[styles.actionText, { color: colors.mutedText }]}>Assign</Body>
+                      <Body style={[{ color: colors.mutedText }, styles.actionText]}>Assign</Body>
                     </View>
                   )}
                   {rule.canRevoke && (
                     <View style={styles.actionItem}>
                       <FontAwesome6 name="check" iconStyle="solid" size={12} color="#22C55E" />
-                      <Body style={[styles.actionText, { color: colors.mutedText }]}>Revoke</Body>
+                      <Body style={[{ color: colors.mutedText }, styles.actionText]}>Revoke</Body>
                     </View>
                   )}
                   {rule.canManage && (
                     <View style={styles.actionItem}>
                       <FontAwesome6 name="check" iconStyle="solid" size={12} color="#22C55E" />
-                      <Body style={[styles.actionText, { color: colors.mutedText }]}>Manage</Body>
+                      <Body style={[{ color: colors.mutedText }, styles.actionText]}>Manage</Body>
                     </View>
                   )}
                 </View>

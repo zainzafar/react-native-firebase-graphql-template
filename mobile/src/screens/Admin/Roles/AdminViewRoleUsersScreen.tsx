@@ -53,7 +53,7 @@ export default function AdminViewRoleUsers() {
     return (
       <Screen>
         <Card style={styles.errorCard}>
-          <Body style={[styles.centerText, { color: colors.mutedText }]}>Role not found</Body>
+          <Body style={[{ color: colors.mutedText }, styles.centerText]}>Role not found</Body>
         </Card>
       </Screen>
     );
@@ -62,16 +62,16 @@ export default function AdminViewRoleUsers() {
   return (
     <Screen scroll={true} contentContainerStyle={styles.content}>
       {role.users.length === 0 ? (
-        <Card style={[styles.emptyCard, layout.emptyCard]}>
+        <Card style={[layout.emptyCard, styles.emptyCard]}>
           <View style={styles.emptyContainer}>
-            <Body style={[styles.emptyText, { color: colors.mutedText }]}>
+            <Body style={[{ color: colors.mutedText }, styles.emptyText]}>
               No users are currently assigned to this role
             </Body>
           </View>
         </Card>
       ) : (
         <Card style={styles.usersCard}>
-          <View style={[styles.usersContainer, { gap: layout.containerGap }]}>
+          <View style={[{ gap: layout.containerGap }, styles.usersContainer]}>
             {role.users.map((user) => (
               <Pressable 
                 key={user.id}

@@ -83,7 +83,7 @@ export default function PermissionList({
   };
 
   return (
-    <View style={[styles.container, { gap: layout.sectionGap }]}>
+    <View style={[{ gap: layout.sectionGap }, styles.container]}>
       {renderPermissionSection('User Management', userManagement)}
       {renderPermissionSection('System', system)}
     </View>
