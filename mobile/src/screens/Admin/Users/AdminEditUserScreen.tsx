@@ -6,7 +6,8 @@ import { useAppSelector } from '../../../store/hooks';
 import { selectUserPermissions } from '../../../features/auth/selectors';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useMutation, useQuery } from '@apollo/client/react';
-import { MUTATION_ADMIN_UPDATE_USER, MUTATION_ADMIN_UPDATE_USER_PASSWORD, QUERY_ADMIN_GET_USER, MUTATION_ADMIN_RESET_PASSWORD } from '../../../graphql/operations';
+import { MUTATION_ADMIN_UPDATE_USER, MUTATION_ADMIN_UPDATE_USER_PASSWORD, QUERY_ADMIN_GET_USER } from '../../../graphql/operations';
+import { getAuth, sendPasswordResetEmail } from '@react-native-firebase/auth';
 
 export default function AdminEditUserScreen() {
   const { layout } = useTheme();
@@ -53,7 +54,6 @@ export default function AdminEditUserScreen() {
     },
   });
   const [mutatePassword, { loading: passwordLoading }] = useMutation(MUTATION_ADMIN_UPDATE_USER_PASSWORD);
-  const [resetPassword, { loading: resetting }] = useMutation(MUTATION_ADMIN_RESET_PASSWORD);
 
   const user = data?.adminGetUser;
   const [email, setEmail] = useState('');
@@ -67,6 +67,7 @@ export default function AdminEditUserScreen() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [resetSuccess, setResetSuccess] = useState(false);
   const [resetError, setResetError] = useState<string | null>(null);
+  const [resetLoading, setResetLoading] = useState(false);
   const [passwordSaveSuccess, setPasswordSaveSuccess] = useState(false);
   const [passwordSaveError, setPasswordSaveError] = useState<string | null>(null);
   const providerIds = Array.isArray(user?.identities) ? user!.identities.map((p: any) => p.providerId) : [];
@@ -107,16 +108,35 @@ export default function AdminEditUserScreen() {
 
   const onResetPassword = async () => {
     try {
+      setResetLoading(true);
       setResetError(null);
       setResetSuccess(false);
-      await resetPassword({ 
-        variables: { 
-          id: user.id
-        } 
-      });
+      
+      if (!user?.email) {
+        setResetError('User does not have an email address to send reset email to');
+        return;
+      }
+      
+      const auth = getAuth();
+      await sendPasswordResetEmail(auth, user.email);
       setResetSuccess(true);
     } catch (e: any) {
-      setResetError(e?.message || 'Failed to send password reset email');
+      console.error('Password reset error:', e);
+      let errorMessage = 'Failed to send password reset email';
+      
+      if (e?.code === 'auth/user-not-found') {
+        errorMessage = 'No account found with this email address';
+      } else if (e?.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email address';
+      } else if (e?.code === 'auth/too-many-requests') {
+        errorMessage = 'Too many requests. Please try again later';
+      } else if (e?.message) {
+        errorMessage = e.message;
+      }
+      
+      setResetError(errorMessage);
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -229,7 +249,7 @@ export default function AdminEditUserScreen() {
               <Button
                 title="Send password reset email"
                 onPress={onResetPassword}
-                loading={resetting}
+                loading={resetLoading}
                 success={!!resetSuccess}
                 successText="Reset email sent!"
                 error={!!resetError}

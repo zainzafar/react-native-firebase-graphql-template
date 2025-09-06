@@ -163,41 +163,6 @@ export default {
     return true;
   },
 
-  adminResetPassword: async (
-    _parent: unknown,
-    args: { id: string },
-    ctx: AdminContext
-  ) => {
-    const { prisma, user } = ctx;
-    requirePermission(user, 'ADMIN_USERS_UPDATE_PASSWORD');
-
-    // Get user to find their email for Firebase Auth
-    const targetUser = await prisma.user.findUnique({ where: { id: args.id } });
-    if (!targetUser) throw new GraphQLError('User not found', {
-      extensions: { code: 'NOT_FOUND' }
-    });
-
-    if (!targetUser.email) {
-      throw new GraphQLError('User does not have an email address to send reset email to', {
-        extensions: { code: 'BAD_REQUEST' }
-      });
-    }
-
-    // Send password reset email via Firebase Auth
-    try {
-      await getFirebaseAuth().generatePasswordResetLink(targetUser.email);
-      // Note: Firebase Admin SDK doesn't actually send the email, it just generates the link
-      // In a real implementation, you'd want to send the email via your email service
-      // For now, we'll simulate success
-    } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : 'Failed to send password reset email';
-      throw new GraphQLError(message, {
-        extensions: { code: 'INTERNAL_SERVER_ERROR' }
-      });
-    }
-
-    return true; // Return success indicator
-  },
 
   adminSetUserRole: async (
     _parent: unknown,

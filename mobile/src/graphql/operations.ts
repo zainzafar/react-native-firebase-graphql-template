@@ -101,12 +101,6 @@ export const MUTATION_ADMIN_DELETE_USER = gql`
   }
 `;
 
-export const MUTATION_ADMIN_RESET_PASSWORD = gql`
-  mutation AdminResetPassword($id: ID!) {
-    adminResetPassword(id: $id)
-  }
-`;
-
 // Roles & Permissions admin operations
 export const QUERY_ADMIN_LIST_MANAGEABLE_ROLES = gql`
   query AdminListManageableRoles {
