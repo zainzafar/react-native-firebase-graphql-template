@@ -110,7 +110,7 @@ export default function AdminManageUsersScreen() {
         <View style={styles.rowActions}>
           {[
             ...(canImpersonateUsers ? [{ key: 'imp', title: 'Impersonate', onPress: () => {} }] : []),
-            ...(canEditUsers ? [{ key: 'edit', title: 'Edit', onPress: () => navigation.navigate('AdminEditUser', { id: u.id }) }] : []),
+            ...(canEditUsers ? [{ key: 'edit', title: 'Edit', onPress: () => navigation.navigate('AdminUserDetail', { id: u.id }) }] : []),
           ].map((action) => (
             <View key={action.key} style={styles.actionCol}>
               <Button

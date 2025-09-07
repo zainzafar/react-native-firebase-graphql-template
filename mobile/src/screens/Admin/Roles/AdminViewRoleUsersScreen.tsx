@@ -75,7 +75,7 @@ export default function AdminViewRoleUsers() {
             {role.users.map((user) => (
               <Pressable 
                 key={user.id}
-                onPress={() => navigation.navigate('AdminEditUserAccess', { id: user.id })}
+                onPress={() => navigation.navigate('AdminUserDetail', { id: user.id })}
                 style={styles.userRow}
               >
                 <View style={styles.userInfo}>

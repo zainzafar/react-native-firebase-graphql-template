@@ -8,7 +8,9 @@ import AuthScreen from '../screens/AuthScreen';
 import DebugScreen from '../screens/Admin/DebugScreen';
 import AdminHomeScreen from '../screens/Admin/AdminHomeScreen';
 import AdminManageUsersScreen from '../screens/Admin/Users/AdminManageUsersScreen';
-import AdminEditUserScreen from '../screens/Admin/Users/AdminEditUserScreen';
+import AdminUserDetailScreen from '../screens/Admin/Users/AdminUserDetailScreen';
+import AdminEditUserBasicInfoScreen from '../screens/Admin/Users/AdminEditUserBasicInfoScreen';
+import AdminEditUserSecurityScreen from '../screens/Admin/Users/AdminEditUserSecurityScreen';
 import AdminDeleteUserScreen from '../screens/Admin/Users/AdminDeleteUserScreen';
 import AdminEditUserAccessScreen from '../screens/Admin/Users/AdminEditUserAccessScreen';
 import AdminRolesScreen from '../screens/Admin/Roles/AdminRolesScreen';
@@ -81,7 +83,9 @@ function SettingsStack() {
       {/* Admin screens */}
       <Stack.Screen name="AdminHome" component={AdminHomeScreen} options={{ headerShown: true, title: 'Admin' }} />
       <Stack.Screen name="AdminManageUsers" component={AdminManageUsersScreen} options={{ headerShown: true, title: 'Manage Users' }} />
-      <Stack.Screen name="AdminEditUser" component={AdminEditUserScreen} options={{ headerShown: true, title: 'Edit User' }} />
+      <Stack.Screen name="AdminUserDetail" component={AdminUserDetailScreen} options={{ headerShown: true, title: 'User Details' }} />
+      <Stack.Screen name="AdminEditUserBasicInfo" component={AdminEditUserBasicInfoScreen} options={{ headerShown: true, title: 'Basic Information' }} />
+      <Stack.Screen name="AdminEditUserSecurity" component={AdminEditUserSecurityScreen} options={{ headerShown: true, title: 'Security' }} />
       <Stack.Screen name="AdminEditUserAccess" component={AdminEditUserAccessScreen} options={{ headerShown: true, title: 'Roles & Permissions' }} />
       <Stack.Screen name="AdminDeleteUser" component={AdminDeleteUserScreen} options={{ headerShown: true, title: 'Delete User' }} />
       <Stack.Screen name="AdminRoles" component={AdminRolesScreen} options={{ headerShown: true, title: 'Roles & Permissions' }} />
