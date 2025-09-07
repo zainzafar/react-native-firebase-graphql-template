@@ -78,7 +78,7 @@ export function InlineLoader({ text }: { text?: string }) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, padding: 16, justifyContent: 'center' },
-  card: { borderWidth: 1, borderRadius: 16, padding: 20, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 2 },
+  card: { borderWidth: 1, borderRadius: 16, padding: 20, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 1, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
   heading: { fontSize: 24, fontWeight: '700', letterSpacing: 0.3 },
   body: { fontSize: 14 },
   input: { borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 16 },
