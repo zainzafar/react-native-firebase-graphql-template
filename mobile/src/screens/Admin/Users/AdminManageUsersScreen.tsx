@@ -85,33 +85,35 @@ export default function AdminManageUsersScreen() {
     };
     const signupStr = formatTimestamp((u as any).createdAt);
     return (
-      <Card style={[{ gap: layout.formGap }, styles.row]}>
-        <Pressable 
-          onPress={() => canViewUserDetails && navigation.navigate('AdminUserDetail', { id: u.id })}
-          disabled={!canViewUserDetails}
-          style={[styles.rowHeader, !canViewUserDetails && styles.disabledRow]}
-        >
-          <View style={styles.headerLeft}>
-            <UserIdentityRow 
-              email={u.email} 
-              phoneNumber={u.phoneNumber} 
-              identities={u.identities}
-              style={styles.userIdentity}
-            />
+      <Pressable 
+        onPress={() => canViewUserDetails && navigation.navigate('AdminUserDetail', { id: u.id })}
+        disabled={!canViewUserDetails}
+        style={[!canViewUserDetails && styles.disabledCard]}
+      >
+        <Card style={[{ gap: layout.formGap }, styles.row]}>
+          <View style={styles.rowHeader}>
+            <View style={styles.headerLeft}>
+              <UserIdentityRow 
+                email={u.email} 
+                phoneNumber={u.phoneNumber} 
+                identities={u.identities}
+                style={styles.userIdentity}
+              />
+            </View>
+            <View style={styles.headerRight}>
+              {canViewUserDetails && (
+                <FontAwesome6 name="chevron-right" iconStyle="solid" size={16} color={colors.mutedText} />
+              )}
+            </View>
           </View>
-          <View style={styles.headerRight}>
-            {canViewUserDetails && (
-              <FontAwesome6 name="chevron-right" iconStyle="solid" size={16} color={colors.mutedText} />
-            )}
+          <View style={[{ gap: layout.containerGapSmall }, styles.meta]}>
+            {u.displayName ? <Body style={styles.metaText}>{u.displayName}</Body> : null}
+            {u.phoneNumber ? <Body style={styles.metaText}>{formatPhone(u.phoneNumber)}</Body> : null}
+            <Body style={styles.metaText}>ID: {u.uid}</Body>
+            {signupStr ? <Body style={styles.metaText}>Signed up: {signupStr}</Body> : null}
           </View>
-        </Pressable>
-        <View style={[{ gap: layout.containerGap }, styles.meta]}>
-          {u.displayName ? <Body style={styles.metaText}>{u.displayName}</Body> : null}
-          {u.phoneNumber ? <Body style={styles.metaText}>{formatPhone(u.phoneNumber)}</Body> : null}
-          <Body style={styles.metaText}>ID: {u.uid}</Body>
-          {signupStr ? <Body style={styles.metaText}>Signed up: {signupStr}</Body> : null}
-        </View>
-      </Card>
+        </Card>
+      </Pressable>
     );
   };
 
@@ -193,7 +195,7 @@ const styles = StyleSheet.create({
   userIdentity: { flexShrink: 1 },
   meta: { },
   metaText: { opacity: 0.7 },
-  disabledRow: { opacity: 0.6 },
+  disabledCard: { opacity: 0.6 },
   headerLoader: { paddingVertical: 0, alignItems: 'center' },
   footerLoader: { paddingVertical: 16, alignItems: 'center' },
   emptyState: { paddingTop: 40, alignItems: 'center' },

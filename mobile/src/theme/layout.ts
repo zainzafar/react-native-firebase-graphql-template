@@ -14,6 +14,7 @@ export const layout = {
   
   // Standardized container gaps
   containerGap: 12,        // Standard gap for most containers
+  containerGapSmall: 8,    // Smaller gap for compact containers
   cardGap: 16,            // Standard gap for card content
   formGap: 12,            // Standard gap for forms
   menuGap: 16,            // Standard gap for menu items
