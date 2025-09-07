@@ -11,6 +11,7 @@ interface BottomSheetProps {
   maxHeight?: number; // Maximum percentage of screen height (0-1)
   autoSize?: boolean; // Whether to automatically size based on content (default: true)
   title?: string;
+  dismissible?: boolean; // Whether the sheet can be dismissed (default: true)
 }
 
 export default function BottomSheet({ 
@@ -21,7 +22,8 @@ export default function BottomSheet({
   minHeight = 0.25,
   maxHeight = 0.5,
   autoSize = true,
-  title 
+  title,
+  dismissible = true
 }: BottomSheetProps) {
   const { colors } = useTheme();
   const screenHeight = Dimensions.get('window').height;
@@ -31,12 +33,24 @@ export default function BottomSheet({
   // Calculate dynamic height based on measured content or fixed height
   // Add padding for ScrollView content container and bottom sheet spacing
   const contentPadding = 60; // Extra padding for ScrollView and container spacing
-  const calculatedHeight = autoSize && isContentMeasured
-    ? Math.max(
-        screenHeight * Math.min(minHeight, maxHeight), // Use the smaller of min/max as the minimum
-        Math.min(contentHeight + contentPadding, screenHeight * Math.max(minHeight, maxHeight)) // Use the larger as the maximum
-      )
-    : screenHeight * height;
+  
+  // When not dismissible, always use 100% height
+  let calculatedHeight: number;
+  if (!dismissible) {
+    calculatedHeight = screenHeight;
+  } else {
+    // Use the passed props for dismissible sheets
+    const effectiveMinHeight = minHeight;
+    const effectiveMaxHeight = maxHeight;
+    const effectiveHeight = height;
+    
+    calculatedHeight = autoSize && isContentMeasured
+      ? Math.max(
+          screenHeight * Math.min(effectiveMinHeight, effectiveMaxHeight), // Use the smaller of min/max as the minimum
+          Math.min(contentHeight + contentPadding, screenHeight * Math.max(effectiveMinHeight, effectiveMaxHeight)) // Use the larger as the maximum
+        )
+      : screenHeight * effectiveHeight;
+  }
   
   const sheetInitialY = Math.round(screenHeight - calculatedHeight);
   const sheetTranslateY = useRef(new Animated.Value(sheetInitialY)).current;
@@ -62,12 +76,14 @@ export default function BottomSheet({
   }, [visible, sheetInitialY, sheetTranslateY]);
 
   const panResponder = PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onMoveShouldSetPanResponder: (_e, g) => Math.abs(g.dy) > 4,
+    onStartShouldSetPanResponder: () => dismissible,
+    onMoveShouldSetPanResponder: (_e, g) => dismissible && Math.abs(g.dy) > 4,
     onPanResponderMove: (_e, g) => { 
-      if (g.dy > 0) sheetTranslateY.setValue(g.dy); 
+      if (dismissible && g.dy > 0) sheetTranslateY.setValue(g.dy); 
     },
     onPanResponderRelease: (_e, g) => {
+      if (!dismissible) return;
+      
       if (g.dy > 120) {
         Animated.timing(sheetTranslateY, { 
           toValue: sheetInitialY, 
@@ -89,18 +105,18 @@ export default function BottomSheet({
       visible={visible}
       transparent
       animationType="none"
-      onRequestClose={onClose}
+      onRequestClose={dismissible ? onClose : undefined}
       presentationStyle="overFullScreen"
     >
       <Pressable
         style={styles.modalBackdrop}
-        onPress={() => {
+        onPress={dismissible ? () => {
           Animated.timing(sheetTranslateY, { 
             toValue: sheetInitialY, 
             duration: 180, 
             useNativeDriver: true 
           }).start(() => onClose());
-        }}
+        } : undefined}
       >
         <Animated.View
           style={[
@@ -113,9 +129,11 @@ export default function BottomSheet({
             },
           ]}
         >
-          <View style={styles.dragHandleContainer} {...panResponder.panHandlers}>
-            <View style={[{ backgroundColor: colors.border }, styles.dragHandle]} />
-          </View>
+          {dismissible && (
+            <View style={styles.dragHandleContainer} {...panResponder.panHandlers}>
+              <View style={[{ backgroundColor: colors.border }, styles.dragHandle]} />
+            </View>
+          )}
           
           {title && (
             <View style={styles.titleContainer}>
@@ -166,6 +184,7 @@ const styles = StyleSheet.create({
   },
   titleContainer: {
     paddingHorizontal: 16,
+    paddingTop: 16,
     paddingBottom: 8,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0,0,0,0.1)',
@@ -173,12 +192,15 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '600',
+    textAlign: 'center',
   },
   content: { 
     flex: 1 
   },
   contentContainer: { 
     paddingVertical: 8, 
-    paddingBottom: 16
+    paddingBottom: 16,
+    flexGrow: 1,
+    justifyContent: 'center',
   },
 });

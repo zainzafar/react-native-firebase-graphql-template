@@ -219,6 +219,7 @@ model AppVersionRule {
   forceAt        DateTime?
   message        String?
   storeUrl       String
+  softSnoozeSeconds Int?     @default(3600)
 
   isActive       Boolean     @default(false)
 

@@ -27,6 +27,7 @@ export default function AdminCreateAppReleaseScreen() {
     forceAt: '',
     message: '',
     storeUrl: '',
+    softSnoozeSeconds: 3600,
     isActive: false,
   });
 
@@ -39,7 +40,7 @@ export default function AdminCreateAppReleaseScreen() {
   });
 
   // Check if form is valid for button disabled state
-  const isFormValid = formData.minVersion.trim() && formData.latestVersion.trim() && formData.storeUrl.trim();
+  const isFormValid = formData.minVersion.trim() && formData.latestVersion.trim();
 
   const handleSubmit = async () => {
     try {
@@ -54,6 +55,7 @@ export default function AdminCreateAppReleaseScreen() {
             forceAt: (formData.enforced || !formData.enforceAtFutureDate) ? null : formData.forceAt.trim() || null,
             message: formData.message.trim() || null,
             storeUrl: formData.storeUrl.trim(),
+            softSnoozeSeconds: formData.softSnoozeSeconds,
             isActive: formData.isActive,
           },
         },

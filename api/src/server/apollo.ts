@@ -19,7 +19,8 @@ import type { AuthContextUser } from '../services/firebaseAdmin';
 // Whitelist of operations that don't require authentication
 const UNAUTHENTICATED_OPERATIONS = [
   'loginWithIdToken',
-  'IntrospectionQuery'
+  'IntrospectionQuery',
+  'appSettings'
   // Add other operations that don't need auth here
 ];
 

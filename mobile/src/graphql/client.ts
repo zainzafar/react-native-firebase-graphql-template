@@ -7,6 +7,7 @@ import { handleHardSignOut, refreshAppToken } from '../auth/session';
 import { getAccessToken } from '../auth/tokenStorage';
 import { Platform } from 'react-native';
 import { Observable } from '@apollo/client/utilities';
+import uuidv4 from 'react-native-uuid';
 
 const rawUrl = (Config.GRAPHQL_API_URL || '').replace(/\/$/, '');
 // Android emulator/device cannot reach host's localhost; remap to 10.0.2.2
@@ -126,6 +127,7 @@ const buildFragmentsMap = (definitions: readonly any[]): any => {
 // Development logging link - only active in __DEV__ mode
 const devLoggingLink = new ApolloLink((operation, forward) => {
   if (__DEV__) {
+    const operationId = uuidv4.v4()
     const startTime = Date.now();
     const operationType = operation.query.definitions[0]?.kind === 'OperationDefinition' 
       ? operation.query.definitions[0].operation 
@@ -142,23 +144,23 @@ const devLoggingLink = new ApolloLink((operation, forward) => {
       ? extractFieldNames(operationDef.selectionSet, fragments) // Full fragments map for resolved view
       : [];
     
-    console.log(`🚀 [GraphQL ${operationType.toUpperCase()}] ${operationName}`);
+    console.log(`🚀 [GraphQL ${operationType.toUpperCase()}] ${operationName} [${operationId}]`);
     if (rawFieldNames.length > 0) {
-      console.log('🔍 Fields:', rawFieldNames.join(', '));
+      console.log(`🔍 [${operationId}] Fields:`, rawFieldNames.join(', '));
     }
     if (resolvedFieldNames.length > 0 && JSON.stringify(rawFieldNames) !== JSON.stringify(resolvedFieldNames)) {
-      console.log('🔍 Fields with resolved fragments:', resolvedFieldNames.join(', '));
+      console.log(`🔍 [${operationId}] Fields with resolved fragments:`, resolvedFieldNames.join(', '));
     }
-    console.log('📤 Variables:', JSON.stringify(operation.variables, null, 2));
+    console.log(`📤 [${operationId}] Variables:`, JSON.stringify(operation.variables, null, 2));
     
     return new Observable(observer => {
       const subscription = forward(operation).subscribe({
         next: (result) => {
           const duration = Date.now() - startTime;
-          console.log(`📥 [GraphQL ${operationType.toUpperCase()}] ${operationName} completed in ${duration}ms`);
+          console.log(`📥 [GraphQL ${operationType.toUpperCase()}] ${operationName} [${operationId}] completed in ${duration}ms`);
           
           if (result.errors) {
-            console.log('❌ Errors:', JSON.stringify(result.errors, null, 2));
+            console.log(`❌ [${operationId}] Errors:`, JSON.stringify(result.errors, null, 2));
           }
           
           if (result.data) {
@@ -167,15 +169,15 @@ const devLoggingLink = new ApolloLink((operation, forward) => {
             const truncatedData = dataSummary.length > 1000 
               ? dataSummary.substring(0, 1000) + '... (truncated)'
               : dataSummary;
-            console.log('✅ Response:', truncatedData);
+            console.log(`✅ [${operationId}] Response:`, truncatedData);
           }
           
           observer.next(result);
         },
         error: (error) => {
           const duration = Date.now() - startTime;
-          console.log(`❌ [GraphQL ${operationType.toUpperCase()}] ${operationName} failed after ${duration}ms`);
-          console.log('❌ Error:', error);
+          console.log(`❌ [GraphQL ${operationType.toUpperCase()}] ${operationName} [${operationId}] failed after ${duration}ms`);
+          console.log(`❌ [${operationId}] Error:`, error);
           observer.error(error);
         },
         complete: () => {

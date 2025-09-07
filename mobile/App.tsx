@@ -17,6 +17,7 @@ import { apolloClient } from './src/graphql/client';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { persistor, store } from './src/store';
+import { UpdateBottomSheet, useAppUpdateGate } from './src/update';
 
 function AppContent() {
   const { isDark } = useTheme();
@@ -36,12 +37,30 @@ function AppContent() {
                 <AuthProvider>
                   <RootNavigator />
                 </AuthProvider>
+                <AppUpdateGate />
               </ApolloProvider>
             </PersistGate>
           </Provider>
         </NavigationContainer>
       </SafeAreaProvider>
     </GestureHandlerRootView>
+  );
+}
+
+function AppUpdateGate() {
+  const { gate, openStore, snoozeSoft, skip } = useAppUpdateGate();
+
+  return (
+    <UpdateBottomSheet
+      visible={gate.hard || gate.soft}
+      hard={gate.hard}
+      message={gate.message}
+      canSkip={gate.canSkip}
+      onUpdate={openStore}
+      onLater={!gate.hard ? snoozeSoft : undefined}
+      onSkip={gate.canSkip ? skip : undefined}
+      onClose={!gate.hard ? snoozeSoft : undefined}
+    />
   );
 }
 

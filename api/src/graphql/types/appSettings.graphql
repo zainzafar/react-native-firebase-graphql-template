@@ -11,6 +11,7 @@ type AppSettings {
   forceAt: String
   message: String
   storeUrl: String!
+  softSnoozeSeconds: Int
 }
 
 type AppVersionRule {
@@ -23,6 +24,7 @@ type AppVersionRule {
   message: String
   storeUrl: String!
   isActive: Boolean!
+  softSnoozeSeconds: Int
   createdAt: Timestamp!
   updatedAt: Timestamp!
 }
@@ -35,6 +37,7 @@ input CreateAppVersionRuleInput {
   forceAt: String
   message: String
   storeUrl: String!
+  softSnoozeSeconds: Int
   isActive: Boolean = false
 }
 
@@ -45,6 +48,7 @@ input UpdateAppVersionRuleInput {
   forceAt: String
   message: String
   storeUrl: String
+  softSnoozeSeconds: Int
   isActive: Boolean
 }
 

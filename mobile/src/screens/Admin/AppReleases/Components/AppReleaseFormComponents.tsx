@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, TextInput, Switch } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTheme } from '../../../../theme/ThemeProvider';
 import { Body, Button, Input } from '../../../../components';
+import { useAppUpdateGate } from '../../../../update/useAppUpdateGate';
 
 type AppPlatform = 'ios' | 'android';
 
@@ -15,6 +16,7 @@ interface FormData {
   forceAt: string;
   message: string;
   storeUrl: string;
+  softSnoozeSeconds: number;
   isActive: boolean;
 }
 
@@ -150,18 +152,68 @@ const LatestVersionField = ({ formData, updateFormData, activeRules }: Pick<AppR
 
 const StoreUrlField = ({ formData, updateFormData }: Pick<AppReleaseFormComponentsProps, 'formData' | 'updateFormData'>) => {
   const { colors, typography } = useTheme();
+  const { getCachedSettings } = useAppUpdateGate();
+  
+  const getDefaultPlaceholder = (platform?: AppPlatform) => {
+    if (platform === 'ios') return 'https://apps.apple.com/app/id123456';
+    if (platform === 'android') return 'https://play.google.com/store/apps/details?id=com.example.app';
+    return 'https://apps.apple.com/app/id123456'; // fallback
+  };
+  
+  const [placeholder, setPlaceholder] = useState(getDefaultPlaceholder(formData.platform));
+
+  useEffect(() => {
+    const loadPlaceholder = async () => {
+      try {
+        const cachedSettings = await getCachedSettings();
+        if (cachedSettings?.storeUrl) {
+          setPlaceholder(cachedSettings.storeUrl);
+        } else {
+          setPlaceholder(getDefaultPlaceholder(formData.platform));
+        }
+      } catch (error) {
+        console.warn('Failed to load cached store URL:', error);
+        setPlaceholder(getDefaultPlaceholder(formData.platform));
+      }
+    };
+    loadPlaceholder();
+  }, [getCachedSettings, formData.platform]);
 
   return (
     <View style={styles.formSection}>
-      <Body style={[{ color: colors.text, fontSize: typography.sizes.label, fontWeight: typography.weights.semiBold }, styles.formLabel]}>Store URL *</Body>
+      <Body style={[{ color: colors.text, fontSize: typography.sizes.label, fontWeight: typography.weights.semiBold }, styles.formLabel]}>Store URL</Body>
       <Body style={[{ color: colors.mutedText, fontSize: typography.sizes.caption, lineHeight: typography.lineHeights.tight }, styles.helperText]}>
         The app store URL for downloading the update
       </Body>
       <Input
         value={formData.storeUrl}
         onChangeText={(text) => updateFormData('storeUrl', text)}
-        placeholder="https://apps.apple.com/app/id123456"
+        placeholder={placeholder}
         keyboardType="url"
+      />
+    </View>
+  );
+};
+
+const SoftSnoozeField = ({ formData, updateFormData }: Pick<AppReleaseFormComponentsProps, 'formData' | 'updateFormData'>) => {
+  const { colors, typography } = useTheme();
+
+  return (
+    <View style={styles.formSection}>
+      <Body style={[{ color: colors.text, fontSize: typography.sizes.label, fontWeight: typography.weights.semiBold }, styles.formLabel]}>Soft Snooze Duration (seconds)</Body>
+      <Body style={[{ color: colors.mutedText, fontSize: typography.sizes.caption, lineHeight: typography.lineHeights.tight }, styles.helperText]}>
+        How long to snooze soft update prompts (default: 3600 = 1 hour)
+      </Body>
+      <Input
+        value={formData.softSnoozeSeconds.toString()}
+        onChangeText={(text) => {
+          const num = parseInt(text, 10);
+          if (!isNaN(num) && num >= 0) {
+            updateFormData('softSnoozeSeconds', num);
+          }
+        }}
+        placeholder="3600"
+        keyboardType="numeric"
       />
     </View>
   );
@@ -234,6 +286,7 @@ export const AppReleaseForm = ({ formData, updateFormData, activeRules, selected
       <MinimumVersionField formData={formData} updateFormData={updateFormData} />
       <LatestVersionField formData={formData} updateFormData={updateFormData} activeRules={activeRules} />
       <StoreUrlField formData={formData} updateFormData={updateFormData} />
+      <SoftSnoozeField formData={formData} updateFormData={updateFormData} />
       <UpdateMessageField formData={formData} updateFormData={updateFormData} />
       <FormToggle field="isActive" label="Set as Active" description="Whether this rule should be active immediately" formData={formData} updateFormData={updateFormData} />
     </View>

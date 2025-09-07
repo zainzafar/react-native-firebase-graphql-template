@@ -196,6 +196,7 @@ export const QUERY_ADMIN_LIST_APP_VERSION_RULES = gql`
       forceAt
       message
       storeUrl
+      softSnoozeSeconds
       isActive
       createdAt
       updatedAt
@@ -214,6 +215,7 @@ export const QUERY_ADMIN_GET_APP_VERSION_RULE = gql`
       forceAt
       message
       storeUrl
+      softSnoozeSeconds
       isActive
       createdAt
       updatedAt
@@ -231,6 +233,7 @@ export const MUTATION_ADMIN_CREATE_APP_VERSION_RULE = gql`
       forceAt
       message
       storeUrl
+      softSnoozeSeconds
     }
   }
 `;
@@ -246,6 +249,7 @@ export const MUTATION_ADMIN_UPDATE_APP_VERSION_RULE = gql`
       forceAt
       message
       storeUrl
+      softSnoozeSeconds
       isActive
       createdAt
       updatedAt
@@ -269,6 +273,7 @@ export const MUTATION_ADMIN_SET_ACTIVE_APP_VERSION_RULE = gql`
       forceAt
       message
       storeUrl
+      softSnoozeSeconds
     }
   }
 `;
@@ -417,6 +422,22 @@ export const MUTATION_ADMIN_CREATE_PERMISSION_GRANT_RULE = gql`
 export const MUTATION_ADMIN_DELETE_PERMISSION_GRANT_RULE = gql`
   mutation AdminDeletePermissionGrantRule($id: ID!) {
     adminDeletePermissionGrantRule(id: $id)
+  }
+`;
+
+// Public app settings query (no auth required)
+export const QUERY_APP_SETTINGS = gql`
+  query AppSettings($platform: AppPlatform!) {
+    appSettings(platform: $platform) {
+      platform
+      minVersion
+      latestVersion
+      enforced
+      forceAt
+      message
+      storeUrl
+      softSnoozeSeconds
+    }
   }
 `;
 

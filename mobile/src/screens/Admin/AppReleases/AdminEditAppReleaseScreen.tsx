@@ -26,6 +26,7 @@ type AppVersionRule = {
   forceAt?: string;
   message?: string;
   storeUrl: string;
+  softSnoozeSeconds?: number;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -47,6 +48,7 @@ export default function AdminEditAppReleaseScreen() {
     forceAt: '',
     message: '',
     storeUrl: '',
+    softSnoozeSeconds: 3600,
     isActive: false,
   });
 
@@ -58,7 +60,7 @@ export default function AdminEditAppReleaseScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
 
   // Check if form is valid for button disabled state
-  const isFormValid = formData.minVersion.trim() && formData.latestVersion.trim() && formData.storeUrl.trim();
+  const isFormValid = formData.minVersion.trim() && formData.latestVersion.trim();
 
   // Query to get the rule
   const { data: ruleData, loading: ruleLoading } = useQuery<{ adminGetAppVersionRule: AppVersionRule }>(
@@ -93,6 +95,7 @@ export default function AdminEditAppReleaseScreen() {
         forceAt: rule.forceAt || '',
         message: rule.message || '',
         storeUrl: rule.storeUrl,
+        softSnoozeSeconds: rule.softSnoozeSeconds || 3600,
         isActive: rule.isActive,
       });
       
@@ -116,6 +119,7 @@ export default function AdminEditAppReleaseScreen() {
             forceAt: (formData.enforced || !formData.enforceAtFutureDate) ? null : formData.forceAt.trim() || null,
             message: formData.message.trim() || null,
             storeUrl: formData.storeUrl.trim(),
+            softSnoozeSeconds: formData.softSnoozeSeconds,
             isActive: formData.isActive,
           },
         },

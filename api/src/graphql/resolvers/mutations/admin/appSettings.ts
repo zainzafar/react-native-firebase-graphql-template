@@ -69,6 +69,7 @@ export default {
           forceAt: input.forceAt ? new Date(input.forceAt) : null,
           message: input.message ?? null,
           storeUrl: input.storeUrl,
+          softSnoozeSeconds: input.softSnoozeSeconds ?? 3600,
           isActive: !!input.isActive
         }
       });
@@ -108,6 +109,7 @@ export default {
       if (args.input.forceAt !== undefined) updateData.forceAt = args.input.forceAt ? new Date(args.input.forceAt) : null;
       if (args.input.message !== undefined) updateData.message = args.input.message;
       if (args.input.storeUrl !== undefined) updateData.storeUrl = args.input.storeUrl;
+      if (args.input.softSnoozeSeconds !== undefined) updateData.softSnoozeSeconds = args.input.softSnoozeSeconds;
       if (args.input.isActive !== undefined) updateData.isActive = args.input.isActive;
       
       const updated = await tx.appVersionRule.update({

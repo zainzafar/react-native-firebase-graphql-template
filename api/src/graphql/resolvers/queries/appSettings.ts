@@ -13,7 +13,10 @@ function toAppSettings(rule: any, platform: AppPlatform) {
       enforced: false,
       forceAt: null,
       message: null,
-      storeUrl: 'https://example.com'
+      storeUrl: platform === 'ios' 
+        ? (process.env.IOS_APP_STORE_URL || 'https://apps.apple.com')
+        : (process.env.ANDROID_PLAY_STORE_URL || 'https://play.google.com'),
+      softSnoozeSeconds: 3600 // Default to 1 hour
     };
   }
   return {
@@ -23,21 +26,17 @@ function toAppSettings(rule: any, platform: AppPlatform) {
     enforced: rule.enforced,
     forceAt: rule.forceAt ? rule.forceAt.toISOString?.() ?? rule.forceAt : null,
     message: rule.message,
-    storeUrl: rule.storeUrl
+    storeUrl: rule.storeUrl,
+    softSnoozeSeconds: rule.softSnoozeSeconds ?? 3600 // Default to 1 hour
   };
 }
 
 export default {
   appSettings: async (_: any, args: { platform: AppPlatform }, ctx: any) => {
-    const active = await prisma.appVersionRule.findFirst({
+    const rule = await prisma.appVersionRule.findFirst({
       where: { platform: args.platform, isActive: true }
     });
-    const rule = active ?? await prisma.appVersionRule.findFirst({
-      where: { platform: args.platform },
-      orderBy: { createdAt: 'desc' }
-    });
 
-    ctx?.res?.set?.('Cache-Control', 'public, max-age=300');
     return toAppSettings(rule, args.platform);
   }
 };
