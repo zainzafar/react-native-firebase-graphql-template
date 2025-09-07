@@ -115,25 +115,23 @@ export function Screen({
 
   const offlineIndicatorStyle: ViewStyle = { marginTop: !hasHeader ? topInset : 0 };
   return (
-    <>
+    <SafeAreaView style={containerStyle} edges={safeAreaEdges}>
       <OfflineIndicator style={offlineIndicatorStyle} />
-      <SafeAreaView style={containerStyle} edges={safeAreaEdges}>
-        {scroll ? (
-          <ScrollView
-            style={styles.scroll}
-            contentContainerStyle={scrollContent}
-            showsVerticalScrollIndicator={showScrollIndicator}
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode="on-drag"
-            contentInsetAdjustmentBehavior="never"
-          >
-            {children}
-          </ScrollView>
-        ) : (
-          <View style={staticContent}>{children}</View>
-        )}
-      </SafeAreaView>
-    </>
+      {scroll ? (
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={scrollContent}
+          showsVerticalScrollIndicator={showScrollIndicator}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          contentInsetAdjustmentBehavior="never"
+        >
+          {children}
+        </ScrollView>
+      ) : (
+        <View style={staticContent}>{children}</View>
+      )}
+    </SafeAreaView>
   );
 }
 

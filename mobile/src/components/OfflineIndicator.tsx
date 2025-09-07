@@ -35,6 +35,8 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 16,
     alignItems: 'center',
+    borderRadius: 16,
+    marginVertical: 16,
   },
   text: {
     fontSize: typography.sizes.bodySmall,
