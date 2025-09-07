@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, TextInput, View, Pressable, RefreshControl } from 'react-native';
-import { Body, Button, Card, Screen, InlineLoader, UserIdentityRow } from '../../../components';
+import { Body, Card, Screen, InlineLoader, UserIdentityRow } from '../../../components';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { useQuery } from '@apollo/client/react';
 import { QUERY_ADMIN_LIST_USERS } from '../../../graphql/operations';
@@ -30,10 +30,10 @@ export default function AdminManageUsersScreen() {
   const debounceRef = useRef<any>(null);
 
   // Permission checks
-  const { canUpdateUserProfile, canUpdateUserPassword, canDeleteUsers, canImpersonateUsers, canSearchUsers } = usePermissions();
+  const { canViewUsers, canSearchUsers, canUpdateUserProfile, canUpdateUserPassword, canDeleteUsers, canImpersonateUsers } = usePermissions();
   
-  // Show edit button if user can update profile or password
-  const canEditUsers = canUpdateUserProfile || canUpdateUserPassword;
+  // Show chevron if user has any permission that would show cards on the detail screen
+  const canViewUserDetails = canViewUsers || canUpdateUserProfile || canUpdateUserPassword || canDeleteUsers || canImpersonateUsers;
 
   const { data, loading, fetchMore, refetch } = useQuery<AdminListUsersQuery>(QUERY_ADMIN_LIST_USERS, {
     variables: { query: debounced || undefined, first: USERS_PER_PAGE, after: null },
@@ -86,7 +86,11 @@ export default function AdminManageUsersScreen() {
     const signupStr = formatTimestamp((u as any).createdAt);
     return (
       <Card style={[{ gap: layout.formGap }, styles.row]}>
-        <View style={styles.rowHeader}>
+        <Pressable 
+          onPress={() => canViewUserDetails && navigation.navigate('AdminUserDetail', { id: u.id })}
+          disabled={!canViewUserDetails}
+          style={[styles.rowHeader, !canViewUserDetails && styles.disabledRow]}
+        >
           <View style={styles.headerLeft}>
             <UserIdentityRow 
               email={u.email} 
@@ -95,32 +99,17 @@ export default function AdminManageUsersScreen() {
               style={styles.userIdentity}
             />
           </View>
-          {canDeleteUsers && (
-            <Pressable onPress={() => navigation.navigate('AdminDeleteUser', { id: u.uid })} hitSlop={8} style={styles.deleteIconButton}>
-              <FontAwesome6 name="trash-can" iconStyle="regular" size={16} color="#EF4444" />
-            </Pressable>
-          )}
-        </View>
+          <View style={styles.headerRight}>
+            {canViewUserDetails && (
+              <FontAwesome6 name="chevron-right" iconStyle="solid" size={16} color={colors.mutedText} />
+            )}
+          </View>
+        </Pressable>
         <View style={[{ gap: layout.containerGap }, styles.meta]}>
           {u.displayName ? <Body style={styles.metaText}>{u.displayName}</Body> : null}
           {u.phoneNumber ? <Body style={styles.metaText}>{formatPhone(u.phoneNumber)}</Body> : null}
           <Body style={styles.metaText}>ID: {u.uid}</Body>
           {signupStr ? <Body style={styles.metaText}>Signed up: {signupStr}</Body> : null}
-        </View>
-        <View style={styles.rowActions}>
-          {[
-            ...(canImpersonateUsers ? [{ key: 'imp', title: 'Impersonate', onPress: () => {} }] : []),
-            ...(canEditUsers ? [{ key: 'edit', title: 'Edit', onPress: () => navigation.navigate('AdminUserDetail', { id: u.id }) }] : []),
-          ].map((action) => (
-            <View key={action.key} style={styles.actionCol}>
-              <Button
-                title={action.title}
-                variant="ghost"
-                onPress={action.onPress}
-                style={[styles.actionButton]}
-              />
-            </View>
-          ))}
         </View>
       </Card>
     );
@@ -199,14 +188,12 @@ const styles = StyleSheet.create({
   searchInput: { flex: 1, paddingVertical: 0 },
   row: { padding: 12 },
   rowHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  headerLeft: { flexDirection: 'row', alignItems: 'center', flexShrink: 1 },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', flexShrink: 1, flex: 1 },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   userIdentity: { flexShrink: 1 },
   meta: { },
   metaText: { opacity: 0.7 },
-  deleteIconButton: { padding: 6 },
-  rowActions: { flexDirection: 'row', alignItems: 'stretch', marginTop: 4 },
-  actionCol: { flex: 1, paddingHorizontal: 4 },
-  actionButton: { paddingVertical: 8, paddingHorizontal: 10, width: '100%' },
+  disabledRow: { opacity: 0.6 },
   headerLoader: { paddingVertical: 0, alignItems: 'center' },
   footerLoader: { paddingVertical: 16, alignItems: 'center' },
   emptyState: { paddingTop: 40, alignItems: 'center' },

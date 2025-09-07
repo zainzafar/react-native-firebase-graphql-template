@@ -36,6 +36,7 @@ export default function AdminUserDetailScreen() {
   const canDeleteUser = permissions.includes('ADMIN_USERS_DELETE');
   const canUpdateProfile = permissions.includes('ADMIN_USERS_UPDATE_PROFILE');
   const canUpdatePassword = permissions.includes('ADMIN_USERS_UPDATE_PASSWORD');
+  const canImpersonateUser = permissions.includes('ADMIN_USERS_IMPERSONATE');
 
   // Queries
   const { data: userData, loading: userLoading } = useQuery<{ adminGetUser?: User }>(
@@ -104,15 +105,16 @@ export default function AdminUserDetailScreen() {
       {/* Navigation Cards */}
       <View style={[{ gap: layout.containerGap }, styles.navigationCards]}>
         {/* Basic Information */}
-        <NavigationCard
-          title="Basic Information"
-          description="Update email, display name, phone number, and photo"
-          icon="user"
-          onPress={() => navigation.navigate('AdminEditUserBasicInfo', { id: userId })}
-          disabled={!canUpdateProfile}
-          iconColor={colors.primary}
-          iconBackgroundColor={`${colors.primary}20`}
-        />
+        {canUpdateProfile && (
+          <NavigationCard
+            title="Basic Information"
+            description="Update email, display name, phone number, and photo"
+            icon="user"
+            onPress={() => navigation.navigate('AdminEditUserBasicInfo', { id: userId })}
+            iconColor={colors.primary}
+            iconBackgroundColor={`${colors.primary}20`}
+          />
+        )}
 
         {/* Security */}
         {showSecuritySection && canUpdatePassword && (
@@ -137,6 +139,22 @@ export default function AdminUserDetailScreen() {
             disabled={!canOpenAccess}
             iconColor={colors.primary}
             iconBackgroundColor={`${colors.primary}20`}
+          />
+        )}
+
+        {/* Impersonate User */}
+        {canImpersonateUser && (
+          <NavigationCard
+            title="Impersonate User"
+            description="Sign in as this user to test their experience"
+            icon="user-secret"
+            onPress={() => {
+              // TODO: Implement impersonation functionality
+              console.log('Impersonate user:', userId);
+            }}
+            disabled={!canImpersonateUser}
+            iconColor="#F59E0B"
+            iconBackgroundColor="#F59E0B20"
           />
         )}
 
