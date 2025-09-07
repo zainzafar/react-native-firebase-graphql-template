@@ -1,0 +1,69 @@
+enum AppPlatform { 
+  ios 
+  android 
+}
+
+type AppSettings {
+  platform: AppPlatform!
+  minVersion: String!
+  latestVersion: String!
+  enforced: Boolean!
+  forceAt: String
+  message: String
+  storeUrl: String!
+}
+
+type AppVersionRule {
+  id: ID!
+  platform: AppPlatform!
+  minVersion: String!
+  latestVersion: String!
+  enforced: Boolean!
+  forceAt: String
+  message: String
+  storeUrl: String!
+  isActive: Boolean!
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
+}
+
+input CreateAppVersionRuleInput {
+  platform: AppPlatform!
+  minVersion: String!
+  latestVersion: String!
+  enforced: Boolean
+  forceAt: String
+  message: String
+  storeUrl: String!
+  isActive: Boolean = false
+}
+
+input UpdateAppVersionRuleInput {
+  minVersion: String
+  latestVersion: String
+  enforced: Boolean
+  forceAt: String
+  message: String
+  storeUrl: String
+  isActive: Boolean
+}
+
+extend type Query {
+  # Public endpoint for apps (no auth needed)
+  appSettings(platform: AppPlatform!): AppSettings!
+  
+  # Admin endpoint for viewing app release rules
+  adminListAppVersionRules(platform: AppPlatform): [AppVersionRule!]!
+  adminGetAppVersionRule(id: ID!): AppVersionRule
+}
+
+extend type Mutation {
+  # Admin-only: create a new rule
+  adminCreateAppVersionRule(input: CreateAppVersionRuleInput!): AppSettings!
+
+  # Admin-only: update an existing rule
+  adminUpdateAppVersionRule(id: ID!, input: UpdateAppVersionRuleInput!): AppVersionRule!
+
+  # Admin-only: delete a rule
+  adminDeleteAppVersionRule(id: ID!): Boolean!
+}

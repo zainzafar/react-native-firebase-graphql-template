@@ -37,6 +37,10 @@ const DEFAULT_PERMISSIONS = [
 
   // ---- System ----
   { name: 'ADMIN_DEBUG', description: 'Access debug tools and system information for troubleshooting' },
+
+  // ---- App Releases ----
+  { name: 'ADMIN_APP_RELEASES_VIEW', description: 'View all existing app version rules and their history' },
+  { name: 'ADMIN_APP_RELEASES_MANAGE', description: 'Create, update, delete, and activate app version rules' },
 ] as const;
 
 type RoleConfig = { name: string; description?: string; include?: string[]; exclude?: string[] };

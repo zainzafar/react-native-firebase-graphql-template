@@ -4,11 +4,13 @@ import { secureGet, secureSet } from '../auth/secureStorage';
 import { darkColors, lightColors, AppColors } from './colors';
 import { spacing, Spacing } from './spacing';
 import { layout, Layout } from './layout';
+import { typography, Typography } from './typography';
 
 type ThemeContextValue = {
   colors: AppColors;
   spacing: Spacing;
   layout: Layout;
+  typography: Typography;
   isDark: boolean;
   setDarkMode: (enabled: boolean) => void;
 };
@@ -36,7 +38,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   };
 
   const colors = useMemo(() => (isDark ? darkColors : lightColors), [isDark]);
-  const value = useMemo(() => ({ colors, spacing, layout, isDark, setDarkMode }), [colors, isDark]);
+  const value = useMemo(() => ({ colors, spacing, layout, typography, isDark, setDarkMode }), [colors, isDark]);
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 

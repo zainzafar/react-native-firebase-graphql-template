@@ -33,5 +33,9 @@ export function usePermissions() {
     canViewPermissions: hasPermission('ADMIN_PERMISSIONS_VIEW'),
     canManageRoleGrantRules: hasPermission('ADMIN_ROLE_GRANT_RULES_VIEW'),
     canManagePermissionGrantRules: hasPermission('ADMIN_PERMISSION_GRANT_RULES_VIEW'),
+    
+    // App release permissions
+    canViewAppReleases: hasPermission('ADMIN_APP_RELEASES_VIEW'),
+    canManageAppReleases: hasPermission('ADMIN_APP_RELEASES_MANAGE'),
   };
 }

@@ -2461,6 +2461,34 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
+  - RNDateTimePicker (8.4.4):
+    - boost
+    - DoubleConversion
+    - fast_float
+    - fmt
+    - glog
+    - hermes-engine
+    - RCT-Folly
+    - RCT-Folly/Fabric
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - SocketRocket
+    - Yoga
   - RNDeviceInfo (14.0.4):
     - React-Core
   - RNFBApp (23.1.1):
@@ -2697,6 +2725,7 @@ DEPENDENCIES:
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - "RNCClipboard (from `../node_modules/@react-native-clipboard/clipboard`)"
   - "RNCMaskedView (from `../node_modules/@react-native-masked-view/masked-view`)"
+  - "RNDateTimePicker (from `../node_modules/@react-native-community/datetimepicker`)"
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
   - "RNFBAuth (from `../node_modules/@react-native-firebase/auth`)"
@@ -2880,6 +2909,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-clipboard/clipboard"
   RNCMaskedView:
     :path: "../node_modules/@react-native-masked-view/masked-view"
+  RNDateTimePicker:
+    :path: "../node_modules/@react-native-community/datetimepicker"
   RNDeviceInfo:
     :path: "../node_modules/react-native-device-info"
   RNFBApp:
@@ -2988,6 +3019,7 @@ SPEC CHECKSUMS:
   RNCAsyncStorage: 4aee028c2f82c9d45d3ba877996b5e72b1a752ad
   RNCClipboard: 61e0926e5199803936630af0fba91da692274fe4
   RNCMaskedView: 0a7d798694b3735e488140d22ae186fc882baf93
+  RNDateTimePicker: 4f0c63a200ecc75a72defef40b86d6f4abb2faaa
   RNDeviceInfo: d863506092aef7e7af3a1c350c913d867d795047
   RNFBApp: 068fdd2f2f94bc36be7ffaeeeabb9fcf9415f483
   RNFBAuth: 4415df7d1089124df3e2928e2fa0bcfc67fff53d

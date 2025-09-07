@@ -23,6 +23,9 @@ import AdminAddRoleGrantRuleScreen from '../screens/Admin/Delegation/AdminAddRol
 import AdminAddPermissionGrantRuleScreen from '../screens/Admin/Delegation/AdminAddPermissionGrantRuleScreen';
 import AdminCreateRoleScreen from '../screens/Admin/Roles/AdminCreateRoleScreen';
 import AdminDeleteRoleScreen from '../screens/Admin/Roles/AdminDeleteRoleScreen';
+import AdminAppReleasesScreen from '../screens/Admin/AppReleases/AdminAppReleasesScreen';
+import AdminCreateAppReleaseScreen from '../screens/Admin/AppReleases/AdminCreateAppReleaseScreen';
+import AdminEditAppReleaseScreen from '../screens/Admin/AppReleases/AdminEditAppReleaseScreen';
 
 import { useAppSelector } from '../store/hooks';
 import { selectAuthInitialized, selectIsAuthenticated } from '../features/auth/selectors';
@@ -93,6 +96,9 @@ function SettingsStack() {
       <Stack.Screen name="AdminAddRoleGrantRule" component={AdminAddRoleGrantRuleScreen} options={{ headerShown: true, title: 'Add Role Grant Rule' }} />
       <Stack.Screen name="AdminAddPermissionGrantRule" component={AdminAddPermissionGrantRuleScreen} options={{ headerShown: true, title: 'Add Permission Grant Rule' }} />
       <Stack.Screen name="AdminDeleteRole" component={AdminDeleteRoleScreen} options={{ headerShown: true, title: 'Delete Role' }} />
+      <Stack.Screen name="AdminAppReleases" component={AdminAppReleasesScreen} options={{ headerShown: true, title: 'App Releases' }} />
+      <Stack.Screen name="AdminCreateAppRelease" component={AdminCreateAppReleaseScreen} options={{ headerShown: true, title: 'Create Release Rule' }} />
+      <Stack.Screen name="AdminEditAppRelease" component={AdminEditAppReleaseScreen} options={{ headerShown: true, title: 'Edit Release Rule' }} />
       <Stack.Screen name="AdminDebug" component={DebugScreen} options={{ headerShown: true, title: 'Debug' }} />
     </Stack.Navigator>
   );

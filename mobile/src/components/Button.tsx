@@ -15,7 +15,7 @@ type ButtonProps = {
   errorText?: string;
   errorDuration?: number;
   onErrorComplete?: () => void;
-  variant?: 'primary' | 'ghost';
+  variant?: 'primary' | 'ghost' | 'danger';
   disabled?: boolean;
   style?: any;
   icon?: any;
@@ -51,13 +51,14 @@ export function Button({
   const [internalError, setInternalError] = useState(false);
   
   // Subtle default background for ghost buttons so they look like buttons
-  const isGhost = variant !== 'primary';
+  const isGhost = variant === 'ghost';
+  const isDanger = variant === 'danger';
   const ghostBg = isDark ? 'rgba(255,255,255,0.06)' : colors.card;
   const bg = variant === 'primary' ? colors.primary : ghostBg;
-  const text = variant === 'primary' ? colors.primaryText : colors.text;
+  const text = variant === 'primary' ? colors.primaryText : isDanger ? colors.danger : colors.text;
   const textColorFinal = textColor ?? text;
   const ghostBorder = isDark ? 'rgba(255,255,255,0.14)' : colors.border;
-  const borderColor = variant === 'primary' ? colors.primary : ghostBorder;
+  const borderColor = variant === 'primary' ? colors.primary : isDanger ? colors.danger : ghostBorder;
   
   // Success and error state styling
   const successBg = internalSuccess ? colors.buttonSuccess : bg;
@@ -143,7 +144,7 @@ export function Button({
         { backgroundColor: finalBg, borderColor: finalBorderColor },
         // Light shadow/elevation to give subtle button affordance
         !isDark && styles.buttonShadow,
-        isGhost && (isDark ? { borderWidth: 1.5 } : styles.ghostEmphasis),
+        (isGhost || isDanger) && (isDark ? { borderWidth: 1.5 } : styles.ghostEmphasis),
         pressed && (isGhost ? styles.ghostPressed : { opacity: 0.9 }),
         disabled && { opacity: 0.6 },
         style,

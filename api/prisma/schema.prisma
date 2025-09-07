@@ -12,7 +12,13 @@ datasource db {
 
 // --- NEW/UPDATED SECTIONS ---
 
-// 1) Wildcard scopes
+// 1) App Platform enum
+enum AppPlatform {
+  ios
+  android
+}
+
+// 2) Wildcard scopes
 enum RoleGrantScope {
   ROLE // specific target role
   ALL // wildcard: any role
@@ -197,4 +203,24 @@ model PermissionGrantRule {
   @@index([granterRoleId])
   @@index([permissionId])
   @@index([scope])
+}
+
+// 5) App Version Rules
+model AppVersionRule {
+  id             String      @id @default(cuid())
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  platform       AppPlatform
+
+  minVersion     String
+  latestVersion  String
+  enforced       Boolean     @default(false)
+  forceAt        DateTime?
+  message        String?
+  storeUrl       String
+
+  isActive       Boolean     @default(false)
+
+  @@index([platform, createdAt])
 }

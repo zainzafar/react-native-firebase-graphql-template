@@ -184,6 +184,95 @@ export const MUTATION_ADMIN_UPDATE_ROLE = gql`
   }
 `;
 
+// App Release operations
+export const QUERY_ADMIN_LIST_APP_VERSION_RULES = gql`
+  query AdminListAppVersionRules($platform: AppPlatform) {
+    adminListAppVersionRules(platform: $platform) {
+      id
+      platform
+      minVersion
+      latestVersion
+      enforced
+      forceAt
+      message
+      storeUrl
+      isActive
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const QUERY_ADMIN_GET_APP_VERSION_RULE = gql`
+  query AdminGetAppVersionRule($id: ID!) {
+    adminGetAppVersionRule(id: $id) {
+      id
+      platform
+      minVersion
+      latestVersion
+      enforced
+      forceAt
+      message
+      storeUrl
+      isActive
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const MUTATION_ADMIN_CREATE_APP_VERSION_RULE = gql`
+  mutation AdminCreateAppVersionRule($input: CreateAppVersionRuleInput!) {
+    adminCreateAppVersionRule(input: $input) {
+      platform
+      minVersion
+      latestVersion
+      enforced
+      forceAt
+      message
+      storeUrl
+    }
+  }
+`;
+
+export const MUTATION_ADMIN_UPDATE_APP_VERSION_RULE = gql`
+  mutation AdminUpdateAppVersionRule($id: ID!, $input: UpdateAppVersionRuleInput!) {
+    adminUpdateAppVersionRule(id: $id, input: $input) {
+      id
+      platform
+      minVersion
+      latestVersion
+      enforced
+      forceAt
+      message
+      storeUrl
+      isActive
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const MUTATION_ADMIN_DELETE_APP_VERSION_RULE = gql`
+  mutation AdminDeleteAppVersionRule($id: ID!) {
+    adminDeleteAppVersionRule(id: $id)
+  }
+`;
+
+export const MUTATION_ADMIN_SET_ACTIVE_APP_VERSION_RULE = gql`
+  mutation AdminSetActiveAppVersionRule($platform: AppPlatform!, $ruleId: ID!) {
+    adminSetActiveAppVersionRule(platform: $platform, ruleId: $ruleId) {
+      platform
+      minVersion
+      latestVersion
+      enforced
+      forceAt
+      message
+      storeUrl
+    }
+  }
+`;
+
 export const MUTATION_ADMIN_DELETE_ROLE = gql`
   mutation AdminDeleteRole($id: ID!) {
     adminDeleteRole(id: $id)

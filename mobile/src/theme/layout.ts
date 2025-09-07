@@ -26,6 +26,15 @@ export const layout = {
   
   // Empty states
   emptyCard: { marginTop: 16 },
+  
+  // Text input styling
+  textArea: {
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    textAlignVertical: 'top',
+    minHeight: 80,
+  },
 } as const;
 
 export type Layout = typeof layout;
