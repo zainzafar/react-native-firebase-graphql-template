@@ -18,12 +18,13 @@ import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { persistor, store } from './src/store';
 import { UpdateBottomSheet, useAppUpdateGate } from './src/update';
+import { useNetworkStatus } from './src/hooks/useNetworkStatus';
 
 function AppContent() {
   const { isDark } = useTheme();
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={styles.container}>
       <SafeAreaProvider>
         <StatusBar 
           barStyle={isDark ? 'light-content' : 'dark-content'} 
@@ -35,7 +36,7 @@ function AppContent() {
             <PersistGate loading={null} persistor={persistor}>
               <ApolloProvider client={apolloClient}>
                 <AuthProvider>
-                  <RootNavigator />
+                  <AppWithNetworkStatus />
                 </AuthProvider>
                 <AppUpdateGate />
               </ApolloProvider>
@@ -45,6 +46,13 @@ function AppContent() {
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
+}
+
+function AppWithNetworkStatus() {
+  // Initialize network status monitoring inside Redux Provider
+  useNetworkStatus();
+
+  return <RootNavigator />;
 }
 
 function AppUpdateGate() {
@@ -71,5 +79,10 @@ function App() {
     </ThemeProvider>
   );
 }
+
+const styles = {
+  container: { flex: 1 },
+};
+
 export default App;
 

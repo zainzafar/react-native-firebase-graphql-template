@@ -6,3 +6,4 @@ export { default as BottomSheet } from './BottomSheet';
 export { default as NavigationCard } from './NavigationCard';
 export { default as PermissionList } from './PermissionList';
 export { default as PermissionRow } from './PermissionRow';
+export { OfflineIndicator } from './OfflineIndicator';

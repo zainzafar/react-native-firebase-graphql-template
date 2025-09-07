@@ -6,7 +6,7 @@ const persistConfig = {
   key: 'root',
   version: 1,
   storage: AsyncStorage,
-  whitelist: ['auth'],
+  whitelist: ['auth', 'offline'],
 };
 
 export const persistedReducer = persistReducer(persistConfig, rootReducer);

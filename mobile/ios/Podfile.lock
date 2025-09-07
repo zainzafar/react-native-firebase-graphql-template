@@ -1782,6 +1782,8 @@ PODS:
     - react-native-config/App (= 1.5.6)
   - react-native-config/App (1.5.6):
     - React-Core
+  - react-native-netinfo (11.4.1):
+    - React-Core
   - react-native-safe-area-context (5.6.1):
     - boost
     - DoubleConversion
@@ -2689,6 +2691,7 @@ DEPENDENCIES:
   - React-Mapbuffer (from `../node_modules/react-native/ReactCommon`)
   - React-microtasksnativemodule (from `../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
   - react-native-config (from `../node_modules/react-native-config`)
+  - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - "react-native-vector-icons-fontawesome6 (from `../node_modules/@react-native-vector-icons/fontawesome6`)"
   - React-NativeModulesApple (from `../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
@@ -2837,6 +2840,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/react/nativemodule/microtasks"
   react-native-config:
     :path: "../node_modules/react-native-config"
+  react-native-netinfo:
+    :path: "../node_modules/@react-native-community/netinfo"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
   react-native-vector-icons-fontawesome6:
@@ -2982,6 +2987,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: ed316571f8a6368a044c166dd62db3ff9a19ade9
   React-microtasksnativemodule: 7349a9210ff1fe97f54025fbda2496ed9a2d43cd
   react-native-config: f1dde39f8468ad922fc7e8bd4308c8e6223d5ee8
+  react-native-netinfo: cec9c4e86083cb5b6aba0e0711f563e2fbbff187
   react-native-safe-area-context: 4fe3c427e047bc2c1b447bd4ec9a92969a4a7d00
   react-native-vector-icons-fontawesome6: 1b667969bef2f430d1d7515163b980b856f58670
   React-NativeModulesApple: 9c2ece8c6e423b2a13c9c50d2ed25953379cbe4e

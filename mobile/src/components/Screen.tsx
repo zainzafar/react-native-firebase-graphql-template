@@ -4,6 +4,10 @@ import { SafeAreaView, Edge } from 'react-native-safe-area-context';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useTheme } from '../theme/ThemeProvider';
+import { useAppSelector } from '../store/hooks';
+import { selectIsOnline } from '../store/offlineSlice';
+import { OfflineIndicator } from './OfflineIndicator';
+import { useTopInset } from './ui';
 
 // Debug flag to control border visibility
 const DEBUG_BORDERS = __DEV__ && false; // Set to true to enable debug borders
@@ -47,17 +51,23 @@ export function Screen({
   const bottomTabBarHeight = useSafeBottomTabBarHeight();
   const hasHeader = headerHeight > 0;
   const hasBottomTabBar = bottomTabBarHeight > 0;
+  
+  // Check if offline banner is visible
+  const isOnline = useAppSelector(selectIsOnline);
+  const hasOfflineBanner = !isOnline;
+  const topInset = useTopInset();
 
   // If caller provides edges, use them; otherwise: dynamically determine edges
-  // based on header and bottom tab bar presence
+  // based on header, bottom tab bar, and offline banner presence
   const safeAreaEdges: Edge[] = useMemo(() => {
     if (edges) return edges;
     
     const result: Edge[] = [];
-    if (!hasHeader) result.push('top');
+    // Don't add top edge if there's a header OR an offline banner (both handle safe area)
+    if (!hasHeader && !hasOfflineBanner) result.push('top');
     if (!hasBottomTabBar) result.push('bottom');
     return result;
-  }, [edges, hasHeader, hasBottomTabBar]);
+  }, [edges, hasHeader, hasBottomTabBar, hasOfflineBanner]);
 
   // The outer container should handle horizontal gutter only.
   const containerStyle: StyleProp<ViewStyle> = [
@@ -103,24 +113,27 @@ export function Screen({
     contentContainerStyle,
   ];
 
-
+  const offlineIndicatorStyle: ViewStyle = { marginTop: !hasHeader ? topInset : 0 };
   return (
-    <SafeAreaView style={containerStyle} edges={safeAreaEdges}>
-      {scroll ? (
-        <ScrollView
-          style={styles.scroll}
-          contentContainerStyle={scrollContent}
-          showsVerticalScrollIndicator={showScrollIndicator}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="on-drag"
-          contentInsetAdjustmentBehavior="never"
-        >
-          {children}
-        </ScrollView>
-      ) : (
-        <View style={staticContent}>{children}</View>
-      )}
-    </SafeAreaView>
+    <>
+      <OfflineIndicator style={offlineIndicatorStyle} />
+      <SafeAreaView style={containerStyle} edges={safeAreaEdges}>
+        {scroll ? (
+          <ScrollView
+            style={styles.scroll}
+            contentContainerStyle={scrollContent}
+            showsVerticalScrollIndicator={showScrollIndicator}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
+            contentInsetAdjustmentBehavior="never"
+          >
+            {children}
+          </ScrollView>
+        ) : (
+          <View style={staticContent}>{children}</View>
+        )}
+      </SafeAreaView>
+    </>
   );
 }
 

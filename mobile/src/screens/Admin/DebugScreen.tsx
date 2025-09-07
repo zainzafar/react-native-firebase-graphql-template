@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Platform, View, Pressable, Alert, StyleSheet, Text, Animated, ActivityIndicator } from 'react-native';
+import { Platform, View, Pressable, Alert, StyleSheet, Text, Animated, ActivityIndicator, Switch } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import Config from 'react-native-config';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
@@ -17,6 +17,8 @@ import { useAppSelector } from '../../store/hooks';
 import { selectAuth } from '../../features/auth/selectors';
 import { useTheme } from '../../theme/ThemeProvider';
 import { useQuery } from '@apollo/client/react';
+import { testUtils } from '../../hooks/useNetworkStatus';
+import { selectIsOnline } from '../../store/offlineSlice';
 
 type TokenInfo = {
   present: boolean;
@@ -34,6 +36,7 @@ export default function DebugScreen() {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['app'])); // Start with app expanded
   
   const authState = useAppSelector(selectAuth);
+  const isOnline = useAppSelector(selectIsOnline);
   const { colors } = useTheme();
 
   useEffect(() => {
@@ -177,6 +180,26 @@ export default function DebugScreen() {
           <InfoRow label="Platform" value={appInfo.platform} />
           <InfoRow label="Version" value={`${appInfo.version} (${appInfo.buildNumber})`} />
           <InfoRow label="Device" value={appInfo.deviceId} />
+        </>
+      ),
+    },
+    {
+      id: 'offline',
+      title: 'Offline Testing',
+      content: (
+        <>
+          <InfoRow label="Network Status" value={isOnline ? 'Online' : 'Offline'} />
+          <View style={styles.toggleContainer}>
+            <Text style={[styles.toggleLabel, { color: colors.text }]}>
+              Simulate Offline Mode
+            </Text>
+            <Switch
+              value={!isOnline}
+              onValueChange={(value) => {
+                testUtils?.setOfflineMode?.(value);
+              }}
+            />
+          </View>
         </>
       ),
     },
@@ -428,6 +451,18 @@ const styles = StyleSheet.create({
   contentContainer: { paddingVertical: 0, paddingTop: 12 },
   loadingContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 8 },
   loadingText: { fontSize: 14, marginLeft: 8 },
+  toggleContainer: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginTop: 12,
+    paddingVertical: 8,
+  },
+  toggleLabel: { 
+    fontSize: 14, 
+    fontWeight: '500',
+    flex: 1,
+  },
 });
 
 
