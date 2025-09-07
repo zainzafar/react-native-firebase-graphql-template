@@ -32,7 +32,7 @@ export default function BottomSheet({
   
   // Calculate dynamic height based on measured content or fixed height
   // Add padding for ScrollView content container and bottom sheet spacing
-  const contentPadding = 60; // Extra padding for ScrollView and container spacing
+  const contentPadding = 80; // Extra padding for ScrollView and container spacing
   
   // When not dismissible, always use 100% height
   let calculatedHeight: number;
@@ -46,8 +46,8 @@ export default function BottomSheet({
     
     calculatedHeight = autoSize && isContentMeasured
       ? Math.max(
-          screenHeight * Math.min(effectiveMinHeight, effectiveMaxHeight), // Use the smaller of min/max as the minimum
-          Math.min(contentHeight + contentPadding, screenHeight * Math.max(effectiveMinHeight, effectiveMaxHeight)) // Use the larger as the maximum
+          screenHeight * Math.min(effectiveMinHeight, effectiveMaxHeight), // Minimum height: smaller of min/max
+          Math.min(contentHeight + contentPadding, screenHeight * Math.max(effectiveMinHeight, effectiveMaxHeight)) // Maximum height: larger of min/max, but not more than content needs
         )
       : screenHeight * effectiveHeight;
   }

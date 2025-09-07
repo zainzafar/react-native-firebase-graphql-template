@@ -28,12 +28,11 @@ export default function UpdateBottomSheet({
   const { colors } = useTheme();
 
   const title = hard ? 'Update Required' : 'Update Available';
-  const defaultMessage = 'A new version is available.';
+  const defaultMessage = hard ? "This version of the app is no longer supported. We've added important improvements and updates to ensure the best performance and reliability. Please update now to continue using the app.": "We've introduced performance improvements and enhancements to make the app smoother, faster, and more reliable. Update now to enjoy the best experience";
   const displayMessage = message || defaultMessage;
 
   return (
     <BottomSheet
-      minHeight={0.5}
       visible={visible}
       onClose={onClose || (() => {})} // Use provided onClose or empty function
       dismissible={!hard}
@@ -71,7 +70,7 @@ export default function UpdateBottomSheet({
             <Button
               title="Skip (Admin)"
               onPress={onSkip}
-              style={[styles.button, styles.skipButton, { borderColor: '#ff6b6b' }]}
+              style={[{ borderColor: colors.danger }, styles.button, styles.skipButton]}
               textColor={colors.text}
             />
           )}
@@ -89,16 +88,15 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     textAlign: 'center',
-    marginBottom: 16,
   },
   message: {
     fontSize: 16,
     lineHeight: 24,
-    marginBottom: 24,
+    marginVertical: 36,
     textAlign: 'center',
   },
   buttonContainer: {
-    gap: 12,
+    gap: 24,
   },
   primaryButtonRow: {
     flexDirection: 'row',
