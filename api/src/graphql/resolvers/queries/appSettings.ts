@@ -26,7 +26,9 @@ function toAppSettings(rule: any, platform: AppPlatform) {
     enforced: rule.enforced,
     forceAt: rule.forceAt ? rule.forceAt.toISOString?.() ?? rule.forceAt : null,
     message: rule.message,
-    storeUrl: rule.storeUrl,
+    storeUrl: rule.storeUrl?.trim() || (platform === 'ios' 
+      ? (process.env.IOS_APP_STORE_URL || 'https://apps.apple.com')
+      : (process.env.ANDROID_PLAY_STORE_URL || 'https://play.google.com')),
     softSnoozeSeconds: rule.softSnoozeSeconds ?? 3600 // Default to 1 hour
   };
 }

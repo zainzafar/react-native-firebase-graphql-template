@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, TextInput, Switch } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTheme } from '../../../../theme/ThemeProvider';
-import { Body, Button, Input } from '../../../../components';
+import { Body, Button, Input, Card } from '../../../../components';
 import { useAppUpdateGate } from '../../../../update/useAppUpdateGate';
 
 type AppPlatform = 'ios' | 'android';
@@ -38,20 +38,22 @@ const PlatformSelector = ({ formData, updateFormData }: Pick<AppReleaseFormCompo
   const { colors, layout, typography } = useTheme();
 
   return (
-    <View style={styles.formSection}>
-      <Body style={[{ color: colors.text, fontSize: typography.sizes.label, fontWeight: typography.weights.semiBold }, styles.formLabel]}>Platform *</Body>
-      <View style={[{ gap: layout.containerGap }, styles.platformButtons]}>
-        {(['ios', 'android'] as AppPlatform[]).map((platform) => (
-          <Button
-            key={platform}
-            title={platform.toUpperCase()}
-            onPress={() => updateFormData('platform', platform)}
-            variant={formData.platform === platform ? 'primary' : 'ghost'}
-            style={styles.platformButton}
-            icon={platform === 'ios' ? 'apple' : 'android'}
-            iconStyle="brand"
-          />
-        ))}
+    <View style={styles.card}>
+      <View style={styles.fieldRow}>
+        <Body style={[{ color: colors.text, fontSize: typography.sizes.label, fontWeight: typography.weights.semiBold }, styles.cardTitle]}>Platform *</Body>
+        <View style={[{ gap: layout.containerGap }, styles.platformButtons]}>
+          {(['ios', 'android'] as AppPlatform[]).map((platform) => (
+            <Button
+              key={platform}
+              title={platform.toUpperCase()}
+              onPress={() => updateFormData('platform', platform)}
+              variant={formData.platform === platform ? 'primary' : 'ghost'}
+              style={styles.platformButton}
+              icon={platform === 'ios' ? 'apple' : 'android'}
+              iconStyle="brand"
+            />
+          ))}
+        </View>
       </View>
     </View>
   );
@@ -63,17 +65,19 @@ const PlatformDisplay = ({ formData }: Pick<AppReleaseFormComponentsProps, 'form
   if (!formData.platform) return null;
 
   return (
-    <View style={styles.formSection}>
-      <Body style={[{ color: colors.text, fontSize: typography.sizes.label, fontWeight: typography.weights.semiBold }, styles.formLabel]}>Platform</Body>
-      <View style={[{ gap: layout.containerGap }, styles.platformButtons]}>
-        <Button
-          title={formData.platform.toUpperCase()}
-          variant="primary"
-          style={styles.platformButton}
-          icon={formData.platform === 'ios' ? 'apple' : 'android'}
-          iconStyle="brand"
-          disabled={true}
-        />
+    <View style={styles.card}>
+      <View style={styles.fieldRow}>
+        <Body style={[{ color: colors.text, fontSize: typography.sizes.label, fontWeight: typography.weights.semiBold }, styles.cardTitle]}>Platform</Body>
+        <View style={[{ gap: layout.containerGap }, styles.platformButtons]}>
+          <Button
+            title={formData.platform.toUpperCase()}
+            variant="primary"
+            style={styles.platformButton}
+            icon={formData.platform === 'ios' ? 'apple' : 'android'}
+            iconStyle="brand"
+            disabled={true}
+          />
+        </View>
       </View>
     </View>
   );
@@ -106,51 +110,106 @@ const FormToggle = ({ field, label, description, formData, updateFormData }: {
   );
 };
 
-const MinimumVersionField = ({ formData, updateFormData }: Pick<AppReleaseFormComponentsProps, 'formData' | 'updateFormData'>) => {
+const MinimumVersionCard = ({ formData, updateFormData }: Pick<AppReleaseFormComponentsProps, 'formData' | 'updateFormData'>) => {
   const { colors, typography } = useTheme();
 
   return (
-    <View style={styles.formSection}>
-      <Body style={[{ color: colors.text, fontSize: typography.sizes.label, fontWeight: typography.weights.semiBold }, styles.formLabel]}>Minimum Version *</Body>
-      <Body style={[{ color: colors.mutedText, fontSize: typography.sizes.caption, lineHeight: typography.lineHeights.tight }, styles.helperText]}>
-        The minimum app version required (e.g., 1.0.0)
-      </Body>
-      <Input
-        value={formData.minVersion}
-        onChangeText={(text) => updateFormData('minVersion', text)}
-        placeholder="1.0.0"
-      />
-    </View>
+    <Card style={styles.card}>
+      <View style={styles.fieldRow}>
+        <Body style={[{ color: colors.text, fontSize: typography.sizes.label, fontWeight: typography.weights.semiBold }, styles.cardTitle]}>
+          Minimum Version (Always Enforced)
+        </Body>
+        <Body style={[{ color: colors.mutedText, fontSize: typography.sizes.caption, lineHeight: typography.lineHeights.tight }, styles.cardDescription]}>
+          Users below this version will always be blocked.
+        </Body>
+        <Input
+          value={formData.minVersion}
+          onChangeText={(text) => updateFormData('minVersion', text)}
+          placeholder="1.0.0"
+        />
+      </View>
+      
+      <View style={styles.fieldRow}>
+        <View style={styles.toggleRow}>
+          <Body style={[{ color: colors.text, fontSize: typography.sizes.label, fontWeight: typography.weights.semiBold }, styles.toggleLabel]}>
+            Always Enforced
+          </Body>
+          <Switch
+            value={true}
+            disabled={true}
+          />
+        </View>
+      </View>
+    </Card>
   );
 };
 
-const LatestVersionField = ({ formData, updateFormData, activeRules }: Pick<AppReleaseFormComponentsProps, 'formData' | 'updateFormData' | 'activeRules'>) => {
+const LatestVersionCard = ({ formData, updateFormData, activeRules, selectedDate, handleDateChange }: Pick<AppReleaseFormComponentsProps, 'formData' | 'updateFormData' | 'activeRules' | 'selectedDate' | 'handleDateChange'>) => {
   const { colors, typography } = useTheme();
 
   return (
-    <View style={styles.formSection}>
-      <Body style={[{ color: colors.text, fontSize: typography.sizes.label, fontWeight: typography.weights.semiBold }, styles.formLabel]}>Latest Version *</Body>
-      <Body style={[{ color: colors.mutedText, fontSize: typography.sizes.caption, lineHeight: typography.lineHeights.tight }, styles.helperText]}>
-        {(() => {
-          if (formData.platform) {
-            const activeRule = activeRules[formData.platform];
-            if (activeRule) {
-              return `The latest available app version (currently active: v${activeRule.latestVersion})`;
+    <Card style={styles.card}>
+      <View style={styles.fieldRow}>
+        <Body style={[{ color: colors.text, fontSize: typography.sizes.label, fontWeight: typography.weights.semiBold }, styles.cardTitle]}>
+          Latest Version (Optional / Enforceable)
+        </Body>
+        <Body style={[{ color: colors.mutedText, fontSize: typography.sizes.caption, lineHeight: typography.lineHeights.tight }, styles.cardDescription]}>
+          {(() => {
+            if (formData.platform) {
+              const activeRule = activeRules[formData.platform];
+              if (activeRule) {
+                return `The latest available app version (currently active: v${activeRule.latestVersion})`;
+              }
             }
-          }
-          return 'The latest available app version (e.g., 1.2.0)';
-        })()}
-      </Body>
-      <Input
-        value={formData.latestVersion}
-        onChangeText={(text) => updateFormData('latestVersion', text)}
-        placeholder="1.2.0"
-      />
-    </View>
+            return 'The latest available app version (e.g., 1.2.0)';
+          })()}
+        </Body>
+        <Input
+          value={formData.latestVersion}
+          onChangeText={(text) => updateFormData('latestVersion', text)}
+          placeholder="1.2.0"
+        />
+      </View>
+      
+      <View style={styles.fieldRow}>
+        <Body style={[{ color: colors.text, fontSize: typography.sizes.label, fontWeight: typography.weights.semiBold }, styles.cardTitle]}>
+          Soft Snooze Duration (seconds)
+        </Body>
+        <Body style={[{ color: colors.mutedText, fontSize: typography.sizes.caption, lineHeight: typography.lineHeights.tight }, styles.helperText]}>
+          How long to snooze soft update prompts (default: 3600 = 1 hour)
+        </Body>
+        <Input
+          value={formData.softSnoozeSeconds.toString()}
+          onChangeText={(text) => {
+            const num = parseInt(text, 10);
+            if (!isNaN(num) && num >= 0) {
+              updateFormData('softSnoozeSeconds', num);
+            }
+          }}
+          placeholder="3600"
+          keyboardType="numeric"
+        />
+      </View>
+      
+      <View style={styles.fieldRow}>
+        <FormToggle field="enforced" label="Enforce Immediately" description="Force users to update immediately when they open the app" formData={formData} updateFormData={updateFormData} />
+      </View>
+      
+      {!formData.enforced && (
+        <>
+          <View style={styles.fieldRow}>
+            <FormToggle field="enforceAtFutureDate" label="Enforce at Future Date" description="Set a specific date when the update becomes mandatory" formData={formData} updateFormData={updateFormData} />
+          </View>
+          <View style={styles.fieldRow}>
+            <EnforcementDatePicker formData={formData} selectedDate={selectedDate} handleDateChange={handleDateChange} />
+          </View>
+        </>
+      )}
+    </Card>
   );
 };
 
-const StoreUrlField = ({ formData, updateFormData }: Pick<AppReleaseFormComponentsProps, 'formData' | 'updateFormData'>) => {
+const StoreUrlCard = ({ formData, updateFormData }: Pick<AppReleaseFormComponentsProps, 'formData' | 'updateFormData'>) => {
   const { colors, typography } = useTheme();
   const { getCachedSettings } = useAppUpdateGate();
   
@@ -180,69 +239,54 @@ const StoreUrlField = ({ formData, updateFormData }: Pick<AppReleaseFormComponen
   }, [getCachedSettings, formData.platform]);
 
   return (
-    <View style={styles.formSection}>
-      <Body style={[{ color: colors.text, fontSize: typography.sizes.label, fontWeight: typography.weights.semiBold }, styles.formLabel]}>Store URL</Body>
-      <Body style={[{ color: colors.mutedText, fontSize: typography.sizes.caption, lineHeight: typography.lineHeights.tight }, styles.helperText]}>
-        The app store URL for downloading the update
-      </Body>
-      <Input
-        value={formData.storeUrl}
-        onChangeText={(text) => updateFormData('storeUrl', text)}
-        placeholder={placeholder}
-        keyboardType="url"
-      />
-    </View>
+    <Card style={styles.card}>
+      <View style={styles.fieldRow}>
+        <Body style={[{ color: colors.text, fontSize: typography.sizes.label, fontWeight: typography.weights.semiBold }, styles.cardTitle]}>
+          Store URL
+        </Body>
+        <Body style={[{ color: colors.mutedText, fontSize: typography.sizes.caption, lineHeight: typography.lineHeights.tight }, styles.cardDescription]}>
+          The app store URL for downloading the update
+        </Body>
+        <Input
+          value={formData.storeUrl}
+          onChangeText={(text) => updateFormData('storeUrl', text)}
+          placeholder={placeholder}
+          keyboardType="url"
+        />
+      </View>
+    </Card>
   );
 };
 
-const SoftSnoozeField = ({ formData, updateFormData }: Pick<AppReleaseFormComponentsProps, 'formData' | 'updateFormData'>) => {
-  const { colors, typography } = useTheme();
 
-  return (
-    <View style={styles.formSection}>
-      <Body style={[{ color: colors.text, fontSize: typography.sizes.label, fontWeight: typography.weights.semiBold }, styles.formLabel]}>Soft Snooze Duration (seconds)</Body>
-      <Body style={[{ color: colors.mutedText, fontSize: typography.sizes.caption, lineHeight: typography.lineHeights.tight }, styles.helperText]}>
-        How long to snooze soft update prompts (default: 3600 = 1 hour)
-      </Body>
-      <Input
-        value={formData.softSnoozeSeconds.toString()}
-        onChangeText={(text) => {
-          const num = parseInt(text, 10);
-          if (!isNaN(num) && num >= 0) {
-            updateFormData('softSnoozeSeconds', num);
-          }
-        }}
-        placeholder="3600"
-        keyboardType="numeric"
-      />
-    </View>
-  );
-};
-
-const UpdateMessageField = ({ formData, updateFormData }: Pick<AppReleaseFormComponentsProps, 'formData' | 'updateFormData'>) => {
+const UpdateMessageCard = ({ formData, updateFormData }: Pick<AppReleaseFormComponentsProps, 'formData' | 'updateFormData'>) => {
   const { colors, layout, typography } = useTheme();
 
   return (
-    <View style={styles.formSection}>
-      <Body style={[{ color: colors.text, fontSize: typography.sizes.label, fontWeight: typography.weights.semiBold }, styles.formLabel]}>Update Message</Body>
-      <Body style={[{ color: colors.mutedText, fontSize: typography.sizes.caption, lineHeight: typography.lineHeights.tight }, styles.helperText]}>
-        Optional: Message to show users about this update
-      </Body>
-      <TextInput
-        value={formData.message}
-        onChangeText={(text) => updateFormData('message', text)}
-        placeholder="Bug fixes and new features"
-        multiline
-        numberOfLines={3}
-        style={[layout.textArea, { 
-          borderColor: colors.border, 
-          color: colors.text,
-          backgroundColor: colors.card,
-          fontSize: typography.sizes.body,
-        }]}
-        placeholderTextColor={colors.mutedText}
-      />
-    </View>
+    <Card style={styles.card}>
+      <View style={styles.fieldRow}>
+        <Body style={[{ color: colors.text, fontSize: typography.sizes.label, fontWeight: typography.weights.semiBold }, styles.cardTitle]}>
+          Update Message
+        </Body>
+        <Body style={[{ color: colors.mutedText, fontSize: typography.sizes.caption, lineHeight: typography.lineHeights.tight }, styles.cardDescription]}>
+          Optional: Overrides default messages shown to users for both required and optional updates.
+        </Body>
+        <TextInput
+          value={formData.message}
+          onChangeText={(text) => updateFormData('message', text)}
+          placeholder="Bug fixes and new features"
+          multiline
+          numberOfLines={3}
+          style={[layout.textArea, { 
+            borderColor: colors.border, 
+            color: colors.text,
+            backgroundColor: colors.card,
+            fontSize: typography.sizes.body,
+          }]}
+          placeholderTextColor={colors.mutedText}
+        />
+      </View>
+    </Card>
   );
 };
 
@@ -276,55 +320,45 @@ const EnforcementDatePicker = ({ formData, selectedDate, handleDateChange }: Pic
 };
 
 // Main form component that combines all fields
-export const AppReleaseForm = ({ formData, updateFormData, activeRules, selectedDate: _selectedDate, handleDateChange: _handleDateChange, showPlatformSelector = true, showPlatformDisplay = false }: AppReleaseFormComponentsProps & { showPlatformSelector?: boolean; showPlatformDisplay?: boolean }) => {
+export const AppReleaseForm = ({ formData, updateFormData, activeRules, selectedDate, handleDateChange, showPlatformSelector = true, showPlatformDisplay = false }: AppReleaseFormComponentsProps & { showPlatformSelector?: boolean; showPlatformDisplay?: boolean }) => {
   const { layout } = useTheme();
 
   return (
     <View style={[{ gap: layout.containerGap }, styles.formContainer]}>
       {showPlatformSelector && <PlatformSelector formData={formData} updateFormData={updateFormData} />}
       {showPlatformDisplay && <PlatformDisplay formData={formData} />}
-      <MinimumVersionField formData={formData} updateFormData={updateFormData} />
-      <LatestVersionField formData={formData} updateFormData={updateFormData} activeRules={activeRules} />
-      <StoreUrlField formData={formData} updateFormData={updateFormData} />
-      <SoftSnoozeField formData={formData} updateFormData={updateFormData} />
-      <UpdateMessageField formData={formData} updateFormData={updateFormData} />
-      <FormToggle field="isActive" label="Set as Active" description="Whether this rule should be active immediately" formData={formData} updateFormData={updateFormData} />
+      <MinimumVersionCard formData={formData} updateFormData={updateFormData} />
+      <LatestVersionCard formData={formData} updateFormData={updateFormData} activeRules={activeRules} selectedDate={selectedDate} handleDateChange={handleDateChange} />
+      <StoreUrlCard formData={formData} updateFormData={updateFormData} />
+      <UpdateMessageCard formData={formData} updateFormData={updateFormData} />
+      <Card style={styles.card}>
+        <View style={styles.fieldRow}>
+          <FormToggle field="isActive" label="Set as Active" description="Whether this rule should be active immediately" formData={formData} updateFormData={updateFormData} />
+        </View>
+      </Card>
     </View>
   );
 };
 
-// Enforcement section component
-export const AppReleaseEnforcement = ({ formData, updateFormData, selectedDate, handleDateChange }: Pick<AppReleaseFormComponentsProps, 'formData' | 'updateFormData' | 'selectedDate' | 'handleDateChange'>) => {
-  const { layout } = useTheme();
-
-  return (
-    <View style={[{ gap: layout.containerGap }, styles.enforcementContainer]}>
-      <FormToggle field="enforced" label="Enforce Immediately" description="Force users to update immediately when they open the app" formData={formData} updateFormData={updateFormData} />
-      {!formData.enforced && (
-        <>
-          <FormToggle field="enforceAtFutureDate" label="Enforce at Future Date" description="Set a specific date when the update becomes mandatory" formData={formData} updateFormData={updateFormData} />
-          <EnforcementDatePicker formData={formData} selectedDate={selectedDate} handleDateChange={handleDateChange} />
-        </>
-      )}
-    </View>
-  );
-};
 
 const styles = StyleSheet.create({
   formContainer: {
-    // Container for form fields with gap
   },
-  enforcementContainer: {
-    // Container for enforcement fields with gap
+  card: {
+    gap: 16,
   },
-  formSection: {
-    // Removed marginBottom - now using gap in container
+  fieldRow: {
+    gap: 12,
   },
-  formLabel: {
-    marginBottom: 4,
+  cardTitle: {
+  },
+  cardDescription: {
+  },
+  input: {
+  },
+  sectionSpacing: {
   },
   helperText: {
-    marginBottom: 8,
   },
   platformButtons: {
     flexDirection: 'row',
@@ -345,15 +379,10 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   toggleLabel: {
-    marginBottom: 4,
   },
   toggleDescription: {
-    // fontSize, lineHeight moved to inline style
   },
   datePickerInline: {
     flex: 1,
-  },
-  enforcementTitle: {
-    marginBottom: 8,
   },
 });

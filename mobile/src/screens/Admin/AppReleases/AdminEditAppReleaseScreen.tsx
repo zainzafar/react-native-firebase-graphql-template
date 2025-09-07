@@ -6,7 +6,6 @@ import { useTheme } from '../../../theme/ThemeProvider';
 import { Screen, Card, Body, Button, LoadingContainer } from '../../../components';
 import {
   AppReleaseForm,
-  AppReleaseEnforcement,
 } from './Components';
 import { 
   QUERY_ADMIN_GET_APP_VERSION_RULE, 
@@ -197,27 +196,15 @@ export default function AdminEditAppReleaseScreen() {
 
   return (
     <Screen scroll={true} contentContainerStyle={[{ gap: layout.containerGap }, styles.content]}>
-      <Card style={styles.formCard}>
-        <AppReleaseForm 
-          formData={formData} 
-          updateFormData={updateFormData} 
-          activeRules={activeRules} 
-          selectedDate={selectedDate} 
-          handleDateChange={handleDateChange}
-          showPlatformSelector={false}
-          showPlatformDisplay={true}
-        />
-      </Card>
-
-      {/* Enforcement Card - Separate root-level card */}
-      <Card style={styles.enforcementCard}>
-        <AppReleaseEnforcement 
-          formData={formData} 
-          updateFormData={updateFormData} 
-          selectedDate={selectedDate} 
-          handleDateChange={handleDateChange}
-        />
-      </Card>
+      <AppReleaseForm 
+        formData={formData} 
+        updateFormData={updateFormData} 
+        activeRules={activeRules} 
+        selectedDate={selectedDate} 
+        handleDateChange={handleDateChange}
+        showPlatformSelector={false}
+        showPlatformDisplay={true}
+      />
 
       {/* Update Rule Button - Outside of all cards */}
       <Button
@@ -255,12 +242,6 @@ export default function AdminEditAppReleaseScreen() {
 
 const styles = StyleSheet.create({
   content: {
-  },
-  formCard: {
-    // Card component already has padding
-  },
-  enforcementCard: {
-    // Card component already has padding
   },
   updateButton: {
     width: '100%',

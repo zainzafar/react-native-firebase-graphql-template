@@ -7,7 +7,6 @@ import { Screen, Card, Button } from '../../../components';
 import { MUTATION_ADMIN_CREATE_APP_VERSION_RULE, QUERY_ADMIN_LIST_APP_VERSION_RULES } from '../../../graphql/operations';
 import {
   AppReleaseForm,
-  AppReleaseEnforcement,
 } from './Components';
 
 type AppPlatform = 'ios' | 'android';
@@ -82,26 +81,14 @@ export default function AdminCreateAppReleaseScreen() {
 
   return (
     <Screen scroll={true} contentContainerStyle={[{ gap: layout.containerGap }, styles.content]}>
-      <Card style={styles.formCard}>
-        <AppReleaseForm 
-          formData={formData} 
-          updateFormData={updateFormData} 
-          activeRules={activeRules} 
-          selectedDate={selectedDate} 
-          handleDateChange={handleDateChange}
-          showPlatformSelector={true}
-        />
-      </Card>
-
-      {/* Enforcement Card - Separate root-level card */}
-      <Card style={styles.enforcementCard}>
-        <AppReleaseEnforcement 
-          formData={formData} 
-          updateFormData={updateFormData} 
-          selectedDate={selectedDate} 
-          handleDateChange={handleDateChange}
-        />
-      </Card>
+      <AppReleaseForm 
+        formData={formData} 
+        updateFormData={updateFormData} 
+        activeRules={activeRules} 
+        selectedDate={selectedDate} 
+        handleDateChange={handleDateChange}
+        showPlatformSelector={true}
+      />
 
       {/* Create Rule Button - Outside of all cards */}
       <Button
@@ -123,12 +110,6 @@ export default function AdminCreateAppReleaseScreen() {
 
 const styles = StyleSheet.create({
   content: {
-  },
-  formCard: {
-    // Card component already has padding
-  },
-  enforcementCard: {
-    // Card component already has padding
   },
   createButton: {
     width: '100%',
