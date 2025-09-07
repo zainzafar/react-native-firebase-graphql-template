@@ -129,8 +129,8 @@ export default function RootNavigator() {
 
   if (!initialized) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
-        <Animated.View style={[styles.loader, { transform: [{ rotate: spin }] }]}>
+      <View style={[{ backgroundColor: colors.background }, styles.loadingContainer ]}>
+        <Animated.View style={[{ transform: [{ rotate: spin }] }, styles.loader]}>
           <FontAwesome6 name="spinner" iconStyle="solid" size={32} color={colors.primary} />
         </Animated.View>
       </View>

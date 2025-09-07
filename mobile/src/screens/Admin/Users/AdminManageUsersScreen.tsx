@@ -117,7 +117,7 @@ export default function AdminManageUsersScreen() {
                 title={action.title}
                 variant="ghost"
                 onPress={action.onPress}
-                style={[styles.compactButton, styles.actionButton]}
+                style={[styles.actionButton]}
               />
             </View>
           ))}
@@ -206,8 +206,7 @@ const styles = StyleSheet.create({
   deleteIconButton: { padding: 6 },
   rowActions: { flexDirection: 'row', alignItems: 'stretch', marginTop: 4 },
   actionCol: { flex: 1, paddingHorizontal: 4 },
-  actionButton: { width: '100%' },
-  compactButton: { paddingVertical: 8, paddingHorizontal: 10 },
+  actionButton: { paddingVertical: 8, paddingHorizontal: 10, width: '100%' },
   headerLoader: { paddingVertical: 0, alignItems: 'center' },
   footerLoader: { paddingVertical: 16, alignItems: 'center' },
   emptyState: { paddingTop: 40, alignItems: 'center' },

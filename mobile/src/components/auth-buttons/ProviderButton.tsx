@@ -13,10 +13,10 @@ export type ProviderButtonProps = {
 };
 
 export default function ProviderButton({ icon, label, onPress, disabled, style, labelStyle, loading }: ProviderButtonProps) {
-  const { colors } = useTheme();
+  const { colors, borderRadius } = useTheme();
   const spinnerColor = (labelStyle && labelStyle.color) || colors.text;
   return (
-    <Pressable onPress={onPress} disabled={disabled || loading} style={({ pressed }) => [styles.rowBtn, style, pressed && styles.pressed, (disabled || loading) && styles.disabled]}>
+    <Pressable onPress={onPress} disabled={disabled || loading} style={({ pressed }) => [{ borderRadius: borderRadius.xxl }, styles.rowBtn, style, pressed && styles.pressed, (disabled || loading) && styles.disabled]}>
       <View style={styles.iconWrap}>{icon}</View>
       {loading ? (
         <ActivityIndicator color={spinnerColor} />
@@ -28,7 +28,7 @@ export default function ProviderButton({ icon, label, onPress, disabled, style, 
 }
 
 const styles = StyleSheet.create({
-  rowBtn: { position: 'relative', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 24, borderWidth: 1, height: 48 },
+  rowBtn: { position: 'relative', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12, paddingHorizontal: 16, borderWidth: 1, height: 48 },
   pressed: { opacity: 0.9 },
   disabled: { opacity: 0.6 },
   iconWrap: { position: 'absolute', left: 16, width: 22, alignItems: 'center', justifyContent: 'center' },

@@ -25,7 +25,7 @@ type AppVersionRule = {
 type PlatformFilter = 'all' | 'ios' | 'android';
 
 export default function AdminAppReleasesScreen() {
-  const { colors, layout, typography } = useTheme();
+  const { colors, layout, typography, borderRadius } = useTheme();
   const navigation = useNavigation<any>();
   const { canManageAppReleases } = usePermissions();
   const [platformFilter, setPlatformFilter] = useState<PlatformFilter>('all');
@@ -69,7 +69,7 @@ export default function AdminAppReleasesScreen() {
                 </Body>
               </View>
               {rule.isActive && (
-                <View style={[styles.activeBadge, { backgroundColor: colors.primary }]}>
+                <View style={[{ backgroundColor: colors.primary, borderRadius: borderRadius.sm }, styles.activeBadge]}>
                   <Body style={[{ color: colors.card, fontSize: typography.sizes.captionSmall, fontWeight: typography.weights.semiBold }, styles.activeBadgeText]}>ACTIVE</Body>
                 </View>
               )}
@@ -139,9 +139,9 @@ export default function AdminAppReleasesScreen() {
             key={platform}
             onPress={() => setPlatformFilter(platform)}
             style={[
-              styles.filterButton,
-              { borderColor: colors.border },
-              platformFilter === platform && { backgroundColor: colors.primary, borderColor: colors.primary }
+              { borderColor: colors.border, borderRadius: borderRadius.md },
+              platformFilter === platform && { backgroundColor: colors.primary, borderColor: colors.primary },
+              styles.filterButton
             ]}
           >
             <Body style={[
@@ -196,7 +196,6 @@ const styles = StyleSheet.create({
   filterButton: {
     flex: 1,
     borderWidth: 1,
-    borderRadius: 8,
     paddingVertical: 8,
     paddingHorizontal: 12,
     alignItems: 'center',
@@ -239,7 +238,6 @@ const styles = StyleSheet.create({
   activeBadge: {
     paddingHorizontal: 4,
     paddingVertical: 2,
-    borderRadius: 4,
   },
   activeBadgeText: {
     // fontSize, fontWeight moved to inline style

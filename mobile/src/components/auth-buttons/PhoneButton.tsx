@@ -7,8 +7,8 @@ import { getProviderButtonBaseStyles, providerIconSize } from './styles';
 type Props = Omit<ProviderButtonProps, 'icon' | 'label'> & { label?: string };
 
 export default function PhoneButton({ label = 'Continue with Phone', ...rest }: Props) {
-  const { isDark, colors } = useTheme();
-  const { containerStyle: style, labelStyle, iconColor } = getProviderButtonBaseStyles(isDark, colors);
+  const { isDark, colors, borderRadius } = useTheme();
+  const { containerStyle: style, labelStyle, iconColor } = getProviderButtonBaseStyles(isDark, colors, borderRadius);
   return (
     <ProviderButton
       icon={<FontAwesome6 name="phone" iconStyle="solid" size={providerIconSize} color={iconColor} />}

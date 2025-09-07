@@ -17,7 +17,7 @@ type Role = {
 };
 
 export default function AdminEditRoleBasicInfo() {
-  const { colors, layout } = useTheme();
+  const { colors, layout, borderRadius } = useTheme();
   const route = useRoute<any>();
   
   const roleId = route.params?.roleId;
@@ -140,11 +140,12 @@ export default function AdminEditRoleBasicInfo() {
               numberOfLines={3}
               textContentType="none"
               autoComplete="off"
-              style={[styles.textArea, { 
+              style={[{ 
                 backgroundColor: colors.card, 
                 borderColor: colors.border,
+                borderRadius: borderRadius.md,
                 color: colors.text 
-              }]}
+              }, styles.textArea]}
               placeholderTextColor={colors.mutedText}
             />
             <Button 
@@ -164,11 +165,11 @@ export default function AdminEditRoleBasicInfo() {
             {saveError && (
               <Animated.View 
                 style={[
-                  styles.messageContainer,
                   {
                     opacity: fadeAnim,
                     transform: [{ scale: scaleAnim }],
-                  }
+                  },
+                  styles.messageContainer
                 ]}
               >
                 <Body style={styles.errorText}>{saveError}</Body>
@@ -188,7 +189,6 @@ const styles = StyleSheet.create({
   textArea: { 
     paddingVertical: 12, 
     paddingHorizontal: 16, 
-    borderRadius: 8, 
     borderWidth: 1, 
     fontSize: 14,
     minHeight: 80,

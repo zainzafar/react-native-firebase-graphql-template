@@ -25,7 +25,7 @@ export default function BottomSheet({
   title,
   dismissible = true
 }: BottomSheetProps) {
-  const { colors } = useTheme();
+  const { colors, borderRadius } = useTheme();
   const screenHeight = Dimensions.get('window').height;
   const [contentHeight, setContentHeight] = useState(0);
   const [isContentMeasured, setIsContentMeasured] = useState(false);
@@ -131,7 +131,7 @@ export default function BottomSheet({
         >
           {dismissible && (
             <View style={styles.dragHandleContainer} {...panResponder.panHandlers}>
-              <View style={[{ backgroundColor: colors.border }, styles.dragHandle]} />
+              <View style={[{ backgroundColor: colors.border, borderRadius: borderRadius.xs }, styles.dragHandle]} />
             </View>
           )}
           
@@ -179,7 +179,6 @@ const styles = StyleSheet.create({
   dragHandle: { 
     width: 40, 
     height: 4, 
-    borderRadius: 2, 
     opacity: 0.7 
   },
   titleContainer: {

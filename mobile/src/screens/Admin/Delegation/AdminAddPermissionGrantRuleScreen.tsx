@@ -18,7 +18,7 @@ type AdminAddPermissionGrantRuleRouteProp = RouteProp<{
 }, 'params'>;
 
 export default function AdminAddPermissionGrantRule() {
-  const { colors } = useTheme();
+  const { colors, borderRadius } = useTheme();
   const navigation = useNavigation();
   const route = useRoute<AdminAddPermissionGrantRuleRouteProp>();
   const { roleId } = route.params;
@@ -98,7 +98,7 @@ export default function AdminAddPermissionGrantRule() {
   if (!canCreatePermissionGrantRules) {
     return (
       <Screen>
-        <View style={[{ backgroundColor: colors.card, borderColor: colors.border }, styles.noAccessCard]}>
+        <View style={[{ backgroundColor: colors.card, borderColor: colors.border, borderRadius: borderRadius.md }, styles.noAccessCard]}>
           <Body style={[{ color: colors.text }, styles.noAccessText]}>
             You don't have permission to create permission grant rules.
           </Body>
@@ -145,7 +145,6 @@ const styles = StyleSheet.create({
   noAccessCard: {
     margin: 20,
     padding: 20,
-    borderRadius: 8,
     borderWidth: 1
   },
   noAccessText: {

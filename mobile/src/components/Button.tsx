@@ -44,7 +44,7 @@ export function Button({
   textColor,
   iconRight,
 }: ButtonProps) {
-  const { colors, isDark } = useTheme();
+  const { colors, borderRadius, isDark } = useTheme();
   
   // Internal state to track animation completion
   const [internalSuccess, setInternalSuccess] = useState(false);
@@ -141,7 +141,7 @@ export function Button({
       onPress={handlePress}
       style={({ pressed }) => [
         styles.button,
-        { backgroundColor: finalBg, borderColor: finalBorderColor },
+        { backgroundColor: finalBg, borderColor: finalBorderColor, borderRadius: borderRadius.lg },
         // Light shadow/elevation to give subtle button affordance
         !isDark && styles.buttonShadow,
         (isGhost || isDanger) && (isDark ? { borderWidth: 1.5 } : styles.ghostEmphasis),
@@ -156,14 +156,14 @@ export function Button({
       ) : internalSuccess ? (
         <View style={styles.successContainer}>
           <FontAwesome6 name="check" iconStyle="solid" size={16} color="white" />
-          <Text style={[styles.buttonText, { color: 'white', marginLeft: 8 }]} numberOfLines={1} ellipsizeMode="tail" allowFontScaling={false}>
+          <Text style={[{ color: 'white', marginLeft: 8 }, styles.buttonText]} numberOfLines={1} ellipsizeMode="tail" allowFontScaling={false}>
             {successText || title}
           </Text>
         </View>
       ) : internalError ? (
         <View style={styles.errorContainer}>
           <FontAwesome6 name="triangle-exclamation" iconStyle="solid" size={16} color="white" />
-          <Text style={[styles.buttonText, { color: 'white', marginLeft: 8 }]} numberOfLines={1} ellipsizeMode="tail" allowFontScaling={false}>
+          <Text style={[{ color: 'white', marginLeft: 8 }, styles.buttonText]} numberOfLines={1} ellipsizeMode="tail" allowFontScaling={false}>
             {errorText || 'Error occurred'}
           </Text>
         </View>
@@ -178,7 +178,7 @@ export function Button({
               style={styles.iconLeft}
             />
           )}
-          <Text style={[styles.buttonText, { color: textColorFinal }]} numberOfLines={1} ellipsizeMode="tail" allowFontScaling={false}>
+          <Text style={[{ color: textColorFinal }, styles.buttonText]} numberOfLines={1} ellipsizeMode="tail" allowFontScaling={false}>
             {title}
           </Text>
           {icon && iconRight && (
@@ -215,7 +215,7 @@ export function Button({
 }
 
 const styles = StyleSheet.create({
-  button: { borderWidth: 1, borderRadius: 12, paddingVertical: 12, paddingHorizontal: 16, alignItems: 'center', overflow: 'hidden' },
+  button: { borderWidth: 1, paddingVertical: 12, paddingHorizontal: 16, alignItems: 'center', overflow: 'hidden' },
   buttonShadow: { shadowColor: '#000', shadowOpacity: 0.02, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 0 },
   ghostEmphasis: { borderWidth: 1.5, shadowOpacity: 0.03, shadowRadius: 6, shadowOffset: { width: 0, height: 1 }, elevation: 0.5 },
   ghostPressed: { opacity: 0.95, transform: [{ scale: 0.995 }] },

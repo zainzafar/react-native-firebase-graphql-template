@@ -1,3 +1,12 @@
+export const borderRadius = {
+  xs: 2,                  // Very small elements, dividers
+  sm: 4,                  // Small badges, tags
+  md: 8,                  // Standard inputs, small cards
+  lg: 12,                 // Buttons, medium cards
+  xl: 16,                 // Large cards, containers
+  xxl: 24,                // Auth buttons, special rounded elements
+} as const;
+
 export const layout = {
   screenGutter: 20,
   screenPaddingHorizontal: 20,
@@ -30,11 +39,12 @@ export const layout = {
   // Text input styling
   textArea: {
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: borderRadius.md,
     padding: 12,
     textAlignVertical: 'top',
     minHeight: 80,
   },
 } as const;
 
+export type BorderRadius = typeof borderRadius;
 export type Layout = typeof layout;

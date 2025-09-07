@@ -19,7 +19,7 @@ type GrantRuleFormProps = {
 };
 
 export default function GrantRuleForm({ type, items, granterRoleName = 'Admin', showAllOption = true, onSubmit }: GrantRuleFormProps) {
-  const { colors, layout } = useTheme();
+  const { colors, layout, borderRadius } = useTheme();
   const [scope, setScope] = useState<'ALL' | 'SPECIFIC'>('SPECIFIC');
   const [selectedItemId, setSelectedItemId] = useState('');
   const [canAssign, setCanAssign] = useState(true);
@@ -151,7 +151,7 @@ export default function GrantRuleForm({ type, items, granterRoleName = 'Admin', 
           
           {/* Scope Selection Button */}
           <Pressable
-            style={[{ borderColor: colors.border }, styles.scopeButton]}
+            style={[{ borderColor: colors.border, borderRadius: borderRadius.md }, styles.scopeButton]}
             onPress={() => setIsBottomSheetVisible(true)}
           >
             <View style={styles.selectedOptionContent}>
@@ -174,7 +174,7 @@ export default function GrantRuleForm({ type, items, granterRoleName = 'Admin', 
           
           {/* Global Scope Warning */}
           {scope === 'ALL' && (
-            <View style={[{ backgroundColor: colors.danger + '10', borderColor: colors.danger + '30' }, styles.warningBox]}>
+            <View style={[{ backgroundColor: colors.danger + '10', borderColor: colors.danger + '30', borderRadius: borderRadius.md }, styles.warningBox]}>
               <FontAwesome6 name="triangle-exclamation" iconStyle="solid" size={16} color={colors.danger} />
               <Body style={[{ color: colors.danger }, styles.warningText]}>
                 This grants {granterRoleName} power over every {type === 'role' ? 'role' : 'permission'} in the system.
@@ -236,8 +236,8 @@ export default function GrantRuleForm({ type, items, granterRoleName = 'Admin', 
           
                   {/* Validation Error */}
         {!canAssign && !canRevoke && (type === 'role' ? !canManage : false) && (
-          <View style={[styles.errorBox, { backgroundColor: colors.danger + '10', borderColor: colors.danger + '30' }]}>
-            <Body style={[styles.errorText, { color: colors.danger }]}>
+          <View style={[{ backgroundColor: colors.danger + '10', borderColor: colors.danger + '30', borderRadius: borderRadius.md }, styles.errorBox]}>
+            <Body style={[{ color: colors.danger }, styles.errorText]}>
               At least one action (Assign, Revoke{type === 'role' ? ', or Manage' : ''}) must be enabled.
             </Body>
           </View>
@@ -343,7 +343,6 @@ const styles = StyleSheet.create({
   },
   warningBox: {
     padding: 12,
-    borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -357,7 +356,6 @@ const styles = StyleSheet.create({
   },
   errorBox: {
     padding: 12,
-    borderRadius: 8,
     borderWidth: 1,
     marginTop: 8
   },
@@ -367,7 +365,6 @@ const styles = StyleSheet.create({
   },
   scopeButton: { 
     borderWidth: 1, 
-    borderRadius: 8,
     padding: 12,
     flexDirection: 'row',
     alignItems: 'center',

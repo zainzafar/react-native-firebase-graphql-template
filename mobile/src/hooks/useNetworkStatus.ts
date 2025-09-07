@@ -16,15 +16,24 @@ export function useNetworkStatus() {
       return;
     }
 
-    const unsubscribe = NetInfo.addEventListener((state) => {
-      const online = (state.isConnected && state.isInternetReachable) ?? false;
+    let hasInitialized = false;
+
+    // Get initial state first
+    NetInfo.fetch().then((state) => {
+      // If isInternetReachable is null (unknown), assume online if connected
+      const online = state.isConnected && (state.isInternetReachable ?? true);
+      // console.log('NetInfo.fetch() result:', JSON.stringify({ isConnected: state.isConnected, isInternetReachable: state.isInternetReachable, online }));
       dispatch(setNetworkStatus({ isOnline: online }));
+      hasInitialized = true;
     });
 
-    // Get initial state
-    NetInfo.fetch().then((state) => {
-      const online = (state.isConnected && state.isInternetReachable) ?? false;
-      dispatch(setNetworkStatus({ isOnline: online }));
+    const unsubscribe = NetInfo.addEventListener((state) => {
+      // Only dispatch after initial fetch is complete
+      if (hasInitialized) {
+        // If isInternetReachable is null (unknown), assume online if connected
+        const online = state.isConnected && (state.isInternetReachable ?? true);
+        dispatch(setNetworkStatus({ isOnline: online }));
+      }
     });
 
     return unsubscribe;

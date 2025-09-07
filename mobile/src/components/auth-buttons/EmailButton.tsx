@@ -7,8 +7,8 @@ import { getProviderButtonBaseStyles, providerIconSize } from './styles';
 type Props = Omit<ProviderButtonProps, 'icon' | 'label'> & { label?: string };
 
 export default function EmailButton({ label = 'Continue with Email', ...rest }: Props) {
-  const { isDark, colors } = useTheme();
-  const { containerStyle: style, labelStyle, iconColor } = getProviderButtonBaseStyles(isDark, colors);
+  const { isDark, colors, borderRadius } = useTheme();
+  const { containerStyle: style, labelStyle, iconColor } = getProviderButtonBaseStyles(isDark, colors, borderRadius);
   return (
     <ProviderButton
       icon={<FontAwesome6 name="envelope" iconStyle="regular" size={providerIconSize} color={iconColor} />}

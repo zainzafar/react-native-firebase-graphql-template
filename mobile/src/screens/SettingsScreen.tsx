@@ -18,7 +18,7 @@ export default function SettingsScreen() {
   const [appVersion, setAppVersion] = useState<string>('');
   const [buildNumber, setBuildNumber] = useState<string>('');
   const navigation = useNavigation<any>();
-  const { isDark, setDarkMode, colors } = useTheme();
+  const { isDark, setDarkMode, colors, borderRadius } = useTheme();
 
   const onLogout = async () => {
     try {
@@ -72,7 +72,7 @@ export default function SettingsScreen() {
                 </View>
               </View>
               <View style={styles.updateActions}>
-                <Pressable onPress={handleUpdatePress} style={[styles.updateButton, styles.updateButtonPrimary]}>
+                <Pressable onPress={handleUpdatePress} style={[{ borderRadius: borderRadius.sm }, styles.updateButton, styles.updateButtonPrimary]}>
                   <Body style={styles.updateButtonTextPrimary}>Update</Body>
                 </Pressable>
               </View>
@@ -93,7 +93,7 @@ export default function SettingsScreen() {
               <FontAwesome6 name="chevron-right" iconStyle="solid" size={16} color={colors.mutedText} />
             </Pressable>
           </Card>
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+          <View style={[{ backgroundColor: colors.border }, styles.divider]} />
         </>
       )}
 
@@ -124,7 +124,7 @@ export default function SettingsScreen() {
       {/* App Version Info */}
       {(appVersion || buildNumber) && (
         <View style={styles.versionInfo}>
-          <Body style={[styles.versionText, { color: colors.mutedText }]}>
+          <Body style={[{ color: colors.mutedText }, styles.versionText]}>
             {appVersion && `Version ${appVersion}`}
             {appVersion && buildNumber && ' • '}
             {buildNumber && `Build ${buildNumber}`}
@@ -172,7 +172,6 @@ const styles = StyleSheet.create({
   updateButton: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 6,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.3)',
   },

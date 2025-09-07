@@ -21,7 +21,7 @@ type Permission = {
 };
 
 export default function AdminCreateRoleScreen() {
-  const { colors, layout } = useTheme();
+  const { colors, layout, borderRadius } = useTheme();
   const navigation = useNavigation<any>();
   const permissions = useAppSelector(selectUserPermissions) as string[];
   
@@ -113,11 +113,12 @@ export default function AdminCreateRoleScreen() {
       <View style={[{ gap: layout.formGap }, styles.formSection]}>
         <Body style={[{ color: colors.text }, styles.formLabel]}>Role Name *</Body>
         <TextInput
-          style={[styles.textInput, { 
+          style={[{ 
             borderColor: colors.border, 
             color: colors.text,
+            borderRadius: borderRadius.md,
             backgroundColor: colors.card 
-          }]}
+          }, styles.textInput]}
           placeholder="Enter role name..."
           placeholderTextColor={colors.mutedText}
           value={editData.name}
@@ -128,11 +129,12 @@ export default function AdminCreateRoleScreen() {
       <View style={[{ gap: layout.formGap }, styles.formSection]}>
         <Body style={[{ color: colors.text }, styles.formLabel]}>Description</Body>
         <TextInput
-          style={[styles.textInput, { 
+          style={[{ 
             borderColor: colors.border, 
             color: colors.text,
+            borderRadius: borderRadius.md,
             backgroundColor: colors.card 
-          }]}
+          }, styles.textInput]}
           placeholder="Enter role description..."
           placeholderTextColor={colors.mutedText}
           value={editData.description}
@@ -160,7 +162,7 @@ export default function AdminCreateRoleScreen() {
     return (
       <Card style={styles.sectionCard}>
         {renderSectionHeader('Assign Permissions', 'key')}
-                  <PermissionList
+          <PermissionList
             permissions={allPermissions}
             selectedPermissions={rolePermissions}
             onPermissionToggle={(permissionId, enabled) => {
@@ -234,7 +236,6 @@ const styles = StyleSheet.create({
   textInput: { 
     paddingVertical: 12, 
     paddingHorizontal: 16, 
-    borderRadius: 8, 
     borderWidth: 1, 
     fontSize: 14 
   },

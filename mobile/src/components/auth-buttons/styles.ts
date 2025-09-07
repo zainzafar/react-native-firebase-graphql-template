@@ -1,16 +1,16 @@
 import { AppColors } from '../../theme/colors';
 
-export function getProviderButtonBaseStyles(isDark: boolean, colors: AppColors) {
+export function getProviderButtonBaseStyles(isDark: boolean, colors: AppColors, borderRadius: any) {
   const containerStyle = isDark
     ? {
-        borderRadius: 24,
+        borderRadius: borderRadius.xxl,
         borderWidth: 1,
         borderColor: colors.border,
         backgroundColor: colors.background,
         height: 48,
       }
     : {
-        borderRadius: 24,
+        borderRadius: borderRadius.xxl,
         borderWidth: 1,
         // Match other provider buttons (slate-300) and soft background
         borderColor: '#CBD5E1',

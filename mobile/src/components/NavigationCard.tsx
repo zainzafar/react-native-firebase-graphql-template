@@ -23,7 +23,7 @@ export default function NavigationCard({
   iconColor,
   iconBackgroundColor,
 }: NavigationCardProps) {
-  const { colors } = useTheme();
+  const { colors, borderRadius } = useTheme();
   
   return (
     <Card style={styles.cardContainer}>
@@ -39,7 +39,7 @@ export default function NavigationCard({
           <View style={styles.navigationLeft}>
             <View style={[
               styles.iconContainer, 
-              { backgroundColor: iconBackgroundColor || '#007AFF' + '20' }
+              { backgroundColor: iconBackgroundColor || '#007AFF' + '20', borderRadius: borderRadius.lg }
             ]}>
               <FontAwesome6 
                 name={icon as any} 
@@ -85,7 +85,6 @@ const styles = StyleSheet.create({
   iconContainer: { 
     width: 48, 
     height: 48, 
-    borderRadius: 12, 
     alignItems: 'center', 
     justifyContent: 'center', 
     marginRight: 16 

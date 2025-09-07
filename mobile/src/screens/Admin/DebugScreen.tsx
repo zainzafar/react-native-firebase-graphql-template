@@ -37,7 +37,7 @@ export default function DebugScreen() {
   
   const authState = useAppSelector(selectAuth);
   const isOnline = useAppSelector(selectIsOnline);
-  const { colors } = useTheme();
+  const { colors, borderRadius } = useTheme();
 
   useEffect(() => {
     const run = async () => {
@@ -190,7 +190,7 @@ export default function DebugScreen() {
         <>
           <InfoRow label="Network Status" value={isOnline ? 'Online' : 'Offline'} />
           <View style={styles.toggleContainer}>
-            <Text style={[styles.toggleLabel, { color: colors.text }]}>
+            <Text style={[{ color: colors.text }, styles.toggleLabel]}>
               Simulate Offline Mode
             </Text>
             <Switch
@@ -243,14 +243,14 @@ export default function DebugScreen() {
           <InfoRow label="Initialized" value={authState.initialized ? 'yes' : 'no'} />
           <InfoRow label="User ID" value={authState.user?.id || '(none)'} />
           <InfoRow label="Last Login Provider" value={authState.user?.lastLoginProvider || '(none)'} />
-          <View style={[styles.horizontalRule, { backgroundColor: colors.border }]} />
-          <Pressable style={styles.fetchButton} onPress={onFetchReduxState}>
+          <View style={[{ backgroundColor: colors.border }, styles.horizontalRule]} />
+          <Pressable style={[{ borderRadius: borderRadius.sm }, styles.fetchButton]} onPress={onFetchReduxState}>
             <Text style={styles.fetchButtonText}>Fetch State</Text>
           </Pressable>
           {showReduxState && reduxState && (
-            <View style={[styles.jsonContainer, { backgroundColor: colors.card }]}>
+            <View style={[{ backgroundColor: colors.card, borderRadius: borderRadius.sm }, styles.jsonContainer]}>
               <View style={styles.jsonHeader}>
-                <Text style={[styles.jsonText, { color: colors.text }]}>Redux State JSON</Text>
+                <Text style={[{ color: colors.text }, styles.jsonText]}>Redux State JSON</Text>
                 <Pressable 
                   style={styles.iconButton} 
                   onPress={() => { 
@@ -263,7 +263,7 @@ export default function DebugScreen() {
                   <FontAwesome6 name="copy" iconStyle="solid" size={16} color="#0a84ff" />
                 </Pressable>
               </View>
-              <Text style={[styles.jsonText, { color: colors.text }]}>{reduxState}</Text>
+              <Text style={[{ color: colors.text }, styles.jsonText]}>{reduxState}</Text>
             </View>
           )}
         </>
@@ -283,10 +283,10 @@ export default function DebugScreen() {
           {tokenInfo.present ? (
             <CompactMeInfo />
           ) : (
-            <Text style={[styles.note, { color: colors.mutedText }]}>Sign in to fetch user info from GraphQL.</Text>
+            <Text style={[{ color: colors.mutedText }, styles.note]}>Sign in to fetch user info from GraphQL.</Text>
           )}
           {!tokenInfo.present && firebaseUser.uid && (
-            <Pressable style={styles.fetchButton} onPress={onFetchAppToken}>
+            <Pressable style={[{ borderRadius: borderRadius.sm }, styles.fetchButton]} onPress={onFetchAppToken}>
               <Text style={styles.fetchButtonText}>Fetch app token</Text>
             </Pressable>
           )}
@@ -317,9 +317,9 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   const { colors } = useTheme();
   return (
     <View style={styles.row}>
-      <Text style={[styles.label, { color: colors.mutedText }]}>{label}:</Text>
+      <Text style={[{ color: colors.mutedText }, styles.label]}>{label}:</Text>
       <View style={styles.valueRow}>
-        <Text style={[styles.value, { color: colors.text }]} numberOfLines={1} ellipsizeMode="tail">{value}</Text>
+        <Text style={[{ color: colors.text }, styles.value]} numberOfLines={1} ellipsizeMode="tail">{value}</Text>
         <Pressable 
           style={styles.iconButton} 
           onPress={() => { 
@@ -382,7 +382,7 @@ function AccordionSection({
           }}>
             <FontAwesome6 name="chevron-right" iconStyle="solid" size={14} color={colors.text} />
           </Animated.View>
-          <Text style={[styles.accordionTitle, { color: colors.text }]}>{title}</Text>
+          <Text style={[{ color: colors.text }, styles.accordionTitle]}>{title}</Text>
         </View>
         {rightElement}
       </Pressable>
@@ -413,11 +413,11 @@ function CompactMeInfo() {
   if (loading) return (
     <View style={styles.loadingContainer}>
       <ActivityIndicator size="small" color={colors.text} />
-      <Text style={[styles.loadingText, { color: colors.mutedText }]}>Loading user…</Text>
+      <Text style={[{ color: colors.mutedText }, styles.loadingText]}>Loading user…</Text>
     </View>
   );
-  if (error) return <Text style={[styles.note, { color: colors.mutedText }]}>Error: {error.message}</Text>;
-  if (!me) return <Text style={[styles.note, { color: colors.mutedText }]}>No user info returned.</Text>;
+  if (error) return <Text style={[{ color: colors.mutedText }, styles.note]}>Error: {error.message}</Text>;
+  if (!me) return <Text style={[{ color: colors.mutedText }, styles.note]}>No user info returned.</Text>;
   
   return (
     <>
@@ -439,14 +439,14 @@ const styles = StyleSheet.create({
   value: { fontSize: 14, flex: 1, textAlign: 'right', marginRight: 8 },
   note: { fontSize: 14, fontStyle: 'italic', marginTop: 4 },
   horizontalRule: { height: 1, marginVertical: 12 },
-  jsonContainer: { padding: 8, borderRadius: 4, marginTop: 8 },
+  jsonContainer: { padding: 8, marginTop: 8 },
   jsonHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   jsonText: { fontSize: 12, fontFamily: 'monospace' },
   card: { padding: 20, margin: 0, gap: 0 },
   accordionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 0 },
   accordionTitleRow: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   accordionTitle: { fontSize: 16, fontWeight: '600', marginLeft: 8 },
-  fetchButton: { backgroundColor: '#007AFF', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, alignSelf: 'flex-start' },
+  fetchButton: { backgroundColor: '#007AFF', paddingHorizontal: 12, paddingVertical: 6, alignSelf: 'flex-start' },
   fetchButtonText: { color: '#ffffff', fontSize: 14, fontWeight: '500' },
   contentContainer: { paddingVertical: 0, paddingTop: 12 },
   loadingContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 8 },

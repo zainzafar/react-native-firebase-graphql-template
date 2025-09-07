@@ -30,12 +30,12 @@ export default function PermissionRow({
   canEnable = true,
   canDisable = true
 }: PermissionRowProps) {
-  const { colors } = useTheme();
+  const { colors, borderRadius } = useTheme();
   
 
   return (
     <View 
-      style={styles.permissionItem}
+      style={[{ borderRadius: borderRadius.md }, styles.permissionItem]}
     >
       <View style={styles.permissionInfo}>
         {showName && (
@@ -45,12 +45,12 @@ export default function PermissionRow({
         )}
         {showDescription && permission.description && (
           <Body style={[
-            styles.permissionDescription, 
             { 
               color: showName ? colors.mutedText : colors.text,
               fontStyle: showName ? 'italic' : 'normal',
               fontSize: showName ? 12 : 14
-            }
+            },
+            styles.permissionDescription
           ]}>
             {permission.description}
           </Body>
@@ -78,7 +78,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 8,
-    borderRadius: 8,
     marginBottom: 4,
   },
   permissionInfo: {

@@ -39,11 +39,11 @@ export default function UpdateBottomSheet({
       autoSize={!hard} // Auto-size for soft prompts
     >
       <View style={styles.content}>
-        <Text style={[styles.title, { color: colors.text }]}>
+        <Text style={[{ color: colors.text }, styles.title]}>
           {title}
         </Text>
         
-        <Text style={[styles.message, { color: colors.text }]}>
+        <Text style={[{ color: colors.text }, styles.message]}>
           {displayMessage}
         </Text>
 
@@ -53,7 +53,7 @@ export default function UpdateBottomSheet({
               <Button
                 title="Maybe Later"
                 onPress={onLater}
-                style={[styles.button, styles.secondaryButton, { borderColor: colors.border }]}
+                style={[{ borderColor: colors.border }, styles.button, styles.secondaryButton]}
                 textColor={colors.text}
               />
             )}
@@ -62,7 +62,7 @@ export default function UpdateBottomSheet({
               title="Update"
               onPress={onUpdate}
               style={[styles.button, styles.primaryButton]}
-              textColor={'#ffffff'}
+              textColor={colors.primaryText}
             />
           </View>
           

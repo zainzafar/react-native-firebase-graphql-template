@@ -16,8 +16,8 @@ export function ScreenContainer({ children }: { children: React.ReactNode }) {
 }
 
 export function Card({ children, style }: { children: React.ReactNode; style?: any }) {
-  const { colors } = useTheme();
-  return <View style={[{ backgroundColor: colors.card, borderColor: colors.cardBorder }, styles.card, style]}>{children}</View>;
+  const { colors, borderRadius } = useTheme();
+  return <View style={[{ backgroundColor: colors.card, borderColor: colors.cardBorder, borderRadius: borderRadius.xl }, styles.card, style]}>{children}</View>;
 }
 
 export function Heading({ children }: { children: React.ReactNode }) {
@@ -43,12 +43,12 @@ type InputProps = {
 };
 
 export function Input(props: InputProps) {
-  const { colors } = useTheme();
+  const { colors, borderRadius } = useTheme();
   return (
     <TextInput
       {...props}
       placeholderTextColor={colors.mutedText}
-      style={[{ color: colors.text, borderColor: colors.border }, styles.input]}
+      style={[{ color: colors.text, borderColor: colors.border, borderRadius: borderRadius.md }, styles.input]}
       autoCorrect={false}
       spellCheck={false}
     />
@@ -78,10 +78,10 @@ export function InlineLoader({ text }: { text?: string }) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, padding: 16, justifyContent: 'center' },
-  card: { borderWidth: 1, borderRadius: 16, padding: 20, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 1, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
+  card: { borderWidth: 1, padding: 20, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 1, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
   heading: { fontSize: 24, fontWeight: '700', letterSpacing: 0.3 },
   body: { fontSize: 14 },
-  input: { borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 16 },
+  input: { borderWidth: 1, paddingHorizontal: 12, paddingVertical: 10, fontSize: 16 },
   loadingText: { fontSize: 16, textAlign: 'center', marginTop: 8 },
   inlineLoader: { flexDirection: 'row', alignItems: 'center' },
   inlineLoadingText: { fontSize: 14, fontStyle: 'italic' },

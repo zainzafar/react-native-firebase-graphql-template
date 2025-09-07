@@ -27,7 +27,7 @@ type PermissionGrantRule = {
 };
 
 export default function AdminPermissionGrantRules() {
-  const { colors, layout } = useTheme();
+  const { colors, layout, borderRadius } = useTheme();
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const userPermissions = useAppSelector(selectUserPermissions) as string[];
@@ -166,7 +166,7 @@ export default function AdminPermissionGrantRules() {
                   {canDeletePermissionGrants && (
                     <Pressable
                       onPress={() => handleDeletePermissionGrant(rule.id)}
-                      style={styles.deleteButton}
+                      style={[{ borderRadius: borderRadius.sm }, styles.deleteButton]}
                     >
                       <FontAwesome6 name="trash" iconStyle="solid" size={14} color="#DC2626" />
                     </Pressable>
@@ -215,7 +215,6 @@ const styles = StyleSheet.create({
   actionText: { fontSize: 14 },
   deleteButton: { 
     padding: 8,
-    borderRadius: 4
   },
   emptyCard: { },
   emptyContent: { 
