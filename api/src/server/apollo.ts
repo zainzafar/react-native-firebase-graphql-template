@@ -39,6 +39,7 @@ function createLoggingPlugin() {
       let opType: string | undefined;
       let fields: string[] = [];
       const requestId: string = requestContext.contextValue?.requestId ?? randomUUID();
+      const isImpersonation: boolean = requestContext.contextValue?.isImpersonation ?? false;
 
       return {
         didResolveOperation(ctx: any) {
@@ -52,7 +53,8 @@ function createLoggingPlugin() {
           }
           const opTypeLabel = opType ? ` type=${opType}` : '';
           const fieldsLabel = fields.length ? ` fields=[${fields.join(',')}]` : '';
-          console.log(`[GraphQL][rid=${requestId}] → start op=${opName}${opTypeLabel}${fieldsLabel}`);
+          const impersonationPrefix = isImpersonation ? '[IMPERSONATION] ' : '';
+          console.log(`${impersonationPrefix}[GraphQL][rid=${requestId}] → start op=${opName}${opTypeLabel}${fieldsLabel}`);
 
           const rawQuery: string | undefined = requestContext.request.query?.trim();
           const printedQuery: string | undefined = rawQuery && rawQuery.length > 0
@@ -68,8 +70,9 @@ function createLoggingPlugin() {
           }
         },
         didEncounterErrors(ctx: any) {
+          const impersonationPrefix = isImpersonation ? '[IMPERSONATION] ' : '';
           for (const err of ctx.errors) {
-            console.error(`[GraphQL][rid=${requestId}] ✖ error`, {
+            console.error(`${impersonationPrefix}[GraphQL][rid=${requestId}] ✖ error`, {
               op: opName,
               message: err.message,
               path: err.path,
@@ -79,7 +82,8 @@ function createLoggingPlugin() {
         },
         willSendResponse() {
           const ms = Date.now() - start;
-          console.log(`[GraphQL][rid=${requestId}] ← complete op=${opName} in ${ms}ms`);
+          const impersonationPrefix = isImpersonation ? '[IMPERSONATION] ' : '';
+          console.log(`${impersonationPrefix}[GraphQL][rid=${requestId}] ← complete op=${opName} in ${ms}ms`);
         },
       };
     },
@@ -92,6 +96,7 @@ type GraphQLContext = {
   res: Response;
   user: AuthContextUser | null;
   prisma: PrismaClient;
+  isImpersonation: boolean;
 };
 
 type ApplyApolloArgs = {
@@ -119,6 +124,8 @@ export async function applyApolloMiddleware({ app, httpServer }: ApplyApolloArgs
       context: async ({ req, res }: { req: Request; res: Response }) => {
         const headerId = (req.headers?.['x-request-id'] as string | undefined) || undefined;
         const requestId = headerId ?? randomUUID();
+        const isImpersonation = req.headers?.['x-impersonation'] === 'true';
+        
         try {
           res.setHeader('x-request-id', requestId);
         } catch {}
@@ -128,7 +135,8 @@ export async function applyApolloMiddleware({ app, httpServer }: ApplyApolloArgs
         // Get operation name for authentication check
         const operationName = (req.body?.operationName as string) || '';
 
-        console.log('operationName', operationName);
+        const impersonationPrefix = isImpersonation ? '[IMPERSONATION] ' : '';
+        console.log(`${impersonationPrefix}operationName`, operationName);
         
         // Only fetch user if authentication is required
         let user: AuthContextUser | null = null;
@@ -146,7 +154,7 @@ export async function applyApolloMiddleware({ app, httpServer }: ApplyApolloArgs
           }
         }
         
-        return { requestId, req, res, user: user ?? null, prisma } as GraphQLContext;
+        return { requestId, req, res, user: user ?? null, prisma, isImpersonation } as GraphQLContext;
       },
     })
   );
