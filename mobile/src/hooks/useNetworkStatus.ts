@@ -21,7 +21,7 @@ export function useNetworkStatus() {
     // Get initial state first
     NetInfo.fetch().then((state) => {
       // If isInternetReachable is null (unknown), assume online if connected
-      const online = state.isConnected && (state.isInternetReachable ?? true);
+      const online = Boolean(state.isConnected && (state.isInternetReachable ?? true));
       // console.log('NetInfo.fetch() result:', JSON.stringify({ isConnected: state.isConnected, isInternetReachable: state.isInternetReachable, online }));
       dispatch(setNetworkStatus({ isOnline: online }));
       hasInitialized = true;
@@ -31,7 +31,7 @@ export function useNetworkStatus() {
       // Only dispatch after initial fetch is complete
       if (hasInitialized) {
         // If isInternetReachable is null (unknown), assume online if connected
-        const online = state.isConnected && (state.isInternetReachable ?? true);
+        const online = Boolean(state.isConnected && (state.isInternetReachable ?? true));
         dispatch(setNetworkStatus({ isOnline: online }));
       }
     });

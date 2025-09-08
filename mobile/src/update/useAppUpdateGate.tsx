@@ -84,7 +84,7 @@ export function useAppUpdateGate() {
         fetchPolicy: 'network-only', // Always fetch fresh data
       });
 
-      return result.data?.appSettings || null;
+      return (result.data as any)?.appSettings || null;
     } catch (error) {
       console.warn('[AppUpdateGate] Failed to fetch app settings:', error);
       return null;

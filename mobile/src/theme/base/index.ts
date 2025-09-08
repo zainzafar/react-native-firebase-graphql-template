@@ -9,6 +9,12 @@ export { typography } from './typography';
 export { layout, borderRadius } from './layout';
 export { baseColors } from './colors';
 
+// Re-export types
+export type { Spacing } from './spacing';
+export type { Typography } from './typography';
+export type { Layout, BorderRadius } from './layout';
+export type { BaseColors, AppColors } from './colors';
+
 // Base theme composition
 export const baseTheme = {
   spacing,
