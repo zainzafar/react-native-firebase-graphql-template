@@ -6,9 +6,8 @@
     "android": "./scripts/run-android.sh",
     "ios": "react-native run-ios --verbose",
     "ios:rebuild": "./scripts/update-env.sh",
-    "lint": "eslint .",
     "start": "react-native start",
-    "test": "echo 'No tests'",
+    "lint": "eslint .",
     "generate-themes": "node scripts/generate-themes.js"
   },
   "dependencies": {
