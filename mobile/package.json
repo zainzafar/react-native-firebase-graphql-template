@@ -8,7 +8,8 @@
     "ios:rebuild": "./scripts/update-env.sh",
     "lint": "eslint .",
     "start": "react-native start",
-    "test": "echo 'No tests'"
+    "test": "echo 'No tests'",
+    "generate-themes": "node scripts/generate-themes.js"
   },
   "dependencies": {
     "@apollo/client": "^4.0.0",

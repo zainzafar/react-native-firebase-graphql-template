@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, ViewStyle } from 'react-native';
 import { useAppSelector } from '../store/hooks';
 import { selectIsOnline, selectIsNetworkInitialized } from '../store/offlineSlice';
 import { useTheme } from '../theme/ThemeProvider';
-import { typography } from '../theme/typography';
 
 type OfflineIndicatorProps = {
   style?: ViewStyle;
@@ -12,7 +11,7 @@ type OfflineIndicatorProps = {
 export function OfflineIndicator({ style }: OfflineIndicatorProps) {
   const isOnline = useAppSelector(selectIsOnline);
   const isNetworkInitialized = useAppSelector(selectIsNetworkInitialized);
-  const { colors, borderRadius } = useTheme();
+  const { colors, borderRadius, typography } = useTheme();
 
   // Don't show offline indicator until network status has been properly initialized
   if (!isNetworkInitialized || isOnline) return null;
@@ -26,7 +25,13 @@ export function OfflineIndicator({ style }: OfflineIndicatorProps) {
       },
       style
     ]}>
-      <Text style={[{ color: colors.primaryText }, styles.text]}>
+      <Text style={[
+        { 
+          color: colors.primaryText,
+          fontSize: typography.sizes.bodySmall,
+          fontWeight: typography.weights.medium,
+        }
+      ]}>
         You're offline
       </Text>
     </View>
@@ -39,9 +44,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     alignItems: 'center',
     marginVertical: 16,
-  },
-  text: {
-    fontSize: typography.sizes.bodySmall,
-    fontWeight: typography.weights.medium,
   },
 });

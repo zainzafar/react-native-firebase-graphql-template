@@ -291,7 +291,7 @@ const UpdateMessageCard = ({ formData, updateFormData }: Pick<AppReleaseFormComp
 };
 
 const EnforcementDatePicker = ({ formData, selectedDate, handleDateChange }: Pick<AppReleaseFormComponentsProps, 'formData' | 'selectedDate' | 'handleDateChange'>) => {
-  const { colors, typography, isDark } = useTheme();
+  const { colors, typography } = useTheme();
 
   if (!formData.enforceAtFutureDate) return null;
 
@@ -312,7 +312,7 @@ const EnforcementDatePicker = ({ formData, selectedDate, handleDateChange }: Pic
           minimumDate={new Date()}
           style={styles.datePickerInline}
           textColor={colors.text}
-          themeVariant={isDark ? 'dark' : 'light'}
+          themeVariant={colors.datePickerTheme}
         />
       </View>
     </View>

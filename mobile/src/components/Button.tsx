@@ -44,7 +44,7 @@ export function Button({
   textColor,
   iconRight,
 }: ButtonProps) {
-  const { colors, borderRadius, isDark } = useTheme();
+  const { colors, borderRadius } = useTheme();
   
   // Internal state to track animation completion
   const [internalSuccess, setInternalSuccess] = useState(false);
@@ -53,11 +53,11 @@ export function Button({
   // Subtle default background for ghost buttons so they look like buttons
   const isGhost = variant === 'ghost';
   const isDanger = variant === 'danger';
-  const ghostBg = isDark ? 'rgba(255,255,255,0.06)' : colors.card;
+  const ghostBg = colors.card;
   const bg = variant === 'primary' ? colors.primary : ghostBg;
   const text = variant === 'primary' ? colors.primaryText : isDanger ? colors.danger : colors.text;
   const textColorFinal = textColor ?? text;
-  const ghostBorder = isDark ? 'rgba(255,255,255,0.14)' : colors.border;
+  const ghostBorder = colors.border;
   const borderColor = variant === 'primary' ? colors.primary : isDanger ? colors.danger : ghostBorder;
   
   // Success and error state styling
@@ -143,8 +143,8 @@ export function Button({
         styles.button,
         { backgroundColor: finalBg, borderColor: finalBorderColor, borderRadius: borderRadius.lg },
         // Light shadow/elevation to give subtle button affordance
-        !isDark && styles.buttonShadow,
-        (isGhost || isDanger) && (isDark ? { borderWidth: 1.5 } : styles.ghostEmphasis),
+        styles.buttonShadow,
+        (isGhost || isDanger) && styles.ghostEmphasis,
         pressed && (isGhost ? styles.ghostPressed : { opacity: 0.9 }),
         disabled && { opacity: 0.6 },
         style,

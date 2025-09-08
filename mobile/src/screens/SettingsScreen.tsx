@@ -18,7 +18,7 @@ export default function SettingsScreen() {
   const [appVersion, setAppVersion] = useState<string>('');
   const [buildNumber, setBuildNumber] = useState<string>('');
   const navigation = useNavigation<any>();
-  const { isDark, setDarkMode, colors, borderRadius } = useTheme();
+  const { currentTheme, setTheme, colors, borderRadius } = useTheme();
 
   const onLogout = async () => {
     try {
@@ -115,7 +115,10 @@ export default function SettingsScreen() {
             <FontAwesome6 name="moon" iconStyle="solid" size={20} color={colors.text} />
             <Body style={styles.menuItemText}>Dark mode</Body>
           </View>
-          <Switch value={isDark} onValueChange={setDarkMode} />
+          <Switch 
+            value={currentTheme === 'dark'} 
+            onValueChange={(enabled) => setTheme(enabled ? 'dark' : 'light')} 
+          />
         </View>
       </Card>
 

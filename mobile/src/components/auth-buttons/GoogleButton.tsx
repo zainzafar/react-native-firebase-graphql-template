@@ -7,8 +7,8 @@ import { getProviderButtonBaseStyles, providerIconSize } from './styles';
 type Props = Omit<ProviderButtonProps, 'icon' | 'label'> & { label?: string };
 
 export default function GoogleButton({ label = 'Continue with Google', ...rest }: Props) {
-  const { isDark, colors, borderRadius } = useTheme();
-  const { containerStyle: style, labelStyle } = getProviderButtonBaseStyles(isDark, colors, borderRadius);
+  const { colors, borderRadius } = useTheme();
+  const { containerStyle: style, labelStyle } = getProviderButtonBaseStyles(colors, borderRadius);
   return (
     <ProviderButton
       icon={<FontAwesome6 name="google" iconStyle="brand" size={providerIconSize} color="#EA4335" />}

@@ -5,10 +5,10 @@
  * @format
  */
 
-import { StatusBar } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
+import { NavigationContainer } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { StatusBar, Platform } from 'react-native';
 import { ThemeProvider, useTheme } from './src/theme/ThemeProvider';
 import { AuthProvider } from './src/auth/AuthProvider';
 import RootNavigator from './src/navigation/RootNavigator';
@@ -21,17 +21,17 @@ import { UpdateBottomSheet, useAppUpdateGate } from './src/update';
 import { useNetworkStatus } from './src/hooks/useNetworkStatus';
 
 function AppContent() {
-  const { isDark } = useTheme();
+  const { colors } = useTheme();
 
   return (
     <GestureHandlerRootView style={styles.container}>
       <SafeAreaProvider>
         <StatusBar 
-          barStyle={isDark ? 'light-content' : 'dark-content'} 
-          backgroundColor={isDark ? '#000000' : '#ffffff'}
+          barStyle={colors.statusBarContent} 
+          backgroundColor={Platform.OS === 'android' ? colors.background : undefined}
           translucent={false}
         />
-        <NavigationContainer theme={isDark ? DarkTheme : DefaultTheme}>
+        <NavigationContainer>
           <Provider store={store}>
             <PersistGate loading={null} persistor={persistor}>
               <ApolloProvider client={apolloClient}>

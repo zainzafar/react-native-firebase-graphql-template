@@ -150,9 +150,21 @@ SEED_SUPER_ADMIN_EMAIL="admin@example.com" npm run prisma:seed
 
 You can re-run the command with a different email to grant additional super admins.
 
+## 5. Theme System (Optional)
+
+The app includes a scalable theme system that supports multiple themes with automatic discovery. For detailed information about:
+
+- Adding new themes
+- Theme composition and overrides
+- Auto-discovery system
+- Type safety and best practices
+
+See: [Theme System Documentation](./mobile/theme.md)
+
 ## ⚠️ Common Setup Issues
 
 1. **Firebase Configuration Not Found**: Make sure you've replaced all dummy Firebase files
 2. **Google Sign-In Fails**: Verify Web Client ID and SHA-1 fingerprints
 3. **Apple Sign-In Issues**: Check Apple Developer account and Xcode capabilities
 4. **Build Errors**: Ensure all app identifiers are updated consistently
+5. **Theme Not Found**: Run `npm run generate-themes` after adding new theme folders
