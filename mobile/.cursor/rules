@@ -40,6 +40,9 @@ Testing
 Code style
 - Respect eslint/prettier; avoid unrelated formatting changes
 - Prioritize readability; avoid deep prop drilling (prefer context/hooks)
+- CRITICAL: NEVER use typography, colors, or spacing directly in StyleSheet.create (causes linter errors)
+- ALWAYS use inline style arrays with theme values first, local styles second: [{ theme values }, styles.localStyle]
+- Example: style={[{ color: colors.text, fontSize: typography.sizes.body }, styles.localStyle]}
 
 App build
 - After making changes, don't build the app.
