@@ -9,29 +9,29 @@ PODS:
   - DoubleConversion (1.1.6)
   - fast_float (8.0.0)
   - FBLazyVector (0.81.0)
-  - Firebase/Auth (12.1.0):
+  - Firebase/Auth (12.2.0):
     - Firebase/CoreOnly
-    - FirebaseAuth (~> 12.1.0)
-  - Firebase/CoreOnly (12.1.0):
-    - FirebaseCore (~> 12.1.0)
-  - FirebaseAppCheckInterop (12.1.0)
-  - FirebaseAuth (12.1.0):
-    - FirebaseAppCheckInterop (~> 12.1.0)
-    - FirebaseAuthInterop (~> 12.1.0)
-    - FirebaseCore (~> 12.1.0)
-    - FirebaseCoreExtension (~> 12.1.0)
+    - FirebaseAuth (~> 12.2.0)
+  - Firebase/CoreOnly (12.2.0):
+    - FirebaseCore (~> 12.2.0)
+  - FirebaseAppCheckInterop (12.2.0)
+  - FirebaseAuth (12.2.0):
+    - FirebaseAppCheckInterop (~> 12.2.0)
+    - FirebaseAuthInterop (~> 12.2.0)
+    - FirebaseCore (~> 12.2.0)
+    - FirebaseCoreExtension (~> 12.2.0)
     - GoogleUtilities/AppDelegateSwizzler (~> 8.1)
     - GoogleUtilities/Environment (~> 8.1)
     - GTMSessionFetcher/Core (< 6.0, >= 3.4)
     - RecaptchaInterop (~> 101.0)
-  - FirebaseAuthInterop (12.1.0)
-  - FirebaseCore (12.1.0):
-    - FirebaseCoreInternal (~> 12.1.0)
+  - FirebaseAuthInterop (12.2.0)
+  - FirebaseCore (12.2.0):
+    - FirebaseCoreInternal (~> 12.2.0)
     - GoogleUtilities/Environment (~> 8.1)
     - GoogleUtilities/Logger (~> 8.1)
-  - FirebaseCoreExtension (12.1.0):
-    - FirebaseCore (~> 12.1.0)
-  - FirebaseCoreInternal (12.1.0):
+  - FirebaseCoreExtension (12.2.0):
+    - FirebaseCore (~> 12.2.0)
+  - FirebaseCoreInternal (12.2.0):
     - "GoogleUtilities/NSData+zlib (~> 8.1)"
   - fmt (11.0.2)
   - glog (0.3.5)
@@ -1778,9 +1778,9 @@ PODS:
     - React-RCTFBReactNativeSpec
     - ReactCommon/turbomodule/core
     - SocketRocket
-  - react-native-config (1.5.6):
-    - react-native-config/App (= 1.5.6)
-  - react-native-config/App (1.5.6):
+  - react-native-config (1.5.9):
+    - react-native-config/App (= 1.5.9)
+  - react-native-config/App (1.5.9):
     - React-Core
   - react-native-netinfo (11.4.1):
     - React-Core
@@ -2493,11 +2493,11 @@ PODS:
     - Yoga
   - RNDeviceInfo (14.0.4):
     - React-Core
-  - RNFBApp (23.1.1):
-    - Firebase/CoreOnly (= 12.1.0)
+  - RNFBApp (23.3.1):
+    - Firebase/CoreOnly (= 12.2.0)
     - React-Core
-  - RNFBAuth (23.1.1):
-    - Firebase/Auth (= 12.1.0)
+  - RNFBAuth (23.3.1):
+    - Firebase/Auth (= 12.2.0)
     - React-Core
     - RNFBApp
   - RNGestureHandler (2.28.0):
@@ -2586,7 +2586,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - RNScreens (4.15.2):
+  - RNScreens (4.16.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -2613,10 +2613,10 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNScreens/common (= 4.15.2)
+    - RNScreens/common (= 4.16.0)
     - SocketRocket
     - Yoga
-  - RNScreens/common (4.15.2):
+  - RNScreens/common (4.16.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -2939,13 +2939,13 @@ SPEC CHECKSUMS:
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   fast_float: b32c788ed9c6a8c584d114d0047beda9664e7cc6
   FBLazyVector: a867936a67af0d09c37935a1b900a1a3c795b6d1
-  Firebase: 9edc9acf71313eb20e209c42e5469a42564fe1aa
-  FirebaseAppCheckInterop: de890554a81967f16a0eb8d3def541c2bb42dece
-  FirebaseAuth: 6d0f2d449195c401e6d6ef1a891fff22bc60356d
-  FirebaseAuthInterop: ede927b03baf02453e6e9de2df513cc28d3eb742
-  FirebaseCore: 5a452ffa66f37c8e281076996837626c5d08c090
-  FirebaseCoreExtension: dd89d73548ee9be5d8dc60e5c76bc421b965853b
-  FirebaseCoreInternal: ff526c22671bb564d1b34a47615e29ba99389dee
+  Firebase: 26f6f8d460603af3df970ad505b16b15f5e2e9a1
+  FirebaseAppCheckInterop: a1b2598c64c5a8c42fd6f6a1c3d0938ae4324678
+  FirebaseAuth: 059c11702bdb759bb49b6c7ec6ff67abf21f39c4
+  FirebaseAuthInterop: 217702acd4cc6baa98ba9d6c054532e0de0b8a16
+  FirebaseCore: 311c48a147ad4a0ab7febbaed89e8025c67510cd
+  FirebaseCoreExtension: 73af080c22a2f7b44cefa391dc08f7e4ee162cb5
+  FirebaseCoreInternal: 56ea29f3dad2894f81b060f706f9d53509b6ed3b
   fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
   glog: 5683914934d5b6e4240e497e0f4a3b42d1854183
   GoogleSignIn: d4281ab6cf21542b1cfaff85c191f230b399d2db
@@ -2986,7 +2986,7 @@ SPEC CHECKSUMS:
   React-logger: 04ce9229cb57db2c2a8164eaec1105f89da7fb22
   React-Mapbuffer: ed316571f8a6368a044c166dd62db3ff9a19ade9
   React-microtasksnativemodule: 7349a9210ff1fe97f54025fbda2496ed9a2d43cd
-  react-native-config: f1dde39f8468ad922fc7e8bd4308c8e6223d5ee8
+  react-native-config: d08b60865268872495a43e211059b4606131fe01
   react-native-netinfo: cec9c4e86083cb5b6aba0e0711f563e2fbbff187
   react-native-safe-area-context: 4fe3c427e047bc2c1b447bd4ec9a92969a4a7d00
   react-native-vector-icons-fontawesome6: 1b667969bef2f430d1d7515163b980b856f58670
@@ -3027,12 +3027,12 @@ SPEC CHECKSUMS:
   RNCMaskedView: 0a7d798694b3735e488140d22ae186fc882baf93
   RNDateTimePicker: 4f0c63a200ecc75a72defef40b86d6f4abb2faaa
   RNDeviceInfo: d863506092aef7e7af3a1c350c913d867d795047
-  RNFBApp: 068fdd2f2f94bc36be7ffaeeeabb9fcf9415f483
-  RNFBAuth: 4415df7d1089124df3e2928e2fa0bcfc67fff53d
+  RNFBApp: 22c91c2d4ef60be1de426d3544f68c348e036bb0
+  RNFBAuth: 59588fb2328d26d2f28806111d7070b69d01732f
   RNGestureHandler: 0ea32a0d377cd9ebfb1f41bb6b285c26334ce739
   RNGoogleSignin: 5cffe667c043403bb0cdb92e71c9b48b4262dd3e
   RNKeychain: aa31a669f8dc6bef002fb1df857eb1dcf4a2f455
-  RNScreens: baa2020baf5417611564f6139eeb5e5c16e708ec
+  RNScreens: f12d06e7aa168867438241a68591d992186b5124
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: be78ddad0c56d06a5e41eaef4bfbbd49b86a4d07
 
