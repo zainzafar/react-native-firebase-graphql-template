@@ -6,7 +6,9 @@ import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useTheme } from '../theme/ThemeProvider';
 import { useAppSelector } from '../store/hooks';
 import { selectIsOnline } from '../store/offlineSlice';
+import { selectIsImpersonating } from '../features/auth/selectors';
 import { OfflineIndicator } from './OfflineIndicator';
+import { ImpersonationBanner } from './ImpersonationBanner';
 import { useTopInset } from './ui';
 
 // Debug flag to control border visibility
@@ -52,22 +54,24 @@ export function Screen({
   const hasHeader = headerHeight > 0;
   const hasBottomTabBar = bottomTabBarHeight > 0;
   
-  // Check if offline banner is visible
+  // Check if banners are visible
   const isOnline = useAppSelector(selectIsOnline);
+  const isImpersonating = useAppSelector(selectIsImpersonating);
   const hasOfflineBanner = !isOnline;
+  const hasImpersonationBanner = isImpersonating;
   const topInset = useTopInset();
 
   // If caller provides edges, use them; otherwise: dynamically determine edges
-  // based on header, bottom tab bar, and offline banner presence
+  // based on header, bottom tab bar, and banner presence
   const safeAreaEdges: Edge[] = useMemo(() => {
     if (edges) return edges;
     
     const result: Edge[] = [];
-    // Don't add top edge if there's a header OR an offline banner (both handle safe area)
-    if (!hasHeader && !hasOfflineBanner) result.push('top');
+    // Don't add top edge if there's a header OR any banner (both handle safe area)
+    if (!hasHeader && !hasOfflineBanner && !hasImpersonationBanner) result.push('top');
     if (!hasBottomTabBar) result.push('bottom');
     return result;
-  }, [edges, hasHeader, hasBottomTabBar, hasOfflineBanner]);
+  }, [edges, hasHeader, hasBottomTabBar, hasOfflineBanner, hasImpersonationBanner]);
 
   // The outer container should handle horizontal gutter only.
   const containerStyle: StyleProp<ViewStyle> = [
@@ -113,10 +117,13 @@ export function Screen({
     contentContainerStyle,
   ];
 
-  const offlineIndicatorStyle: ViewStyle = { marginTop: !hasHeader ? topInset : 0 };
+  const impersonationBannerStyle: ViewStyle = { marginTop: !hasHeader ? topInset : 0 };
+  const offlineBannerStyle: ViewStyle = { marginTop: 0 }; // No top margin when impersonation banner is present
   return (
     <SafeAreaView style={containerStyle} edges={safeAreaEdges}>
-      <OfflineIndicator style={offlineIndicatorStyle} />
+      {/* Impersonation banner renders above offline banner */}
+      <ImpersonationBanner style={impersonationBannerStyle} />
+      <OfflineIndicator style={hasImpersonationBanner ? offlineBannerStyle : impersonationBannerStyle} />
       {scroll ? (
         <ScrollView
           style={styles.scroll}

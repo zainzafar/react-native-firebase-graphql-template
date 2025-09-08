@@ -33,6 +33,11 @@ export type AuthState = {
   initialized: boolean;
   status: 'idle' | 'loading' | 'succeeded' | 'failed';
   error?: string;
+  impersonation: {
+    isActive: boolean;
+    originalUser: AuthUser | null;
+    impersonatedUser: AuthUser | null;
+  };
 };
 
 const initialState: AuthState = {
@@ -41,6 +46,11 @@ const initialState: AuthState = {
   initialized: false,
   status: 'idle',
   error: undefined,
+  impersonation: {
+    isActive: false,
+    originalUser: null,
+    impersonatedUser: null,
+  },
 };
 
 const authSlice = createSlice({
@@ -64,6 +74,12 @@ const authSlice = createSlice({
       state.initialized = true;
       state.status = 'idle';
       state.error = undefined;
+      // Clear impersonation state on logout
+      state.impersonation = {
+        isActive: false,
+        originalUser: null,
+        impersonatedUser: null,
+      };
     },
     markInitialized(state) {
       state.initialized = true;
@@ -75,10 +91,32 @@ const authSlice = createSlice({
     setStatus(state, action: PayloadAction<AuthState['status']>) {
       state.status = action.payload;
     },
+    beginImpersonation(state, action: PayloadAction<{ token: string; user: AuthUser }>) {
+      // Snapshot original user if not already set
+      if (!state.impersonation.originalUser && state.user) {
+        state.impersonation.originalUser = state.user;
+      }
+      
+      // Set impersonation state
+      state.impersonation.isActive = true;
+      state.impersonation.impersonatedUser = action.payload.user;
+      state.user = action.payload.user;
+    },
+    endImpersonation(state) {
+      // Restore original user
+      if (state.impersonation.originalUser) {
+        state.user = state.impersonation.originalUser;
+      }
+      
+      // Reset impersonation state
+      state.impersonation.isActive = false;
+      state.impersonation.impersonatedUser = null;
+      state.impersonation.originalUser = null;
+    },
   },
 });
 
-export const { setUser, updateUser, logout, markInitialized, setError, setStatus } = authSlice.actions;
+export const { setUser, updateUser, logout, markInitialized, setError, setStatus, beginImpersonation, endImpersonation } = authSlice.actions;
 export default authSlice.reducer;
 
 

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { getApp } from '@react-native-firebase/app';
 import {
   getAuth,
@@ -17,11 +18,11 @@ import { GoogleAuthProvider, AppleAuthProvider, signInWithCredential } from '@re
 import { googleWebClientId } from '../config/firebase';
 import { apolloClient } from '../graphql/client';
 import { MUTATION_LOGIN_WITH_ID_TOKEN, QUERY_ME } from '../graphql/operations';
-import { saveAccessToken, clearAccessToken, getAccessToken } from './tokenStorage';
+import { saveAccessToken, clearAccessToken, getAccessToken, getImpersonationToken, clearImpersonationToken } from './tokenStorage';
 import { handleHardSignOut } from './session';
 import { useAppDispatch } from '../store/hooks';
-import { logout, setUser as setUserAction, type AuthUser } from '../features/auth/authSlice';
-import { persistor } from '../store';
+import { logout, setUser as setUserAction, beginImpersonation, endImpersonation, type AuthUser } from '../features/auth/authSlice';
+import { persistor, store } from '../store';
 import AppleAuth from '@invertase/react-native-apple-authentication';
 
 // Helper function to create user profile from GraphQL data
@@ -59,6 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [initializing, setInitializing] = useState(true);
 
   const dispatch = useAppDispatch();
+  const navigation = useNavigation();
 
   useEffect(() => {
     const app = getApp();
@@ -118,6 +120,69 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     })();
   }, [dispatch]);
+
+  // Check for impersonation token on app startup
+  useEffect(() => {
+    (async () => {
+      const impersonationToken = await getImpersonationToken();
+      if (impersonationToken) {
+        try {
+          // Fetch user data for impersonated user
+          const { data } = await apolloClient.query({ 
+            query: QUERY_ME, 
+            fetchPolicy: 'network-only' 
+          });
+          const userData = (data as any)?.me;
+          if (userData) {
+            // Set impersonation state - this will hide admin UI immediately
+            dispatch(beginImpersonation({
+              token: impersonationToken,
+              user: createUserProfile(userData)
+            }));
+          } else {
+            // Invalid impersonation token, clear it
+            await clearImpersonationToken();
+            dispatch(endImpersonation());
+          }
+        } catch (error) {
+          console.log('[Auth] Impersonation token validation failed:', error);
+          // Clear invalid impersonation token
+          await clearImpersonationToken();
+          dispatch(endImpersonation());
+        }
+      }
+    })();
+  }, [dispatch]);
+
+  // Monitor for impersonation token expiry (401 errors during impersonation)
+  useEffect(() => {
+    const checkImpersonationToken = async () => {
+      const impersonationToken = await getImpersonationToken();
+      const isImpersonating = impersonationToken !== null;
+      
+      // If we think we're impersonating but no token exists, end impersonation
+      if (!isImpersonating) {
+        // Check if Redux state thinks we're still impersonating
+        // This handles the case where the token was cleared by the error link
+        const currentState = store.getState();
+        if (currentState.auth?.impersonation?.isActive) {
+          console.log('[Auth] Impersonation token was cleared, ending impersonation...');
+          dispatch(endImpersonation());
+          
+          // Reset navigation and go to home screen
+          (navigation as any).reset({
+            index: 0,
+            routes: [{ name: 'Home' }],
+          });
+        }
+      }
+    };
+
+    // Check periodically for token changes
+    const interval = setInterval(checkImpersonationToken, 5000); // Check every 5 seconds
+    
+    return () => clearInterval(interval);
+  }, [dispatch, navigation]);
 
   // Refetch user data when app comes to foreground
   useEffect(() => {

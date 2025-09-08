@@ -1,12 +1,15 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Body, Card, NavigationCard, Screen, LoadingContainer } from '../../../components';
+import { View, StyleSheet, Alert } from 'react-native';
+import { Body, Card, NavigationCard, Screen, LoadingContainer, UserIdentityRow } from '../../../components';
 import { useTheme } from '../../../theme/ThemeProvider';
-import { useAppSelector } from '../../../store/hooks';
-import { selectUserPermissions } from '../../../features/auth/selectors';
+import { useAppSelector, useAppDispatch } from '../../../store/hooks';
+import { selectUserPermissions, selectUser } from '../../../features/auth/selectors';
+import { beginImpersonation } from '../../../features/auth/authSlice';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { useQuery } from '@apollo/client/react';
-import { QUERY_ADMIN_GET_USER } from '../../../graphql/operations';
+import { useQuery, useMutation } from '@apollo/client/react';
+import { QUERY_ADMIN_GET_USER, MUTATION_START_IMPERSONATION } from '../../../graphql/operations';
+import { saveImpersonationToken } from '../../../auth/tokenStorage';
+import { apolloClient } from '../../../graphql/client';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 
 type User = {
@@ -25,7 +28,9 @@ export default function AdminUserDetailScreen() {
   const { colors, layout } = useTheme();
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
+  const dispatch = useAppDispatch();
   const permissions = useAppSelector(selectUserPermissions) as string[];
+  const currentUser = useAppSelector(selectUser);
   
   const userId = route.params?.id as string;
   
@@ -36,7 +41,7 @@ export default function AdminUserDetailScreen() {
   const canDeleteUser = permissions.includes('ADMIN_USERS_DELETE');
   const canUpdateProfile = permissions.includes('ADMIN_USERS_UPDATE_PROFILE');
   const canUpdatePassword = permissions.includes('ADMIN_USERS_UPDATE_PASSWORD');
-  const canImpersonateUser = permissions.includes('ADMIN_USERS_IMPERSONATE');
+  const canImpersonateUser = permissions.includes('ADMIN_USERS_IMPERSONATE') && currentUser?.id !== userId;
 
   // Queries
   const { data: userData, loading: userLoading } = useQuery<{ adminGetUser?: User }>(
@@ -47,12 +52,65 @@ export default function AdminUserDetailScreen() {
     }
   );
 
+  const [startImpersonation, { loading: impersonationLoading }] = useMutation(MUTATION_START_IMPERSONATION) as any;
+
   const user = userData?.adminGetUser;
   const providerIds = Array.isArray(user?.identities) ? user!.identities.map((p: any) => p.providerId) : [];
   const hasPasswordProvider = providerIds.includes('password');
   const hasGoogleProvider = providerIds.includes('google.com');
   const hasAppleProvider = providerIds.includes('apple.com');
   const showSecuritySection = hasPasswordProvider || hasGoogleProvider || hasAppleProvider;
+
+  const handleImpersonateUser = () => {
+    const displayName = user?.displayName || user?.email || 'this user';
+    
+    Alert.alert(
+      'Impersonate User',
+      `Are you sure you want to impersonate ${displayName}? You will be signed in as this user and admin features will be hidden.`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Impersonate',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const { data } = await startImpersonation({
+                variables: { userId: user!.id }
+              });
+              
+              if (data?.startImpersonation?.token && data?.startImpersonation?.user) {
+                // Save impersonation token
+                await saveImpersonationToken(data.startImpersonation.token);
+                
+                // Update Redux state first
+                dispatch(beginImpersonation({
+                  token: data.startImpersonation.token,
+                  user: data.startImpersonation.user
+                }));
+                
+                // Reset navigation and go to home screen
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: 'Home' }],
+                });
+                
+                // Reset Apollo cache after navigation to prevent admin queries from running
+                setTimeout(async () => {
+                  await apolloClient.resetStore();
+                }, 1000);
+              }
+            } catch (error) {
+              console.error('Failed to start impersonation:', error);
+              Alert.alert('Error', 'Failed to start impersonation. Please try again.');
+            }
+          },
+        },
+      ]
+    );
+  };
 
   if (userLoading) {
     return (
@@ -79,11 +137,12 @@ export default function AdminUserDetailScreen() {
         <Body style={[{ color: colors.text }, styles.userTitle]}>
           {user.displayName || user.email || 'User'}
         </Body>
-        {user.email && (
-          <Body style={[{ color: colors.mutedText }, styles.userEmail]}>
-            {user.email}
-          </Body>
-        )}
+        <UserIdentityRow 
+          email={user.email}
+          phoneNumber={user.phoneNumber}
+          identities={user.identities}
+          style={styles.userIdentity}
+        />
         <View style={[{ gap: layout.containerGap }, styles.userStats]}>
           <View style={styles.statItem}>
             <FontAwesome6 name="envelope" iconStyle="solid" size={12} color={colors.mutedText} />
@@ -148,11 +207,8 @@ export default function AdminUserDetailScreen() {
             title="Impersonate User"
             description="Sign in as this user to test their experience"
             icon="user-secret"
-            onPress={() => {
-              // TODO: Implement impersonation functionality
-              console.log('Impersonate user:', userId);
-            }}
-            disabled={!canImpersonateUser}
+            onPress={handleImpersonateUser}
+            disabled={!canImpersonateUser || impersonationLoading}
             iconColor="#F59E0B"
             iconBackgroundColor="#F59E0B20"
           />
@@ -178,7 +234,7 @@ export default function AdminUserDetailScreen() {
 const styles = StyleSheet.create({
   headerCard: { padding: 20, marginBottom: 16 },
   userTitle: { fontSize: 24, fontWeight: '700', marginBottom: 8 },
-  userEmail: { fontSize: 16, lineHeight: 22, marginBottom: 16 },
+  userIdentity: { marginBottom: 16 },
   userStats: { 
     flexDirection: 'row', 
   },

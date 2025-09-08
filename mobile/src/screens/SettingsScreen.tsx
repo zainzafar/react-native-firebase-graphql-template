@@ -5,6 +5,8 @@ import { useTheme } from '../theme/ThemeProvider';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../auth/AuthProvider';
 import { usePermissions } from '../features/auth/hooks';
+import { useAppSelector } from '../store/hooks';
+import { selectIsImpersonating } from '../features/auth/selectors';
 import { useAppUpdateGate } from '../update/useAppUpdateGate';
 import DeviceInfo from 'react-native-device-info';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
@@ -13,6 +15,7 @@ export default function SettingsScreen() {
   const { layout } = useTheme();
   const { signOut } = useAuth();
   const { canAccessAdmin } = usePermissions();
+  const isImpersonating = useAppSelector(selectIsImpersonating);
   const { gate, openStore } = useAppUpdateGate();
   const [loading, setLoading] = useState(false);
   const [appVersion, setAppVersion] = useState<string>('');
@@ -21,6 +24,16 @@ export default function SettingsScreen() {
   const { currentTheme, setTheme, colors, borderRadius } = useTheme();
 
   const onLogout = async () => {
+    // Check if user is impersonating
+    if (isImpersonating) {
+      Alert.alert(
+        'Cannot Logout',
+        'You cannot logout while impersonating. Please end impersonation first.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
     try {
       setLoading(true);
       await signOut();

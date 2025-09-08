@@ -9,6 +9,7 @@ export const darkColors = {
   cardBorder: '#1F2937',
   accent: '#34D399',
   danger: '#F87171',
+  warning: '#F59E0B',
   buttonSuccess: '#059669',
   buttonError: '#DC2626',
   statusBarContent: 'light-content' as const,

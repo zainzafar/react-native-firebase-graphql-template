@@ -4,6 +4,7 @@ export const baseColors = {
   primary: '#2563EB',
   accent: '#22C55E',
   danger: '#EF4444',
+  warning: '#F59E0B',
   buttonSuccess: '#059669',
   buttonError: '#DC2626',
 } as const;
@@ -22,6 +23,7 @@ export interface AppColors {
   cardBorder: string;
   accent: string;
   danger: string;
+  warning: string;
   buttonSuccess: string;
   buttonError: string;
   statusBarContent: 'light-content' | 'dark-content';

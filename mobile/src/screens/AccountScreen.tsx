@@ -4,7 +4,7 @@ import { Body, Button, Card, Input, UserIdentityRow, Screen } from '../component
 import { useTheme } from '../theme/ThemeProvider';
 import { useAuth } from '../auth/AuthProvider';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
-import { selectUser } from '../features/auth/selectors';
+import { selectUser, selectIsImpersonating } from '../features/auth/selectors';
 
 import { useMutation } from '@apollo/client/react';
 import { MUTATION_UPDATE_PROFILE } from '../graphql/operations';
@@ -16,6 +16,7 @@ export default function AccountScreen() {
   const { updatePassword } = useAuth();
   const [mutateUpdateProfile] = useMutation(MUTATION_UPDATE_PROFILE);
   const user = useAppSelector(selectUser); // Database user for all data
+  const isImpersonating = useAppSelector(selectIsImpersonating);
   const [profileLoading, setProfileLoading] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [displayName, setDisplayName] = useState('');
@@ -138,8 +139,8 @@ export default function AccountScreen() {
         </View>
       </Card>
 
-      {/* Password Section - Only show if user has email/password auth */}
-      {hasEmailPassword && (
+      {/* Password Section - Only show if user has email/password auth and not impersonating */}
+      {hasEmailPassword && !isImpersonating && (
         <Card>
           <View style={styles.sectionHeader}>
             <Body style={styles.sectionTitle}>Change Password</Body>
@@ -179,6 +180,18 @@ export default function AccountScreen() {
           </View>
         </Card>
       )}
+
+      {/* Impersonation Notice - Show when impersonating and user has email/password auth */}
+      {hasEmailPassword && isImpersonating && (
+        <Card>
+          <View style={styles.sectionHeader}>
+            <Body style={styles.sectionTitle}>Change Password</Body>
+          </View>
+          <Body style={styles.impersonationNotice}>
+            Password changes are not available while impersonating.
+          </Body>
+        </Card>
+      )}
     </Screen>
   );
 }
@@ -191,4 +204,9 @@ const styles = StyleSheet.create({
   button: { marginTop: 12 },
   errorText: { color: '#EF4444', fontSize: 14 },
   successText: { color: '#059669', fontSize: 14 },
+  impersonationNotice: { 
+    color: '#F59E0B', 
+    fontSize: 14, 
+    paddingVertical: 8,
+  },
 });

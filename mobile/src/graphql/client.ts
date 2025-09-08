@@ -4,7 +4,7 @@ import { ErrorLink } from '@apollo/client/link/error';
 import { CombinedGraphQLErrors } from '@apollo/client/errors';
 import Config from 'react-native-config';
 import { handleHardSignOut, refreshAppToken } from '../auth/session';
-import { getAccessToken } from '../auth/tokenStorage';
+import { getEffectiveToken, getImpersonationToken, clearImpersonationToken } from '../auth/tokenStorage';
 import { Platform } from 'react-native';
 import { Observable } from '@apollo/client/utilities';
 import uuidv4 from 'react-native-uuid';
@@ -21,12 +21,16 @@ const httpLink = new HttpLink({ uri: graphqlUrl });
 
 const authLink = new SetContextLink(async (prevContext, _operation) => {
   try {
-    const token = await getAccessToken();
+    const token = await getEffectiveToken();
+    const impersonationToken = await getImpersonationToken();
+    
     return {
       ...prevContext,
       headers: {
         ...prevContext.headers,
         authorization: token ? `Bearer ${token}` : '',
+        // Set x-impersonation header only when impersonation token is present
+        ...(impersonationToken && { 'x-impersonation': 'true' }),
       },
     };
   } catch {
@@ -64,12 +68,40 @@ const errorLink = new ErrorLink(({ error, operation, forward }) => {
 
   if (!isAuthError) return;
 
-  console.log('[Apollo] Authentication error detected, attempting token refresh and retry...');
+  console.log('[Apollo] Authentication error detected, checking for impersonation...');
   
-  // Return an Observable that waits for refresh, then replays the operation
+  // Return an Observable that handles the error appropriately
   return new Observable(observer => {
     (async () => {
       try {
+        // Check if we're currently impersonating
+        const impersonationToken = await getImpersonationToken();
+        
+        if (impersonationToken) {
+          // We're impersonating and got a 401 - impersonation token expired
+          console.log('[Apollo] Impersonation token expired, ending impersonation...');
+          
+          // Clear impersonation token
+          await clearImpersonationToken();
+          
+          // Reset Apollo cache to prevent cross-user data bleed
+          await apolloClient.resetStore();
+          
+          // Note: We can't dispatch Redux actions from here since this is not a React component
+          // The UI will need to handle this by checking for impersonation state changes
+          // For now, we'll just clear the token and let the UI handle the rest
+          
+          // Show a toast or alert to inform the user
+          // This would need to be implemented with a toast library or similar
+          console.log('[Apollo] Impersonation ended due to token expiry');
+          
+          // Forward the error to the UI
+          observer.error(error);
+          return;
+        }
+        
+        // Not impersonating, try normal token refresh
+        console.log('[Apollo] Attempting token refresh and retry...');
         await ensureRefreshed(); // may queue behind an in-flight refresh
         // forward the original operation with the new token
         const sub = forward!(operation).subscribe({

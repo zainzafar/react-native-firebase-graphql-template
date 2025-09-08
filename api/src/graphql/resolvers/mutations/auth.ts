@@ -1,7 +1,8 @@
-import { verifyIdTokenSafe, getFirebaseAuth } from '../../../services/firebaseAdmin';
+import { verifyIdTokenSafe, getFirebaseAuth, AuthContextUser } from '../../../services/firebaseAdmin';
 import type { auth as firebaseAuth } from 'firebase-admin';
 import { signAppJwtWithFirebaseExpiry } from '../../../services/appJwt';
 import { User, PrismaClient } from '@prisma/client';
+import { requirePermission } from '../../rbac/core';
 
 export default {
   loginWithIdToken: async (
@@ -94,7 +95,39 @@ export default {
     });
 
     return updatedUser;
-  }
+  },
+
+  startImpersonation: async (
+    _parent: unknown,
+    args: { userId: string; },
+    ctx: { user: AuthContextUser; prisma: PrismaClient }
+  ) => {
+    const adminUser = ctx.user;
+    const prisma = ctx.prisma;
+    const { userId } = args;
+
+    // Check if admin user has impersonation permission
+    requirePermission(adminUser, 'ADMIN_USERS_IMPERSONATE');
+
+    // Get the target user
+    const targetUser = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { identities: true }
+    });
+
+    if (!targetUser) {
+      throw new Error('User not found');
+    }
+
+    // Generate JWT token for the target user
+    const impersonationToken = signAppJwtWithFirebaseExpiry({ id: targetUser.id }, Math.floor(Date.now() / 1000) + 3600); // 1 hour expiry
+
+    return {
+      token: impersonationToken,
+      user: targetUser
+    };
+  },
+
 };
 
 

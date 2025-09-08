@@ -5,6 +5,7 @@ extend type Query {
 extend type Mutation {
   loginWithIdToken(idToken: String!): AuthPayload!
   updateProfile(displayName: String, photoURL: String): User!
+  startImpersonation(userId: String!): ImpersonationResult!
 }
 
 enum RoleGrantScope {
@@ -84,6 +85,12 @@ type User {
 type AuthPayload {
   user: User!
   accessToken: String
+}
+
+type ImpersonationResult {
+  success: Boolean!
+  token: String
+  user: User
 }
 
 type UserIdentity {

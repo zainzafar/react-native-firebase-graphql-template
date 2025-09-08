@@ -101,6 +101,20 @@ export const MUTATION_ADMIN_DELETE_USER = gql`
   }
 `;
 
+// Impersonation operations
+export const MUTATION_START_IMPERSONATION = gql`
+  mutation StartImpersonation($userId: String!) {
+    startImpersonation(userId: $userId) {
+      token
+      user {
+        ...UserFields
+      }
+    }
+  }
+  ${USER_FIELDS_FRAGMENT}
+`;
+
+
 // Roles & Permissions admin operations
 export const QUERY_ADMIN_LIST_MANAGEABLE_ROLES = gql`
   query AdminListManageableRoles {
