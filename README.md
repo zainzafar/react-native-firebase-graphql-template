@@ -28,9 +28,17 @@ A production-ready React Native template with comprehensive Firebase authenticat
 
 ## 🚀 Quick Start
 
-For detailed setup instructions, see [setup.md](setup.md).
+For detailed setup instructions, see [SETUP.md](SETUP.md).
 
 Get started quickly by cloning the repository, following the setup guide, and running the app.
+
+### Release Checklist
+
+- Ensure no secrets are committed (Firebase native files excluded; use env files)
+- Mobile: `npm run lint && npm run typecheck && npm test`
+- API: `npm run typecheck && npm run build`
+- Update docs and `FEATURES.md` if features changed
+- Tag and push; CI should pass on main and PRs
 
 
 
@@ -52,7 +60,7 @@ The template is designed to be easily customizable:
 
 ## 🚨 Support
 
-For setup issues, customization questions, or technical support, please refer to the [setup.md](setup.md) file or open an issue in the repository.
+For setup issues, customization questions, or technical support, please refer to the [SETUP.md](SETUP.md) file or open an issue in the repository.
 
 ## 📝 License
 

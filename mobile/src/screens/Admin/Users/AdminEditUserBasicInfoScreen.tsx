@@ -34,9 +34,9 @@ export default function AdminEditUserBasicInfoScreen() {
   });
 
   const [mutateProfile, { loading: profileLoading }] = useMutation(MUTATION_ADMIN_UPDATE_USER, {
-    update: (cache, { data }: any) => {
+    update: (cache, { data: mutationResult }: any) => {
       // Update the user in the admin list cache
-      const updatedUser = data?.adminUpdateUser;
+      const updatedUser = mutationResult?.adminUpdateUser;
       if (updatedUser) {
         cache.modify({
           fields: {

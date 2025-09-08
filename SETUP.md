@@ -40,26 +40,61 @@ This template is designed for a multi-environment setup with separate staging an
    - Add Web app to this project
    - Use this project for production builds only
 
+#### Getting SHA Keys for Android
+
+Firebase requires SHA-1 or SHA-256 keys for Android apps to enable certain authentication features. You can obtain these keys by running the following commands from the `mobile/android` directory:
+
+```bash
+./gradlew :app:signingReport
+```
+or
+```bash
+./gradlew signingReport
+```
+
+This will output information about your app's signing configurations, including SHA-1 and SHA-256 keys. A sample output looks like this:
+
+```
+Variant: debug
+Config: debug
+Store: /Users/username/.android/debug.keystore
+Alias: AndroidDebugKey
+MD5:  AA:BB:CC:DD:EE:FF:11:22:33:44:55:66:77:88:99:00
+SHA1: 11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44
+SHA-256: AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99
+```
+
+**Notes:**
+- Default debug keystore location: `~/.android/debug.keystore`
+- Default alias: `AndroidDebugKey`, password: `android`
+- Run again after configuring a release keystore to get release variant SHA keys
+- This template does not include `android/app/debug.keystore`; Gradle generates a debug keystore automatically at `~/.android/debug.keystore`
+- To manually generate a debug keystore, use:
+  ```bash
+  keytool -genkeypair -v -storepass android -keypass android -keystore ~/.android/debug.keystore -alias AndroidDebugKey -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+  ```
+  This command will create the `debug.keystore` file at `~/.android/debug.keystore`.
+
 ### Replace Firebase Configuration Files
 
-**IMPORTANT**: Download the actual Firebase configuration files from the Firebase Console and replace the dummy files.
+**IMPORTANT**: This template does not include Firebase configuration files. You must download the actual Firebase configuration files from the Firebase Console and add them to your project as follows.
 
-#### Android Files to Replace:
+#### Android Files to Add:
 1. Go to your **staging Firebase project** → Project Settings → Your Apps → Android app
 2. Download the `google-services.json` file
-3. Replace these files:
-   - `mobile/android/app/src/development/google-services.json` → Use the downloaded file
-   - `mobile/android/app/src/staging/google-services.json` → Use the downloaded file
+3. Place the downloaded file at:
+   - `mobile/android/app/src/development/google-services.json`
+   - `mobile/android/app/src/staging/google-services.json`
 
 4. Go to your **production Firebase project** → Project Settings → Your Apps → Android app
 5. Download the `google-services.json` file
 6. For production builds, store the file content as base64 in your CI environment and write it during the build process
 
-#### iOS Files to Replace:
+#### iOS Files to Add:
 1. Go to your **staging Firebase project** → Project Settings → Your Apps → iOS app
 2. Download the `GoogleService-Info.plist` file
-3. Replace this file:
-   - `mobile/ios/GoogleService-Info.plist` → Use the downloaded file (development builds use staging)
+3. Add the downloaded file to:
+   - `mobile/ios/GoogleService-Info.plist` (development builds use staging)
 
 **Note**: For production iOS builds, you can also store the `GoogleService-Info.plist` content as base64 in your CI environment and write it during the build process, similar to the Android approach.
 

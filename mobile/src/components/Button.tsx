@@ -129,9 +129,9 @@ export function Button({
     if (onPress) {
       try {
         await onPress();
-      } catch (error) {
+      } catch (err) {
         // Error handling can be done by the parent component
-        console.error('Button press error:', error);
+        console.error('Button press error:', err);
       }
     }
   };
@@ -156,14 +156,14 @@ export function Button({
       ) : internalSuccess ? (
         <View style={styles.successContainer}>
           <FontAwesome6 name="check" iconStyle="solid" size={16} color="white" />
-          <Text style={[{ color: 'white', marginLeft: 8 }, styles.buttonText]} numberOfLines={1} ellipsizeMode="tail" allowFontScaling={false}>
+          <Text style={[styles.whiteText, styles.ml8, styles.buttonText]} numberOfLines={1} ellipsizeMode="tail" allowFontScaling={false}>
             {successText || title}
           </Text>
         </View>
       ) : internalError ? (
         <View style={styles.errorContainer}>
           <FontAwesome6 name="triangle-exclamation" iconStyle="solid" size={16} color="white" />
-          <Text style={[{ color: 'white', marginLeft: 8 }, styles.buttonText]} numberOfLines={1} ellipsizeMode="tail" allowFontScaling={false}>
+          <Text style={[styles.whiteText, styles.ml8, styles.buttonText]} numberOfLines={1} ellipsizeMode="tail" allowFontScaling={false}>
             {errorText || 'Error occurred'}
           </Text>
         </View>
@@ -199,12 +199,12 @@ export function Button({
           <Animated.View
             style={[
               styles.progressBar,
+              internalError ? styles.progressBarError : styles.progressBarSuccess,
               {
                 width: progressAnim.interpolate({
                   inputRange: [0, 1],
                   outputRange: ['0%', '100%'],
                 }),
-                backgroundColor: internalError ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.3)',
               },
             ]}
           />
@@ -226,6 +226,10 @@ const styles = StyleSheet.create({
   iconLeft: { marginRight: 8 },
   iconRight: { marginLeft: 8 },
   progressContainer: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center' },
-  progressBar: { height: '100%', backgroundColor: 'rgba(255,255,255,0.2)' },
+  progressBar: { height: '100%' },
+  progressBarSuccess: { backgroundColor: 'rgba(255,255,255,0.3)' },
+  progressBarError: { backgroundColor: 'rgba(255,255,255,0.4)' },
+  whiteText: { color: 'white' },
+  ml8: { marginLeft: 8 },
 });
 

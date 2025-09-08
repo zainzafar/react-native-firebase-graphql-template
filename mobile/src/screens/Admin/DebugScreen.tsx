@@ -386,14 +386,16 @@ function AccordionSection({
         </View>
         {rightElement}
       </Pressable>
-      <Animated.View style={{
-        overflow: 'hidden',
-        opacity: heightAnim,
-        maxHeight: heightAnim.interpolate({
-          inputRange: [0, 1],
-          outputRange: [0, 1000],
-        }),
-      }}>
+      <Animated.View style={[
+        styles.animatedContainer,
+        {
+          opacity: heightAnim,
+          maxHeight: heightAnim.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0, 1000],
+          }),
+        }
+      ]}>
         <View style={styles.contentContainer}>
           {children}
         </View>
@@ -446,6 +448,7 @@ const styles = StyleSheet.create({
   accordionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 0 },
   accordionTitleRow: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   accordionTitle: { fontSize: 16, fontWeight: '600', marginLeft: 8 },
+  animatedContainer: { overflow: 'hidden' },
   fetchButton: { backgroundColor: '#007AFF', paddingHorizontal: 12, paddingVertical: 6, alignSelf: 'flex-start' },
   fetchButtonText: { color: '#ffffff', fontSize: 14, fontWeight: '500' },
   contentContainer: { paddingVertical: 0, paddingTop: 12 },

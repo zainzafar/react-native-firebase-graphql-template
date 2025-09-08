@@ -1,7 +1,7 @@
 import { verifyIdTokenSafe, getFirebaseAuth, AuthContextUser } from '../../../services/firebaseAdmin';
 import type { auth as firebaseAuth } from 'firebase-admin';
 import { signAppJwtWithFirebaseExpiry } from '../../../services/appJwt';
-import { User, PrismaClient } from '@prisma/client';
+import type { PrismaClient, Prisma } from '@prisma/client';
 import { requirePermission } from '../../rbac/core';
 
 export default {
@@ -18,8 +18,8 @@ export default {
     const userRecord: firebaseAuth.UserRecord = await getFirebaseAuth().getUser(decoded.uid);
 
     // Persist or update user in DB
-    const prisma = ctx?.prisma as any | undefined;
-    let dbUser: User | null = null;
+    const prisma = ctx?.prisma as PrismaClient | undefined;
+    let dbUser: Prisma.UserGetPayload<{ include: { identities: true } }> | null = null;
     if (!prisma) {
       console.warn('[auth] prisma not available in context; skipping DB upsert');
     } else {
@@ -68,7 +68,7 @@ export default {
   updateProfile: async (
     _parent: unknown,
     args: { displayName?: string; photoURL?: string; },
-    ctx: { user: User; prisma: PrismaClient }
+    ctx: { user: AuthContextUser; prisma: PrismaClient }
   ) => {
     const user = ctx.user;
     const prisma = ctx.prisma;

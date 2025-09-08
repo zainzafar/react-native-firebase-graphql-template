@@ -32,7 +32,7 @@ export default function NavigationCard({
         disabled={disabled}
         style={[
           styles.navigationPressable,
-          disabled && { opacity: 0.5 }
+          disabled && styles.disabled
         ]}
       >
         <View style={styles.navigationContent}>
@@ -72,6 +72,7 @@ const styles = StyleSheet.create({
   navigationPressable: { 
     // No padding needed - Card component already provides it
   },
+  disabled: { opacity: 0.5 },
   navigationContent: { 
     flexDirection: 'row', 
     alignItems: 'center', 

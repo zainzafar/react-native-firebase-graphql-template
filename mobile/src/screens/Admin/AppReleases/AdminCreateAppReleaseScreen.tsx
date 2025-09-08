@@ -3,7 +3,7 @@ import { StyleSheet } from 'react-native';
 import { useMutation } from '@apollo/client/react';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTheme } from '../../../theme/ThemeProvider';
-import { Screen, Card, Button } from '../../../components';
+import { Screen, Button } from '../../../components';
 import { MUTATION_ADMIN_CREATE_APP_VERSION_RULE, QUERY_ADMIN_LIST_APP_VERSION_RULES } from '../../../graphql/operations';
 import {
   AppReleaseForm,

@@ -2,13 +2,21 @@ import admin from 'firebase-admin';
 import type { Request } from 'express';
 import { verifyAppJwt } from './appJwt';
 import { getPrisma } from './prisma';
-import type { User as PrismaUser, UserIdentity, Role } from '@prisma/client';
+import type { Prisma } from '@prisma/client';
 import { resolveUserPermissions } from '../graphql/rbac';
 
-export type AuthContextUser = PrismaUser & {
-  role: Role | null;
+type DbUserWithRelations = Prisma.UserGetPayload<{
+  include: {
+    identities: true;
+    role: { include: { role: true } };
+  };
+}>;
+
+export type AuthContextUser = Omit<DbUserWithRelations, 'role'> & {
+  role: DbUserWithRelations['role'] extends { role: infer R }
+    ? (R | null)
+    : null;
   permissions: string[];
-  identities: UserIdentity[];
 };
 
 let initialized = false;
@@ -79,7 +87,7 @@ export async function getAuthUserFromRequest(req: Request): Promise<AuthContextU
       });
       if (dbUser) {
         // Map role relation to role object for GraphQL convenience
-        const roleObject = (dbUser as any).role?.role || null;
+        const roleObject = dbUser.role?.role ?? null;
         
         // Resolve all permissions for this user
         const resolvedPermissions = await resolveUserPermissions(prisma, dbUser.id);

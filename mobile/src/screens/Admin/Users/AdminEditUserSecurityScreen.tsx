@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Button, Card, Input, Body, UserIdentityRow, Screen, LoadingContainer } from '../../../components';
 import { useTheme } from '../../../theme/ThemeProvider';

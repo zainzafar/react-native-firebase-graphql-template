@@ -4,10 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc && node scripts/copy-graphql.js",
+    "test": "echo \"No tests yet\" && exit 0",
+    "typecheck": "tsc --noEmit",
+    "build": "npm run prisma:generate && tsc && node scripts/copy-graphql.js",
     "start": "node dist/index.js",
     "dev": "nodemon",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "seed": "ts-node prisma/seed.ts",
     "import:firebase-users": "ts-node scripts/import-firebase-users.ts"
   },
   "prisma": {

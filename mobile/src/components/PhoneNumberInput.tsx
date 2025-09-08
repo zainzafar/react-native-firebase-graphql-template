@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Pressable, StyleSheet, Text, Platform, StatusBar, TextInput } from 'react-native';
+import { View, Pressable, StyleSheet, Text, TextInput } from 'react-native';
 import { CountryPicker } from 'react-native-country-codes-picker';
 import { parsePhoneNumberFromString } from 'libphonenumber-js/mobile';
 import { getCountryCallingCode } from 'libphonenumber-js';

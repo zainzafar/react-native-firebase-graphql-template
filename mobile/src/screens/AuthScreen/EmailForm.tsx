@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, StyleSheet, Text, Pressable, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, Text, Pressable } from 'react-native';
 import { Body, Button, Input, InlineLoader } from '../../components';
 import { useTheme } from '../../theme/ThemeProvider';
 import { GoogleButton, AppleButton as AppleSignInButton } from '../../components/auth-buttons';
@@ -25,7 +25,7 @@ export default function EmailForm({ onBack, onGoogleSignIn, googleLoading, onApp
   const [lastName, setLastName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [errorCode, setErrorCode] = useState<string | null>(null);
+  const [lastErrorCode, setLastErrorCode] = useState<string | null>(null);
   const [resetLoading, setResetLoading] = useState(false);
   const [resetSent, setResetSent] = useState(false);
   const [_methods, setMethodsList] = useState<string[]>([]);
@@ -76,7 +76,7 @@ export default function EmailForm({ onBack, onGoogleSignIn, googleLoading, onApp
     try {
       setLoading(true);
       setError(null);
-      setErrorCode(null);
+      setLastErrorCode(null);
       setResetSent(false); // Reset the reset sent state when trying again
       if (stage === 'email') {
         const arr = await getSignInMethodsForEmail(email.trim());
@@ -94,7 +94,7 @@ export default function EmailForm({ onBack, onGoogleSignIn, googleLoading, onApp
       const code = e?.code || e?.message;
       const errorMessage = getErrorMessage(code);
       setError(errorMessage);
-      setErrorCode(code);
+      setLastErrorCode(code);
     } finally {
       setLoading(false);
     }
@@ -140,7 +140,7 @@ export default function EmailForm({ onBack, onGoogleSignIn, googleLoading, onApp
           {error && !resetSent && (
             <View>
               <Body style={styles.errorText}>{error}</Body>
-              {errorCode === 'auth/wrong-password' && (
+              {lastErrorCode === 'auth/wrong-password' && (
                 <Pressable onPress={handleResetPassword} style={styles.resetLink}>
                   <Text style={styles.resetLinkText}>Reset password</Text>
                 </Pressable>

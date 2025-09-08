@@ -16,6 +16,7 @@ pnpm-debug.log*
 .env
 .env.*
 !.env.example
+ios/.xcode.env.local
 
 # macOS
 .DS_Store
@@ -34,6 +35,9 @@ android/app/build/
 android/app/.cxx/
 android/build/
 android/.cxx/
+android/app/src/release/keystore*
+android/app/*.keystore
+android/app/*.jks
 
 # iOS
 ios/build/

@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { View, StyleSheet, Pressable, Switch, Alert, Dimensions } from 'react-native';
+import React, { useState } from 'react';
+import { View, StyleSheet, Pressable, Switch, Alert } from 'react-native';
 import { useTheme } from '../theme/ThemeProvider';
 import { Body, Button, Card, BottomSheet } from './index';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
@@ -112,8 +112,8 @@ export default function GrantRuleForm({ type, items, granterRoleName = 'Admin', 
   const selectedOption = scope === 'ALL' 
     ? { name: `All ${type === 'role' ? 'roles' : 'permissions'} (global)`, description: 'Applies across the entire system. Use only when truly necessary.' }
     : (() => {
-        const item = items.find(item => item.id === selectedItemId);
-        return item ? { ...item, name: formatItemName(item) } : null;
+        const found = items.find(it => it.id === selectedItemId);
+        return found ? { ...found, name: formatItemName(found) } : null;
       })();
 
   const selectOption = (optionValue: string) => {

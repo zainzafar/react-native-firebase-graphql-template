@@ -1,13 +1,13 @@
-import { spacing, type Spacing } from './spacing';
-import { typography, type Typography } from './typography';
-import { layout, borderRadius, type Layout, type BorderRadius } from './layout';
-import { baseColors, type BaseColors } from './colors';
+import { spacing } from './spacing';
+import { typography } from './typography';
+import { layout, borderRadius } from './layout';
+import { baseColors } from './colors';
 
 // Re-export for external use
-export { spacing, type Spacing } from './spacing';
-export { typography, type Typography } from './typography';
-export { layout, borderRadius, type Layout, type BorderRadius } from './layout';
-export { baseColors, type BaseColors, type AppColors } from './colors';
+export { spacing } from './spacing';
+export { typography } from './typography';
+export { layout, borderRadius } from './layout';
+export { baseColors } from './colors';
 
 // Base theme composition
 export const baseTheme = {

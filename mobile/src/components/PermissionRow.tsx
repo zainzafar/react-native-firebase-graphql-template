@@ -45,11 +45,8 @@ export default function PermissionRow({
         )}
         {showDescription && permission.description && (
           <Body style={[
-            { 
-              color: showName ? colors.mutedText : colors.text,
-              fontStyle: showName ? 'italic' : 'normal',
-              fontSize: showName ? 12 : 14
-            },
+            showName ? styles.permissionDescriptionWithName : styles.permissionDescriptionDefault,
+            { color: showName ? colors.mutedText : colors.text },
             styles.permissionDescription
           ]}>
             {permission.description}
@@ -92,6 +89,14 @@ const styles = StyleSheet.create({
   permissionDescription: {
     fontSize: 14,
     fontWeight: '400',
+  },
+  permissionDescriptionDefault: {
+    fontStyle: 'normal',
+    fontSize: 14,
+  },
+  permissionDescriptionWithName: {
+    fontStyle: 'italic',
+    fontSize: 12,
   },
   helpText: {
     fontSize: 12,

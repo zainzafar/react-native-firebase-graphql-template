@@ -14,10 +14,10 @@ export default function AdminDeleteUserScreen() {
   const { data } = useQuery<{ adminGetUser?: any }>(QUERY_ADMIN_GET_USER, { variables: { id: id } });
   const user = data?.adminGetUser;
   const [mutate, { loading }] = useMutation(MUTATION_ADMIN_DELETE_USER, {
-    update: (cache, { data }: any) => {
+    update: (cache, { data: mutationResult }: any) => {
       // Remove the user from the admin list cache
       // The mutation returns true on success, so we use the uid from the mutation variables
-      if (data?.adminDeleteUser) {
+      if (mutationResult?.adminDeleteUser) {
         cache.modify({
           fields: {
             adminListUsers: (existing = {}) => {
@@ -61,7 +61,7 @@ export default function AdminDeleteUserScreen() {
     <Screen>
       <Card>
         <View style={[{ gap: layout.containerGap }, styles.list]}> 
-          <UserIdentityRow email={user?.email} phoneNumber={user?.phoneNumber} identities={user?.identities} style={{ marginBottom: 8 }} />
+          <UserIdentityRow email={user?.email} phoneNumber={user?.phoneNumber} identities={user?.identities} style={styles.mb8} />
           <Body>• This is a destructive action.</Body>
           <Body>• The user and related data will be permanently removed.</Body>
           <Body>• This cannot be undone.</Body>
@@ -73,7 +73,7 @@ export default function AdminDeleteUserScreen() {
           variant="ghost"
           icon="trash-can"
           iconStyle="regular"
-          style={{ backgroundColor: '#DC2626', borderColor: '#DC2626' }}
+          style={styles.deleteButton}
           textColor="#FFFFFF"
         />
       </Card>
@@ -83,6 +83,8 @@ export default function AdminDeleteUserScreen() {
 
 const styles = StyleSheet.create({
   list: { marginVertical: 12 },
+  mb8: { marginBottom: 8 },
+  deleteButton: { backgroundColor: '#DC2626', borderColor: '#DC2626' },
 });
 
 
