@@ -31,6 +31,7 @@ import AdminEditAppReleaseScreen from '../screens/Admin/AppReleases/AdminEditApp
 
 import { useAppSelector } from '../store/hooks';
 import { selectAuthInitialized, selectIsAuthenticated } from '../features/auth/selectors';
+import { usePermissions } from '../features/auth/hooks';
 import { View, StyleSheet, Animated } from 'react-native';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import { useTheme } from '../theme/ThemeProvider';
@@ -68,6 +69,7 @@ function Tabs() {
 
 function SettingsStack() {
   const { colors } = useTheme();
+  const { canAccessAdmin } = usePermissions();
   return (
     <Stack.Navigator
       screenOptions={{
@@ -81,29 +83,33 @@ function SettingsStack() {
       <Stack.Screen name="SettingsHome" component={SettingsScreen} options={{ headerShown: true, title: 'Settings' }} />
       <Stack.Screen name="Account" component={AccountScreen} options={{ headerShown: true, title: 'Account' }} />
       {/* Admin screens */}
-      <Stack.Screen name="AdminHome" component={AdminHomeScreen} options={{ headerShown: true, title: 'Admin' }} />
-      <Stack.Screen name="AdminManageUsers" component={AdminManageUsersScreen} options={{ headerShown: true, title: 'Manage Users' }} />
-      <Stack.Screen name="AdminUserDetail" component={AdminUserDetailScreen} options={{ headerShown: true, title: 'User Details' }} />
-      <Stack.Screen name="AdminEditUserBasicInfo" component={AdminEditUserBasicInfoScreen} options={{ headerShown: true, title: 'Basic Information' }} />
-      <Stack.Screen name="AdminEditUserSecurity" component={AdminEditUserSecurityScreen} options={{ headerShown: true, title: 'Security' }} />
-      <Stack.Screen name="AdminEditUserAccess" component={AdminEditUserAccessScreen} options={{ headerShown: true, title: 'Roles & Permissions' }} />
-      <Stack.Screen name="AdminDeleteUser" component={AdminDeleteUserScreen} options={{ headerShown: true, title: 'Delete User' }} />
-      <Stack.Screen name="AdminRoles" component={AdminRolesScreen} options={{ headerShown: true, title: 'Roles & Permissions' }} />
-      <Stack.Screen name="AdminCreateRole" component={AdminCreateRoleScreen} options={{ headerShown: true, title: 'Create Role' }} />
-      <Stack.Screen name="AdminRoleDetail" component={AdminRoleDetailScreen} options={{ headerShown: true, title: 'Role Details' }} />
-      <Stack.Screen name="AdminEditRoleBasicInfo" component={AdminEditRoleBasicInfoScreen} options={{ headerShown: true, title: 'Edit Role' }} />
-      <Stack.Screen name="AdminEditRolePermissions" component={AdminEditRolePermissionsScreen} options={{ headerShown: true, title: 'Role Permissions' }} />
-      <Stack.Screen name="AdminViewRoleUsers" component={AdminViewRoleUsersScreen} options={{ headerShown: true, title: 'Role Users' }} />
-      <Stack.Screen name="AdminManageRoleDelegation" component={AdminManageRoleDelegationScreen} options={{ headerShown: true, title: 'Role Delegation' }} />
-      <Stack.Screen name="AdminRoleGrantRules" component={AdminRoleGrantRulesScreen} options={{ headerShown: true, title: 'Role Grant Rules' }} />
-      <Stack.Screen name="AdminPermissionGrantRules" component={AdminPermissionGrantRulesScreen} options={{ headerShown: true, title: 'Permission Grant Rules' }} />
-      <Stack.Screen name="AdminAddRoleGrantRule" component={AdminAddRoleGrantRuleScreen} options={{ headerShown: true, title: 'Add Role Grant Rule' }} />
-      <Stack.Screen name="AdminAddPermissionGrantRule" component={AdminAddPermissionGrantRuleScreen} options={{ headerShown: true, title: 'Add Permission Grant Rule' }} />
-      <Stack.Screen name="AdminDeleteRole" component={AdminDeleteRoleScreen} options={{ headerShown: true, title: 'Delete Role' }} />
-      <Stack.Screen name="AdminAppReleases" component={AdminAppReleasesScreen} options={{ headerShown: true, title: 'App Releases' }} />
-      <Stack.Screen name="AdminCreateAppRelease" component={AdminCreateAppReleaseScreen} options={{ headerShown: true, title: 'Create Release Rule' }} />
-      <Stack.Screen name="AdminEditAppRelease" component={AdminEditAppReleaseScreen} options={{ headerShown: true, title: 'Edit Release Rule' }} />
-      <Stack.Screen name="AdminDebug" component={DebugScreen} options={{ headerShown: true, title: 'Debug' }} />
+      {canAccessAdmin && (
+        <>
+          <Stack.Screen name="AdminHome" component={AdminHomeScreen} options={{ headerShown: true, title: 'Admin' }} />
+          <Stack.Screen name="AdminManageUsers" component={AdminManageUsersScreen} options={{ headerShown: true, title: 'Manage Users' }} />
+          <Stack.Screen name="AdminUserDetail" component={AdminUserDetailScreen} options={{ headerShown: true, title: 'User Details' }} />
+          <Stack.Screen name="AdminEditUserBasicInfo" component={AdminEditUserBasicInfoScreen} options={{ headerShown: true, title: 'Basic Information' }} />
+          <Stack.Screen name="AdminEditUserSecurity" component={AdminEditUserSecurityScreen} options={{ headerShown: true, title: 'Security' }} />
+          <Stack.Screen name="AdminEditUserAccess" component={AdminEditUserAccessScreen} options={{ headerShown: true, title: 'Roles & Permissions' }} />
+          <Stack.Screen name="AdminDeleteUser" component={AdminDeleteUserScreen} options={{ headerShown: true, title: 'Delete User' }} />
+          <Stack.Screen name="AdminRoles" component={AdminRolesScreen} options={{ headerShown: true, title: 'Roles & Permissions' }} />
+          <Stack.Screen name="AdminCreateRole" component={AdminCreateRoleScreen} options={{ headerShown: true, title: 'Create Role' }} />
+          <Stack.Screen name="AdminRoleDetail" component={AdminRoleDetailScreen} options={{ headerShown: true, title: 'Role Details' }} />
+          <Stack.Screen name="AdminEditRoleBasicInfo" component={AdminEditRoleBasicInfoScreen} options={{ headerShown: true, title: 'Edit Role' }} />
+          <Stack.Screen name="AdminEditRolePermissions" component={AdminEditRolePermissionsScreen} options={{ headerShown: true, title: 'Role Permissions' }} />
+          <Stack.Screen name="AdminViewRoleUsers" component={AdminViewRoleUsersScreen} options={{ headerShown: true, title: 'Role Users' }} />
+          <Stack.Screen name="AdminManageRoleDelegation" component={AdminManageRoleDelegationScreen} options={{ headerShown: true, title: 'Role Delegation' }} />
+          <Stack.Screen name="AdminRoleGrantRules" component={AdminRoleGrantRulesScreen} options={{ headerShown: true, title: 'Role Grant Rules' }} />
+          <Stack.Screen name="AdminPermissionGrantRules" component={AdminPermissionGrantRulesScreen} options={{ headerShown: true, title: 'Permission Grant Rules' }} />
+          <Stack.Screen name="AdminAddRoleGrantRule" component={AdminAddRoleGrantRuleScreen} options={{ headerShown: true, title: 'Add Role Grant Rule' }} />
+          <Stack.Screen name="AdminAddPermissionGrantRule" component={AdminAddPermissionGrantRuleScreen} options={{ headerShown: true, title: 'Add Permission Grant Rule' }} />
+          <Stack.Screen name="AdminDeleteRole" component={AdminDeleteRoleScreen} options={{ headerShown: true, title: 'Delete Role' }} />
+          <Stack.Screen name="AdminAppReleases" component={AdminAppReleasesScreen} options={{ headerShown: true, title: 'App Releases' }} />
+          <Stack.Screen name="AdminCreateAppRelease" component={AdminCreateAppReleaseScreen} options={{ headerShown: true, title: 'Create Release Rule' }} />
+          <Stack.Screen name="AdminEditAppRelease" component={AdminEditAppReleaseScreen} options={{ headerShown: true, title: 'Edit Release Rule' }} />
+          <Stack.Screen name="AdminDebug" component={DebugScreen} options={{ headerShown: true, title: 'Debug' }} />
+        </>
+      )}
     </Stack.Navigator>
   );
 }
