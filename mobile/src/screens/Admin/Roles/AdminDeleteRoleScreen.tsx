@@ -7,6 +7,8 @@ import { useQuery, useMutation } from '@apollo/client/react';
 import { Body, Button, Card, Screen } from '../../../components';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import type { RouteProp } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   QUERY_ADMIN_GET_ROLE,
   QUERY_ADMIN_LIST_MANAGEABLE_ROLES,
@@ -28,13 +30,17 @@ type Role = {
   }[];
 };
 
+type AdminDeleteRoleScreenParams = {
+  roleId?: string;
+};
+
 export default function AdminDeleteRoleScreen() {
   const { colors, layout } = useTheme();
-  const route = useRoute<any>();
-  const navigation = useNavigation<any>();
+  const route = useRoute<RouteProp<Record<string, object | undefined>, 'AdminDeleteRole'>>();
+  const navigation = useNavigation<NativeStackNavigationProp<Record<string, object | undefined>>>();
   const permissions = useAppSelector(selectUserPermissions) as string[];
   
-  const roleId = route.params?.roleId;
+  const roleId = (route.params as AdminDeleteRoleScreenParams)?.roleId;
   
   // Permission checks
   const canDeleteRoles = permissions.includes('ADMIN_ROLES_DELETE');
@@ -84,9 +90,9 @@ export default function AdminDeleteRoleScreen() {
               
               await deleteRole({ variables: { id: roleId } });
               setDeleteSuccess(true);
-            } catch (error: any) {
+            } catch (error: unknown) {
               console.error('Failed to delete role:', error);
-              setDeleteError(error?.message || 'Failed to delete role');
+              setDeleteError((error as Error)?.message || 'Failed to delete role');
               setDeleteErrorFlash(true);
             } finally {
               setDeleteLoading(false);

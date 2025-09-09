@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { View, Pressable, StyleSheet, Text, TextInput } from 'react-native';
 import { CountryPicker } from 'react-native-country-codes-picker';
 import { parsePhoneNumberFromString } from 'libphonenumber-js/mobile';
-import { getCountryCallingCode } from 'libphonenumber-js';
+import { getCountryCallingCode, type CountryCode } from 'libphonenumber-js';
 import { Body } from './ui';
 import { useTheme } from '../theme/ThemeProvider';
 
@@ -37,7 +37,7 @@ export default function PhoneNumberInput({ value, onChange, placeholder = 'Phone
 
   const [countryCode, setCountryCode] = useState<string>(value?.countryCode || deviceRegion);
   const initialDial = useMemo(() => {
-    try { return `+${getCountryCallingCode((value?.countryCode || deviceRegion) as any)}`; } catch { return '+1'; }
+    try { return `+${getCountryCallingCode((value?.countryCode || deviceRegion) as CountryCode)}`; } catch { return '+1'; }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const [callingCode, setCallingCode] = useState<string>(value?.callingCode || initialDial);
@@ -94,7 +94,7 @@ export default function PhoneNumberInput({ value, onChange, placeholder = 'Phone
       ) : null}
       <CountryPicker
         show={pickerOpen}
-        pickerButtonOnPress={(item: any) => {
+        pickerButtonOnPress={(item: { code: string; dial_code: string }) => {
           setCountryCode(item.code);
           setCallingCode(`+${item.dial_code}`.replace('++', '+'));
           setPickerOpen(false);

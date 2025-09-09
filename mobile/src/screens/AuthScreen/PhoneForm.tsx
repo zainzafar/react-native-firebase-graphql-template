@@ -14,7 +14,7 @@ export default function PhoneForm({ onBack }: PhoneFormProps) {
   const { signInWithPhone, confirmPhoneCode } = useAuth();
   const [phone, setPhone] = useState<PhoneNumberValue>({ e164: null, countryCode: 'US', callingCode: '+1', national: '', valid: false });
   const [code, setCode] = useState('');
-  const [confirmation, setConfirmation] = useState<any>(null);
+  const [confirmation, setConfirmation] = useState<unknown>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPhoneError, setShowPhoneError] = useState(false);
@@ -31,8 +31,8 @@ export default function PhoneForm({ onBack }: PhoneFormProps) {
       
       const _confirmation = await signInWithPhone(phone.e164);
       setConfirmation(_confirmation);
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e: unknown) {
+      setError((e as Error).message);
     } finally {
       setLoading(false);
     }
@@ -43,9 +43,9 @@ export default function PhoneForm({ onBack }: PhoneFormProps) {
       setLoading(true);
       setError(null);
       if (!confirmation) throw new Error('Missing confirmation');
-      await confirmPhoneCode(confirmation, code);
-    } catch (e: any) {
-      setError(e.message);
+      await confirmPhoneCode(confirmation as { confirm: (code: string) => Promise<unknown> }, code);
+    } catch (e: unknown) {
+      setError((e as Error).message);
     } finally {
       setLoading(false);
     }

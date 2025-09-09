@@ -6,6 +6,7 @@ import { selectUserPermissions } from '../../../features/auth/selectors';
 import { useQuery, useMutation } from '@apollo/client/react';
 import { Body, Card, PermissionList, Screen, LoadingContainer } from '../../../components';
 import { useRoute } from '@react-navigation/native';
+import type { RouteProp } from '@react-navigation/native';
 import {
   QUERY_ADMIN_GET_ROLE,
   QUERY_ADMIN_LIST_GRANTABLE_PERMISSIONS,
@@ -24,12 +25,16 @@ type Permission = {
   description?: string;
 };
 
+type AdminEditRolePermissionsScreenParams = {
+  roleId?: string;
+};
+
 export default function AdminEditRolePermissions() {
   const { colors } = useTheme();
-  const route = useRoute<any>();
+  const route = useRoute<RouteProp<Record<string, object | undefined>, 'AdminEditRolePermissions'>>();
   const permissions = useAppSelector(selectUserPermissions) as string[];
   
-  const roleId = route.params?.roleId;
+  const roleId = (route.params as AdminEditRolePermissionsScreenParams)?.roleId;
   
   // Permission checks
   const canUpdateRoles = permissions.includes('ADMIN_ROLES_UPDATE');
@@ -87,7 +92,7 @@ export default function AdminEditRolePermissions() {
       });
       
       // No need to refetch since we're managing local state
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Revert local state on error
       if (enabled) {
         setRolePermissions(prev => prev.filter(p => p !== permissionId));

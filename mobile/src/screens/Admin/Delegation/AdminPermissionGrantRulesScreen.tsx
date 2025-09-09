@@ -6,6 +6,7 @@ import { selectUserPermissions } from '../../../features/auth/selectors';
 import { useQuery, useMutation } from '@apollo/client/react';
 import { Body, Button, Card, Screen, LoadingContainer } from '../../../components';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import type { RouteProp, NavigationProp } from '@react-navigation/native';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import {
   QUERY_ADMIN_GET_ROLE,
@@ -26,13 +27,17 @@ type PermissionGrantRule = {
   permission?: { id: string; name: string; description?: string };
 };
 
+type AdminPermissionGrantRulesScreenParams = {
+  roleId?: string;
+};
+
 export default function AdminPermissionGrantRules() {
   const { colors, layout, borderRadius } = useTheme();
-  const route = useRoute<any>();
-  const navigation = useNavigation<any>();
+  const route = useRoute<RouteProp<Record<string, object | undefined>, 'AdminPermissionGrantRules'>>();
+  const navigation = useNavigation<NavigationProp<Record<string, object | undefined>>>();
   const userPermissions = useAppSelector(selectUserPermissions) as string[];
   
-  const roleId = route.params?.roleId;
+  const roleId = (route.params as AdminPermissionGrantRulesScreenParams)?.roleId;
   
   // Permission checks
   const canViewPermissionGrants = userPermissions.includes('ADMIN_PERMISSION_GRANT_RULES_VIEW');
@@ -72,9 +77,9 @@ export default function AdminPermissionGrantRules() {
             try {
               await deletePermissionGrant({ variables: { id: ruleId } });
               Alert.alert('Success', 'Rule deleted successfully!');
-            } catch (error: any) {
+            } catch (error: unknown) {
               console.error('Failed to delete rule:', error);
-              Alert.alert('Error', error?.message || 'Failed to delete rule');
+              Alert.alert('Error', (error as Error)?.message || 'Failed to delete rule');
             }
           }
         }

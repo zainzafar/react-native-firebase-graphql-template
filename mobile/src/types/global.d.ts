@@ -2,8 +2,8 @@
 
 // Fix JSX namespace issue in react-native-country-codes-picker
 declare namespace JSX {
-  interface Element extends React.ReactElement<any, any> {}
-  interface ElementClass extends React.Component<any> {}
+  interface Element extends React.ReactElement<unknown, string | React.JSXElementConstructor<unknown>> {}
+  interface ElementClass extends React.Component<Record<string, unknown>> {}
   interface ElementAttributesProperty {
     props: {};
   }
@@ -13,6 +13,6 @@ declare namespace JSX {
   interface IntrinsicAttributes extends React.Attributes {}
   interface IntrinsicClassAttributes<T> extends React.ClassAttributes<T> {}
   interface IntrinsicElements {
-    [elemName: string]: any;
+    [elemName: string]: Record<string, unknown>;
   }
 }

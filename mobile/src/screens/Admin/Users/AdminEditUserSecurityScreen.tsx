@@ -5,6 +5,7 @@ import { useTheme } from '../../../theme/ThemeProvider';
 import { useAppSelector } from '../../../store/hooks';
 import { selectUserPermissions } from '../../../features/auth/selectors';
 import { useRoute } from '@react-navigation/native';
+import type { RouteProp } from '@react-navigation/native';
 import { useMutation, useQuery } from '@apollo/client/react';
 import { MUTATION_ADMIN_UPDATE_USER_PASSWORD, QUERY_ADMIN_GET_USER } from '../../../graphql/operations';
 import { getAuth, sendPasswordResetEmail } from '@react-native-firebase/auth';
@@ -16,13 +17,17 @@ type User = {
   identities?: { providerId: string }[];
 };
 
+type AdminEditUserSecurityScreenParams = {
+  id?: string;
+};
+
 export default function AdminEditUserSecurityScreen() {
   const { layout } = useTheme();
   const myPerms = useAppSelector(selectUserPermissions) as string[];
   const canUpdatePassword = myPerms.includes('ADMIN_USERS_UPDATE_PASSWORD');
   
-  const route = useRoute<any>();
-  const userId = route.params?.id as string;
+  const route = useRoute<RouteProp<Record<string, object | undefined>, 'AdminEditUserSecurity'>>();
+  const userId = (route.params as AdminEditUserSecurityScreenParams)?.id as string;
 
   // Fetch user data
   const { data, loading } = useQuery<{ adminGetUser?: User }>(QUERY_ADMIN_GET_USER, { 
@@ -40,7 +45,7 @@ export default function AdminEditUserSecurityScreen() {
   const [passwordSaveSuccess, setPasswordSaveSuccess] = useState(false);
   const [passwordSaveError, setPasswordSaveError] = useState<string | null>(null);
 
-  const providerIds = Array.isArray(user?.identities) ? user!.identities.map((p: any) => p.providerId) : [];
+  const providerIds = Array.isArray(user?.identities) ? user!.identities.map((p: { providerId: string }) => p.providerId) : [];
   const hasPasswordProvider = providerIds.includes('password');
   const hasGoogleProvider = providerIds.includes('google.com');
   const hasAppleProvider = providerIds.includes('apple.com');
@@ -60,18 +65,18 @@ export default function AdminEditUserSecurityScreen() {
       const auth = getAuth();
       await sendPasswordResetEmail(auth, user.email);
       setResetSuccess(true);
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error('Password reset error:', e);
       let errorMessage = 'Failed to send password reset email';
       
-      if (e?.code === 'auth/user-not-found') {
+      if ((e as { code?: string })?.code === 'auth/user-not-found') {
         errorMessage = 'No account found with this email address';
-      } else if (e?.code === 'auth/invalid-email') {
+      } else if ((e as { code?: string })?.code === 'auth/invalid-email') {
         errorMessage = 'Invalid email address';
-      } else if (e?.code === 'auth/too-many-requests') {
+      } else if ((e as { code?: string })?.code === 'auth/too-many-requests') {
         errorMessage = 'Too many requests. Please try again later';
-      } else if (e?.message) {
-        errorMessage = e.message;
+      } else if ((e as { message?: string })?.message) {
+        errorMessage = (e as { message: string }).message;
       }
       
       setResetError(errorMessage);
@@ -87,8 +92,8 @@ export default function AdminEditUserSecurityScreen() {
       setPassword('');
       setPasswordSaveSuccess(true);
       setPasswordSaveError(null);
-    } catch (e: any) {
-      setPasswordSaveError(e?.message || 'Failed to update password');
+    } catch (e: unknown) {
+      setPasswordSaveError((e as Error)?.message || 'Failed to update password');
     }
   };
 

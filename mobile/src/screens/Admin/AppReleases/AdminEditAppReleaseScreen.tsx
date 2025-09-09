@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, Alert } from 'react-native';
 import { useQuery, useMutation } from '@apollo/client/react';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import type { NavigationProp, RouteProp } from '@react-navigation/native';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { Screen, Card, Body, Button, LoadingContainer } from '../../../components';
 import {
@@ -13,30 +14,21 @@ import {
   MUTATION_ADMIN_DELETE_APP_VERSION_RULE,
   QUERY_ADMIN_LIST_APP_VERSION_RULES 
 } from '../../../graphql/operations';
+import type { AppVersionRule } from '../../../generated/graphql';
 
 type AppPlatform = 'ios' | 'android';
 
-type AppVersionRule = {
-  id: string;
-  platform: 'ios' | 'android';
-  minVersion: string;
-  latestVersion: string;
-  enforced: boolean;
-  forceAt?: string;
-  message?: string;
-  storeUrl: string;
-  softSnoozeSeconds?: number;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+type AdminEditAppReleaseScreenParams = {
+  ruleId?: string;
+  activeRules?: { ios: AppVersionRule | null; android: AppVersionRule | null };
 };
 
 export default function AdminEditAppReleaseScreen() {
   const { colors, layout, typography } = useTheme();
-  const navigation = useNavigation<any>();
-  const route = useRoute<any>();
-  const ruleId = route.params?.ruleId;
-  const activeRules = route.params?.activeRules || { ios: null, android: null };
+  const navigation = useNavigation<NavigationProp<Record<string, object | undefined>>>();
+  const route = useRoute<RouteProp<Record<string, object | undefined>, 'AdminEditAppRelease'>>();
+  const ruleId = (route.params as AdminEditAppReleaseScreenParams)?.ruleId;
+  const activeRules = (route.params as AdminEditAppReleaseScreenParams)?.activeRules || { ios: null, android: null };
   
   const [formData, setFormData] = useState({
     platform: 'ios' as AppPlatform,
@@ -124,7 +116,7 @@ export default function AdminEditAppReleaseScreen() {
         },
       });
       setUpdateSuccess(true);
-    } catch (error) {
+    } catch {
       setUpdateError(true);
     }
   };
@@ -150,7 +142,7 @@ export default function AdminEditAppReleaseScreen() {
               setDeleteError(false);
               await deleteRule({ variables: { id: ruleId } });
               setDeleteSuccess(true);
-            } catch (error) {
+            } catch {
               setDeleteError(true);
             }
           }
@@ -160,11 +152,11 @@ export default function AdminEditAppReleaseScreen() {
   };
 
 
-  const updateFormData = (field: string, value: any) => {
+  const updateFormData = (field: string, value: string | boolean | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleDateChange = (event: any, date?: Date) => {
+  const handleDateChange = (event: unknown, date?: Date) => {
     if (date) {
       setSelectedDate(date);
       const dateString = date.toISOString().split('T')[0]; // Format as YYYY-MM-DD

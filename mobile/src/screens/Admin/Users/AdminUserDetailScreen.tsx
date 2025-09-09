@@ -6,6 +6,7 @@ import { useAppSelector, useAppDispatch } from '../../../store/hooks';
 import { selectUserPermissions, selectUser } from '../../../features/auth/selectors';
 import { beginImpersonation } from '../../../features/auth/authSlice';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import type { RouteProp, NavigationProp } from '@react-navigation/native';
 import { useQuery, useMutation } from '@apollo/client/react';
 import { QUERY_ADMIN_GET_USER, MUTATION_START_IMPERSONATION } from '../../../graphql/operations';
 import { saveImpersonationToken } from '../../../auth/tokenStorage';
@@ -24,15 +25,19 @@ type User = {
   role?: { id: string; name: string };
 };
 
+type AdminUserDetailScreenParams = {
+  id?: string;
+};
+
 export default function AdminUserDetailScreen() {
   const { colors, layout } = useTheme();
-  const route = useRoute<any>();
-  const navigation = useNavigation<any>();
+  const route = useRoute<RouteProp<Record<string, object | undefined>, 'AdminUserDetail'>>();
+  const navigation = useNavigation<NavigationProp<Record<string, object | undefined>>>();
   const dispatch = useAppDispatch();
   const permissions = useAppSelector(selectUserPermissions) as string[];
   const currentUser = useAppSelector(selectUser);
   
-  const userId = route.params?.id as string;
+  const userId = (route.params as AdminUserDetailScreenParams)?.id as string;
   
   // Permission checks
   const canViewRoles = permissions.includes('ADMIN_ROLES_VIEW');
@@ -52,10 +57,10 @@ export default function AdminUserDetailScreen() {
     }
   );
 
-  const [startImpersonation, { loading: impersonationLoading }] = useMutation(MUTATION_START_IMPERSONATION) as any;
+  const [startImpersonation, { loading: impersonationLoading }] = useMutation<{ startImpersonation?: { token: string; user: unknown } }>(MUTATION_START_IMPERSONATION);
 
   const user = userData?.adminGetUser;
-  const providerIds = Array.isArray(user?.identities) ? user!.identities.map((p: any) => p.providerId) : [];
+  const providerIds = Array.isArray(user?.identities) ? user!.identities.map((p: { providerId: string }) => p.providerId) : [];
   const hasPasswordProvider = providerIds.includes('password');
   const hasGoogleProvider = providerIds.includes('google.com');
   const hasAppleProvider = providerIds.includes('apple.com');
@@ -88,7 +93,7 @@ export default function AdminUserDetailScreen() {
                 // Update Redux state first
                 dispatch(beginImpersonation({
                   token: data.startImpersonation.token,
-                  user: data.startImpersonation.user
+                  user: data.startImpersonation.user as { id: string; uid: string }
                 }));
                 
                 // Reset navigation and go to home screen

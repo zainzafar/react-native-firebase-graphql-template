@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, Text } from 'react-native';
+import { View, StyleSheet, Text, ViewStyle } from 'react-native';
 import { useTheme } from '../theme/ThemeProvider';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
@@ -10,7 +10,7 @@ type UserIdentityRowProps = {
   email?: string | null;
   phoneNumber?: string | null;
   identities?: Provider[] | null;
-  style?: any;
+  style?: ViewStyle;
 };
 
 export function UserIdentityRow({ email, phoneNumber, identities, style }: UserIdentityRowProps) {

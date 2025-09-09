@@ -6,13 +6,15 @@
   "scripts": {
     "test": "echo \"No tests yet\" && exit 0",
     "typecheck": "tsc --noEmit",
-    "build": "npm run prisma:generate && tsc && node scripts/copy-graphql.js",
+    "build": "npm run prisma:generate && npm run codegen && tsc && node scripts/copy-graphql.js",
     "start": "node dist/index.js",
-    "dev": "nodemon",
+    "dev": "concurrently -c \"cyan,magenta\" -n server,codegen \"nodemon\" \"npm:codegen:watch\"",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "seed": "ts-node prisma/seed.ts",
-    "import:firebase-users": "ts-node scripts/import-firebase-users.ts"
+    "import:firebase-users": "ts-node scripts/import-firebase-users.ts",
+    "codegen": "graphql-codegen --config codegen.yml",
+    "codegen:watch": "graphql-codegen --config codegen.yml --watch"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
@@ -22,10 +24,18 @@
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
+    "@graphql-codegen/cli": "^6.0.0",
+    "@graphql-codegen/client-preset": "^5.0.0",
+    "@graphql-codegen/introspection": "^5.0.0",
+    "@graphql-codegen/typescript": "^5.0.0",
+    "@graphql-codegen/typescript-operations": "^5.0.0",
+    "@graphql-codegen/typescript-resolvers": "^5.0.0",
+    "@parcel/watcher": "^2.5.1",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.3.0",
+    "concurrently": "^9.2.1",
     "esbuild": "^0.25.9",
     "nodemon": "^3.1.10",
     "prisma": "^6.14.0",

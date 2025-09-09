@@ -64,8 +64,8 @@ export default function EmailForm({ onBack, onGoogleSignIn, googleLoading, onApp
       const auth = getAuth();
       await sendPasswordResetEmail(auth, email.trim());
       setResetSent(true);
-    } catch (e: any) {
-      const errorMessage = getErrorMessage(e?.code || e?.message);
+    } catch (e: unknown) {
+      const errorMessage = getErrorMessage((e as { code?: string; message?: string })?.code || (e as { code?: string; message?: string })?.message || '');
       setError(errorMessage);
     } finally {
       setResetLoading(false);
@@ -90,8 +90,8 @@ export default function EmailForm({ onBack, onGoogleSignIn, googleLoading, onApp
         const displayName = `${firstName} ${lastName}`.trim();
         await createUserWithEmail(email.trim(), password, displayName);
       }
-    } catch (e: any) {
-      const code = e?.code || e?.message;
+    } catch (e: unknown) {
+      const code = (e as { code?: string; message?: string })?.code || (e as { code?: string; message?: string })?.message || '';
       const errorMessage = getErrorMessage(code);
       setError(errorMessage);
       setLastErrorCode(code);

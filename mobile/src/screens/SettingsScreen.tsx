@@ -3,6 +3,7 @@ import { Alert, Pressable, StyleSheet, View, Switch } from 'react-native';
 import { Body, Button, Card, Screen } from '../components';
 import { useTheme } from '../theme/ThemeProvider';
 import { useNavigation } from '@react-navigation/native';
+import type { NavigationProp } from '@react-navigation/native';
 import { useAuth } from '../auth/AuthProvider';
 import { usePermissions } from '../features/auth/hooks';
 import { useAppSelector } from '../store/hooks';
@@ -20,7 +21,7 @@ export default function SettingsScreen() {
   const [loading, setLoading] = useState(false);
   const [appVersion, setAppVersion] = useState<string>('');
   const [buildNumber, setBuildNumber] = useState<string>('');
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<NavigationProp<Record<string, object | undefined>>>();
   const { currentTheme, setTheme, colors, borderRadius } = useTheme();
 
   const onLogout = async () => {
@@ -38,8 +39,8 @@ export default function SettingsScreen() {
       setLoading(true);
       await signOut();
       // Navigation will automatically change based on Redux state in RootNavigator
-    } catch (e: any) {
-      Alert.alert('Logout failed', e?.message || 'Unknown error');
+    } catch (e: unknown) {
+      Alert.alert('Logout failed', (e as Error)?.message || 'Unknown error');
     } finally {
       setLoading(false);
     }
@@ -195,19 +196,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#007AFF',
     borderColor: '#007AFF',
   },
-  updateButtonText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
   updateButtonTextPrimary: {
     fontSize: 12,
     fontWeight: '600',
     color: '#ffffff',
-  },
-  updateButtonTextSecondary: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#8E8E93', // Default muted text color
   },
   divider: {
     height: 1,

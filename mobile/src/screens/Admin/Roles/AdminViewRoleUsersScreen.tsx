@@ -5,6 +5,7 @@ import { useTheme } from '../../../theme/ThemeProvider';
 import { useQuery } from '@apollo/client/react';
 import { Body, Card, UserIdentityRow, Screen, LoadingContainer } from '../../../components';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import type { RouteProp, NavigationProp } from '@react-navigation/native';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import {
   QUERY_ADMIN_GET_ROLE,
@@ -22,11 +23,15 @@ type Role = {
   }[];
 };
 
+type AdminViewRoleUsersScreenParams = {
+  roleId?: string;
+};
+
 export default function AdminViewRoleUsers() {
   const { colors, layout } = useTheme();
-  const route = useRoute<any>();
-  const navigation = useNavigation<any>();
-  const roleId = route.params?.roleId;
+  const route = useRoute<RouteProp<Record<string, object | undefined>, 'AdminViewRoleUsers'>>();
+  const navigation = useNavigation<NavigationProp<Record<string, object | undefined>>>();
+  const roleId = (route.params as AdminViewRoleUsersScreenParams)?.roleId;
   
 
   

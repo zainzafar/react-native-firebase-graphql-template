@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View, Animated } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View, Animated, ViewStyle } from 'react-native';
 import { useTheme } from '../theme/ThemeProvider';
-import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
+import FontAwesome6, { type FontAwesome6SolidIconName, type FontAwesome6RegularIconName, type FontAwesome6BrandIconName } from '@react-native-vector-icons/fontawesome6';
+import type { ReactNode } from 'react';
+
 
 type ButtonProps = {
   title: string;
@@ -17,8 +19,8 @@ type ButtonProps = {
   onErrorComplete?: () => void;
   variant?: 'primary' | 'ghost' | 'danger';
   disabled?: boolean;
-  style?: any;
-  icon?: any;
+  style?: ViewStyle | ViewStyle[];
+  icon?: FontAwesome6SolidIconName | FontAwesome6RegularIconName | FontAwesome6BrandIconName | ReactNode;
   iconStyle?: 'solid' | 'regular' | 'brand';
   textColor?: string;
   iconRight?: boolean;
@@ -170,25 +172,37 @@ export function Button({
       ) : (
         <View style={styles.contentContainer}>
           {icon && !iconRight && (
-            <FontAwesome6 
-              name={icon} 
-              iconStyle={iconStyle} 
-              size={16} 
-              color={textColorFinal} 
-              style={styles.iconLeft}
-            />
+            typeof icon === 'string' ? (
+              <FontAwesome6 
+                name={icon as FontAwesome6SolidIconName & FontAwesome6RegularIconName & FontAwesome6BrandIconName} 
+                iconStyle={iconStyle} 
+                size={16} 
+                color={textColorFinal} 
+                style={styles.iconLeft}
+              />
+            ) : (
+              <View style={styles.iconLeft}>
+                {icon}
+              </View>
+            )
           )}
           <Text style={[{ color: textColorFinal }, styles.buttonText]} numberOfLines={1} ellipsizeMode="tail" allowFontScaling={false}>
             {title}
           </Text>
           {icon && iconRight && (
-            <FontAwesome6 
-              name={icon} 
-              iconStyle={iconStyle} 
-              size={16} 
-              color={textColorFinal} 
-              style={styles.iconRight}
-            />
+            typeof icon === 'string' ? (
+              <FontAwesome6 
+                name={icon as FontAwesome6SolidIconName & FontAwesome6RegularIconName & FontAwesome6BrandIconName} 
+                iconStyle={iconStyle} 
+                size={16} 
+                color={textColorFinal} 
+                style={styles.iconRight}
+              />
+            ) : (
+              <View style={styles.iconRight}>
+                {icon}
+              </View>
+            )
           )}
         </View>
       )}

@@ -26,11 +26,11 @@ export default function AdminAddRoleGrantRule() {
 
   const canCreateRoleGrantRules = permissions.includes('ADMIN_ROLE_GRANT_RULES_CREATE');
 
-  const { data: rolesData, loading: rolesLoading } = useQuery(QUERY_ADMIN_LIST_MANAGEABLE_ROLES, {
+  const { data: rolesData, loading: rolesLoading } = useQuery<{ adminListManageableRoles?: unknown[] }>(QUERY_ADMIN_LIST_MANAGEABLE_ROLES, {
     skip: !canCreateRoleGrantRules
   });
 
-  const { data: roleData } = useQuery(QUERY_ADMIN_GET_ROLE, {
+  const { data: roleData } = useQuery<{ adminGetRole?: { canGrantRolesRules?: unknown[] } }>(QUERY_ADMIN_GET_ROLE, {
     variables: { id: roleId },
     skip: !canCreateRoleGrantRules
   });
@@ -45,19 +45,19 @@ export default function AdminAddRoleGrantRule() {
     }
   });
 
-  const allRoles = (rolesData as any)?.adminListManageableRoles || [];
-  const existingRoleGrantRules = (roleData as any)?.adminGetRole?.canGrantRolesRules || [];
+  const allRoles = (rolesData?.adminListManageableRoles as { id: string; name: string; description?: string }[]) || [];
+  const existingRoleGrantRules = (roleData?.adminGetRole?.canGrantRolesRules as { scope: string; granteeRole?: { id: string } }[]) || [];
   
   // Check if there's an "ALL" scope rule - if so, no "All roles" option should be available
-  const hasAllScopeRule = existingRoleGrantRules.some((rule: any) => rule.scope === 'ALL');
+  const hasAllScopeRule = existingRoleGrantRules.some((rule) => rule.scope === 'ALL');
   
   // Get role IDs that already have specific grant rules
   const existingRoleIds = existingRoleGrantRules
-    .filter((rule: any) => rule.scope === 'ROLE' && rule.granteeRole?.id)
-    .map((rule: any) => rule.granteeRole.id);
+    .filter((rule) => rule.scope === 'ROLE' && rule.granteeRole?.id)
+    .map((rule) => rule.granteeRole!.id);
   
   // Filter out the granter role and roles that already have grant rules
-  const availableRoles = allRoles.filter((role: any) => 
+  const availableRoles = allRoles.filter((role) => 
     role.id !== roleId && !existingRoleIds.includes(role.id)
   );
 

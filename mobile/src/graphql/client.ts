@@ -8,6 +8,7 @@ import { getEffectiveToken, getImpersonationToken, clearImpersonationToken } fro
 import { Platform } from 'react-native';
 import { Observable } from '@apollo/client/utilities';
 import uuidv4 from 'react-native-uuid';
+import type { SelectionSetNode, FragmentDefinitionNode, DocumentNode } from 'graphql';
 
 const rawUrl = (Config.GRAPHQL_API_URL || '').replace(/\/$/, '');
 // Android emulator/device cannot reach host's localhost; remap to 10.0.2.2
@@ -64,7 +65,7 @@ const errorLink = new ErrorLink(({ error, operation, forward }) => {
       e.extensions?.code === 'UNAUTHENTICATED' || e.extensions?.code === 'UNAUTHORIZED'
     )) ||
     // some links set a statusCode on networkError
-    (error && (error as any).statusCode === 401 || (error as any).statusCode === 403);
+    (error && (error as { statusCode?: number }).statusCode === 401 || (error as { statusCode?: number }).statusCode === 403);
 
   if (!isAuthError) return;
 
@@ -121,10 +122,10 @@ const errorLink = new ErrorLink(({ error, operation, forward }) => {
 });
 
 // Helper function to extract field names from GraphQL query
-const extractFieldNames = (selectionSet: any, fragments: any = {}): string[] => {
+const extractFieldNames = (selectionSet: SelectionSetNode | undefined, fragments: Record<string, FragmentDefinitionNode> = {}): string[] => {
   if (!selectionSet || !selectionSet.selections) return [];
   
-  return selectionSet.selections.map((selection: any) => {
+  return selectionSet.selections.map((selection) => {
     if (selection.kind === 'Field') {
       const fieldName = selection.name.value;
       const subFields = selection.selectionSet ? extractFieldNames(selection.selectionSet, fragments) : [];
@@ -139,15 +140,15 @@ const extractFieldNames = (selectionSet: any, fragments: any = {}): string[] => 
       return `...${fragmentName}`;
     } else if (selection.kind === 'InlineFragment') {
       const subFields = extractFieldNames(selection.selectionSet, fragments);
-      return `... on ${selection.typeCondition.name.value} { ${subFields.join(', ')} }`;
+      return `... on ${selection.typeCondition?.name.value} { ${subFields.join(', ')} }`;
     }
     return '';
   }).filter(Boolean);
 };
 
 // Helper function to build fragments map from query definitions
-const buildFragmentsMap = (definitions: readonly any[]): any => {
-  const fragments: any = {};
+const buildFragmentsMap = (definitions: DocumentNode['definitions']): Record<string, FragmentDefinitionNode> => {
+  const fragments: Record<string, FragmentDefinitionNode> = {};
   definitions.forEach(def => {
     if (def.kind === 'FragmentDefinition') {
       fragments[def.name.value] = def;
@@ -239,7 +240,7 @@ export const apolloClient = new ApolloClient({
               const incomingEdges = Array.isArray(incoming?.edges) ? incoming.edges : [];
               // Deduplicate by cursor
               const seen = new Set<string>();
-              const mergedEdges = [] as any[];
+              const mergedEdges: typeof existingEdges = [];
               for (const e of [...existingEdges, ...incomingEdges]) {
                 const c = e?.cursor;
                 if (c && !seen.has(c)) {

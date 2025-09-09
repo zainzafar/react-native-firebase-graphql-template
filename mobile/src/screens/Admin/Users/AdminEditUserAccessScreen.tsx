@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import { useRoute } from '@react-navigation/native';
+import type { RouteProp } from '@react-navigation/native';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { useAppSelector } from '../../../store/hooks';
 import { selectUserPermissions } from '../../../features/auth/selectors';
@@ -28,10 +29,14 @@ const titleizeRoleName = (roleName: string): string => {
 type Role = { id: string; name: string; description?: string | null; permissions: { id: string; name: string }[] };
 type Permission = { id: string; name: string; description?: string | null };
 
+type AdminEditUserAccessScreenParams = {
+  id?: string;
+};
+
 export default function AdminEditUserAccessScreen() {
   const { colors, layout } = useTheme();
-  const route = useRoute<any>();
-  const userId = route.params?.id as string;
+  const route = useRoute<RouteProp<Record<string, object | undefined>, 'AdminEditUserAccess'>>();
+  const userId = (route.params as AdminEditUserAccessScreenParams)?.id as string;
   const adminPerms = useAppSelector(selectUserPermissions) as string[];
   const currentUser = useAppSelector((state) => state.auth.user);
   
@@ -44,7 +49,7 @@ export default function AdminEditUserAccessScreen() {
 
   const { data: rolesData } = useQuery<{ adminListAssignableRoles: Role[] }>(QUERY_ADMIN_LIST_ASSIGNABLE_ROLES, { skip: !canViewRoles });
   const { data: permsData } = useQuery<{ adminListAssignablePermissions: Permission[] }>(QUERY_ADMIN_LIST_GRANTABLE_PERMISSIONS, { skip: !canViewPermissions });
-  const { data: userData } = useQuery<{ adminGetUser?: any }>(QUERY_ADMIN_GET_USER, { variables: { id: userId } });
+  const { data: userData } = useQuery<{ adminGetUser?: { role?: { id: string } } }>(QUERY_ADMIN_GET_USER, { variables: { id: userId } });
   const { data: rawPermsData } = useQuery<{ adminGetUserRawPermissions: string[] }>(
     QUERY_ADMIN_GET_USER_RAW_PERMISSIONS,
     { variables: { id: userId }, skip: !canViewPermissions }
@@ -64,7 +69,7 @@ export default function AdminEditUserAccessScreen() {
       }
       
       // Refetch the new role if it exists
-      const newRoleId = (result?.data as any)?.adminSetUserRole?.role?.id;
+      const newRoleId = (result?.data as { adminSetUserRole?: { role?: { id: string } } })?.adminSetUserRole?.role?.id;
       if (newRoleId && newRoleId !== localRoleId) {
         refetchQueries.push({ query: QUERY_ADMIN_GET_ROLE, variables: { id: newRoleId } });
       }
@@ -142,7 +147,7 @@ export default function AdminEditUserAccessScreen() {
   const onTogglePermission = async (permission: Permission, next: boolean) => {
     try {
       const res = await setUserPermission({ variables: { id: userId, permissionId: permission.id, enabled: next } });
-      const updated = (res as any)?.data?.adminSetUserPermission as string[] | undefined;
+      const updated = (res as { data?: { adminSetUserPermission?: string[] } })?.data?.adminSetUserPermission;
       if (updated) setRawPermissions(updated);
     } catch {}
   };

@@ -5,6 +5,7 @@ import { useTheme } from '../../../theme/ThemeProvider';
 import { useAppSelector } from '../../../store/hooks';
 import { selectUserPermissions } from '../../../features/auth/selectors';
 import { useRoute } from '@react-navigation/native';
+import type { RouteProp } from '@react-navigation/native';
 import { useMutation, useQuery } from '@apollo/client/react';
 import { MUTATION_ADMIN_UPDATE_USER, QUERY_ADMIN_GET_USER } from '../../../graphql/operations';
 
@@ -19,13 +20,17 @@ type User = {
   identities?: { providerId: string }[];
 };
 
+type AdminEditUserBasicInfoScreenParams = {
+  id?: string;
+};
+
 export default function AdminEditUserBasicInfoScreen() {
   const { layout } = useTheme();
   const myPerms = useAppSelector(selectUserPermissions) as string[];
   const canUpdateProfile = myPerms.includes('ADMIN_USERS_UPDATE_PROFILE');
   
-  const route = useRoute<any>();
-  const userId = route.params?.id as string;
+  const route = useRoute<RouteProp<Record<string, object | undefined>, 'AdminEditUserBasicInfo'>>();
+  const userId = (route.params as AdminEditUserBasicInfoScreenParams)?.id as string;
 
   // Fetch user data
   const { data, loading } = useQuery<{ adminGetUser?: User }>(QUERY_ADMIN_GET_USER, { 
@@ -34,7 +39,8 @@ export default function AdminEditUserBasicInfoScreen() {
   });
 
   const [mutateProfile, { loading: profileLoading }] = useMutation(MUTATION_ADMIN_UPDATE_USER, {
-    update: (cache, { data: mutationResult }: any) => {
+    update: (cache, result) => {
+      const mutationResult = result.data as { adminUpdateUser?: User } | undefined;
       // Update the user in the admin list cache
       const updatedUser = mutationResult?.adminUpdateUser;
       if (updatedUser) {
@@ -42,7 +48,7 @@ export default function AdminEditUserBasicInfoScreen() {
           fields: {
             adminListUsers: (existing = {}) => {
               if (existing.edges) {
-                const updatedEdges = existing.edges.map((edge: any) => {
+                const updatedEdges = existing.edges.map((edge: { node: User }) => {
                   if (edge.node.id === updatedUser.id) {
                     return { ...edge, node: { ...edge.node, ...updatedUser } };
                   }
@@ -92,8 +98,8 @@ export default function AdminEditUserBasicInfoScreen() {
       } } });
       setSaveSuccess(true);
       setSaveError(null);
-    } catch (e: any) {
-      setSaveError(e?.message || 'Failed to save');
+    } catch (e: unknown) {
+      setSaveError((e as Error)?.message || 'Failed to save');
     }
   };
 

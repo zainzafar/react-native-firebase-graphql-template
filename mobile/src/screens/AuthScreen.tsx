@@ -28,8 +28,8 @@ export default function AuthScreen() {
   };
 
   useEffect(() => {
-    if (Platform.OS === 'android' && (UIManager as any)?.setLayoutAnimationEnabledExperimental) {
-      try { (UIManager as any).setLayoutAnimationEnabledExperimental(true); } catch {}
+    if (Platform.OS === 'android' && (UIManager as { setLayoutAnimationEnabledExperimental?: (enabled: boolean) => void })?.setLayoutAnimationEnabledExperimental) {
+      try { (UIManager as { setLayoutAnimationEnabledExperimental: (enabled: boolean) => void }).setLayoutAnimationEnabledExperimental(true); } catch {}
     }
   }, []);
 
@@ -48,8 +48,8 @@ export default function AuthScreen() {
     try {
       setGoogleLoading(true);
       await signInWithGoogle();
-    } catch (e: any) {
-      const msg = e?.message || 'Google Sign-In failed';
+    } catch (e: unknown) {
+      const msg = (e as Error)?.message || 'Google Sign-In failed';
       Alert.alert('Google Sign-In', msg);
     } finally {
       setGoogleLoading(false);
@@ -60,8 +60,8 @@ export default function AuthScreen() {
     try {
       setAppleLoading(true);
       await signInWithApple();
-    } catch (e: any) {
-      const msg = e?.message || 'Apple Sign-In failed';
+    } catch (e: unknown) {
+      const msg = (e as Error)?.message || 'Apple Sign-In failed';
       Alert.alert('Apple Sign-In', msg);
     } finally {
       setAppleLoading(false);
@@ -107,7 +107,6 @@ export default function AuthScreen() {
 const styles = StyleSheet.create({
   container: { justifyContent: 'center' },
   header: { alignItems: 'center' },
-  subheading: { textAlign: 'center' },
   buttonGroup: { gap: 12 },
 });
 

@@ -1,6 +1,6 @@
-import { type AppColors } from '../../theme/base';
+import { type AppColors, type BorderRadius } from '../../theme/base';
 
-export function getProviderButtonBaseStyles(colors: AppColors, borderRadius: any) {
+export function getProviderButtonBaseStyles(colors: AppColors, borderRadius: BorderRadius) {
   const containerStyle = {
     borderRadius: borderRadius.xxl,
     borderWidth: 1,

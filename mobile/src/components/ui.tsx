@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, TextInput, View, Platform, StatusBar, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, TextInput, View, Platform, StatusBar, ActivityIndicator, ViewStyle, TextStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeProvider';
 
@@ -15,7 +15,7 @@ export function ScreenContainer({ children }: { children: React.ReactNode }) {
   return <View style={[{ backgroundColor: colors.background }, styles.screen]}>{children}</View>;
 }
 
-export function Card({ children, style }: { children: React.ReactNode; style?: any }) {
+export function Card({ children, style }: { children: React.ReactNode; style?: ViewStyle | ViewStyle[] }) {
   const { colors, borderRadius } = useTheme();
   return <View style={[{ backgroundColor: colors.card, borderColor: colors.cardBorder, borderRadius: borderRadius.xl }, styles.card, style]}>{children}</View>;
 }
@@ -25,7 +25,7 @@ export function Heading({ children }: { children: React.ReactNode }) {
   return <Text style={[{ color: colors.text }, styles.heading]}>{children}</Text>;
 }
 
-export function Body({ children, style }: { children: React.ReactNode; style?: any }) {
+export function Body({ children, style }: { children: React.ReactNode; style?: TextStyle | TextStyle[] }) {
   const { colors } = useTheme();
   return <Text style={[{ color: colors.mutedText }, styles.body, style]}>{children}</Text>;
 }
@@ -36,9 +36,9 @@ type InputProps = {
   placeholder?: string;
   secureTextEntry?: boolean;
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
-  keyboardType?: any;
-  textContentType?: any;
-  autoComplete?: any;
+  keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad' | 'number-pad' | 'decimal-pad' | 'url';
+  textContentType?: 'none' | 'URL' | 'addressCity' | 'addressCityAndState' | 'addressState' | 'countryName' | 'creditCardNumber' | 'emailAddress' | 'familyName' | 'fullStreetAddress' | 'givenName' | 'jobTitle' | 'location' | 'middleName' | 'name' | 'namePrefix' | 'nameSuffix' | 'nickname' | 'organizationName' | 'postalCode' | 'streetAddressLine1' | 'streetAddressLine2' | 'sublocality' | 'telephoneNumber' | 'username' | 'password' | 'newPassword' | 'oneTimeCode';
+  autoComplete?: 'off' | 'username' | 'password' | 'email' | 'name' | 'tel' | 'street-address' | 'postal-code' | 'cc-number' | 'cc-csc' | 'cc-exp' | 'cc-exp-month' | 'cc-exp-year' | 'new-password' | 'given-name' | 'family-name' | 'sms-otp';
   editable?: boolean;
 };
 

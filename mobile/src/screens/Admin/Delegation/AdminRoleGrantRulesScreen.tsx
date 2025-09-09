@@ -6,6 +6,7 @@ import { selectUserPermissions } from '../../../features/auth/selectors';
 import { useQuery, useMutation } from '@apollo/client/react';
 import { Body, Button, Card, Screen, LoadingContainer } from '../../../components';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import type { RouteProp, NavigationProp } from '@react-navigation/native';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import {
   QUERY_ADMIN_GET_ROLE,
@@ -27,13 +28,17 @@ type RoleGrantRule = {
   granteeRole?: { id: string; name: string; description?: string };
 };
 
+type AdminRoleGrantRulesScreenParams = {
+  roleId?: string;
+};
+
 export default function AdminRoleGrantRules() {
   const { colors, layout, borderRadius } = useTheme();
-  const route = useRoute<any>();
-  const navigation = useNavigation();
+  const route = useRoute<RouteProp<Record<string, object | undefined>, 'AdminRoleGrantRules'>>();
+  const navigation = useNavigation<NavigationProp<Record<string, object | undefined>>>();
   const permissions = useAppSelector(selectUserPermissions) as string[];
   
-  const roleId = route.params?.roleId;
+  const roleId = (route.params as AdminRoleGrantRulesScreenParams)?.roleId;
   
   // Permission checks
   const canViewRoleGrants = permissions.includes('ADMIN_ROLE_GRANT_RULES_VIEW');
@@ -57,7 +62,7 @@ export default function AdminRoleGrantRules() {
   const role = roleData?.adminGetRole;
 
   const handleAddRoleGrant = () => {
-    (navigation as any).navigate('AdminAddRoleGrantRule', { roleId });
+    navigation.navigate('AdminAddRoleGrantRule', { roleId });
   };
 
   const handleDeleteRoleGrant = async (ruleId: string) => {
@@ -73,9 +78,9 @@ export default function AdminRoleGrantRules() {
             try {
               await deleteRoleGrant({ variables: { id: ruleId } });
               Alert.alert('Success', 'Rule deleted successfully!');
-            } catch (error: any) {
+            } catch (error: unknown) {
               console.error('Failed to delete rule:', error);
-              Alert.alert('Error', error?.message || 'Failed to delete rule');
+              Alert.alert('Error', (error as Error)?.message || 'Failed to delete rule');
             }
           }
         }

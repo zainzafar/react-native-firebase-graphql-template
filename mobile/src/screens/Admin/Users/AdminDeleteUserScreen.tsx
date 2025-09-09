@@ -3,18 +3,24 @@ import { Alert, View, StyleSheet } from 'react-native';
 import { Body, Button, Card, UserIdentityRow, Screen } from '../../../components';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import type { RouteProp, NavigationProp } from '@react-navigation/native';
 import { useMutation, useQuery } from '@apollo/client/react';
 import { MUTATION_ADMIN_DELETE_USER, QUERY_ADMIN_GET_USER } from '../../../graphql/operations';
 
+type AdminDeleteUserScreenParams = {
+  id?: string;
+};
+
 export default function AdminDeleteUserScreen() {
   const { layout } = useTheme();
-  const route = useRoute<any>();
-  const navigation = useNavigation<any>();
-  const id = route.params?.id as string;
-  const { data } = useQuery<{ adminGetUser?: any }>(QUERY_ADMIN_GET_USER, { variables: { id: id } });
-  const user = data?.adminGetUser;
+  const route = useRoute<RouteProp<Record<string, object | undefined>, 'AdminDeleteUser'>>();
+  const navigation = useNavigation<NavigationProp<Record<string, object | undefined>>>();
+  const id = (route.params as AdminDeleteUserScreenParams)?.id as string;
+  const { data } = useQuery<{ adminGetUser?: unknown }>(QUERY_ADMIN_GET_USER, { variables: { id: id } });
+  const user = data?.adminGetUser as { email?: string; phoneNumber?: string; uid?: string; identities?: { providerId: string }[] } | undefined;
   const [mutate, { loading }] = useMutation(MUTATION_ADMIN_DELETE_USER, {
-    update: (cache, { data: mutationResult }: any) => {
+    update: (cache, result) => {
+      const mutationResult = result.data as { adminDeleteUser?: boolean };
       // Remove the user from the admin list cache
       // The mutation returns true on success, so we use the uid from the mutation variables
       if (mutationResult?.adminDeleteUser) {
@@ -22,7 +28,7 @@ export default function AdminDeleteUserScreen() {
           fields: {
             adminListUsers: (existing = {}) => {
               if (existing.edges) {
-                const filteredEdges = existing.edges.filter((edge: any) => edge.node.id !== id);
+                const filteredEdges = existing.edges.filter((edge: { node: { id: string } }) => edge.node.id !== id);
                 return { ...existing, edges: filteredEdges };
               }
               return existing;
@@ -48,8 +54,8 @@ export default function AdminDeleteUserScreen() {
               await mutate({ variables: { id: id } });
               Alert.alert('Deleted', 'User has been deleted.');
               try { navigation.goBack(); } catch {}
-            } catch (e: any) {
-              Alert.alert('Delete failed', e?.message || 'Unknown error');
+            } catch (e: unknown) {
+              Alert.alert('Delete failed', (e as Error)?.message || 'Unknown error');
             }
           },
         },

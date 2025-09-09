@@ -8,13 +8,14 @@ import { selectUser, selectIsImpersonating } from '../features/auth/selectors';
 
 import { useMutation } from '@apollo/client/react';
 import { MUTATION_UPDATE_PROFILE } from '../graphql/operations';
+import type { UpdateProfileMutation, UserFieldsFragment } from '../generated/graphql';
 import { updateUser as updateUserAction } from '../features/auth/authSlice';
 
 export default function AccountScreen() {
   const { layout } = useTheme();
   const dispatch = useAppDispatch();
   const { updatePassword } = useAuth();
-  const [mutateUpdateProfile] = useMutation(MUTATION_UPDATE_PROFILE);
+  const [mutateUpdateProfile] = useMutation<UpdateProfileMutation>(MUTATION_UPDATE_PROFILE);
   const user = useAppSelector(selectUser); // Database user for all data
   const isImpersonating = useAppSelector(selectIsImpersonating);
   const [profileLoading, setProfileLoading] = useState(false);
@@ -36,7 +37,7 @@ export default function AccountScreen() {
   }, [user?.displayName]);
 
   // Check if user has email/password authentication (using database identities)
-  const hasEmailPassword = user?.identities?.some((identity: any) => identity.providerId === 'password') || false;
+  const hasEmailPassword = user?.identities?.some((identity: { providerId: string }) => identity.providerId === 'password') || false;
 
   const onUpdateProfile = async () => {
     try {
@@ -50,14 +51,17 @@ export default function AccountScreen() {
       }
       
       const { data } = await mutateUpdateProfile({ variables: { displayName } });
-      const updated = (data as any)?.updateProfile;
+      const updated = data?.updateProfile as UserFieldsFragment;
       if (updated) {
         // Update only changed fields in Redux
-        dispatch(updateUserAction({ displayName: updated.displayName, photoURL: updated.photoURL }));
+        dispatch(updateUserAction({ 
+          displayName: updated.displayName || undefined, 
+          photoURL: updated.photoURL || undefined 
+        }));
       }
       setProfileSuccess(true);
-    } catch (e: any) {
-      setProfileError(e?.message || 'Failed to update profile');
+    } catch (e: unknown) {
+      setProfileError((e as Error)?.message || 'Failed to update profile');
     } finally {
       setProfileLoading(false);
     }
@@ -90,8 +94,8 @@ export default function AccountScreen() {
       setPasswordSuccess(true);
       setNewPassword('');
       setConfirmPassword('');
-    } catch (e: any) {
-      setPasswordError(e?.message || 'Failed to update password');
+    } catch (e: unknown) {
+      setPasswordError((e as Error)?.message || 'Failed to update password');
     } finally {
       setPasswordLoading(false);
     }
@@ -203,7 +207,6 @@ const styles = StyleSheet.create({
   form: { },
   button: { marginTop: 12 },
   errorText: { color: '#EF4444', fontSize: 14 },
-  successText: { color: '#059669', fontSize: 14 },
   impersonationNotice: { 
     color: '#F59E0B', 
     fontSize: 14, 

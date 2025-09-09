@@ -5,6 +5,7 @@ import { useTheme } from '../../../theme/ThemeProvider';
 import { useQuery, useMutation } from '@apollo/client/react';
 import { Body, Button, Card, Input, Screen, LoadingContainer } from '../../../components';
 import { useRoute } from '@react-navigation/native';
+import type { RouteProp } from '@react-navigation/native';
 import {
   QUERY_ADMIN_GET_ROLE,
   MUTATION_ADMIN_UPDATE_ROLE,
@@ -16,11 +17,15 @@ type Role = {
   description?: string;
 };
 
+type AdminEditRoleBasicInfoScreenParams = {
+  roleId?: string;
+};
+
 export default function AdminEditRoleBasicInfo() {
   const { colors, layout, borderRadius } = useTheme();
-  const route = useRoute<any>();
+  const route = useRoute<RouteProp<Record<string, object | undefined>, 'AdminEditRoleBasicInfo'>>();
   
-  const roleId = route.params?.roleId;
+  const roleId = (route.params as AdminEditRoleBasicInfoScreenParams)?.roleId;
   
 
   
@@ -92,9 +97,9 @@ export default function AdminEditRoleBasicInfo() {
       await updateRole({ variables: { id: roleId, input: editData } });
       setSaveSuccess(true);
       // Only clear error on successful save
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to update role:', error);
-      setSaveError(error?.message || 'Failed to update role');
+      setSaveError((error as Error)?.message || 'Failed to update role');
     } finally {
       setSaveLoading(false);
     }

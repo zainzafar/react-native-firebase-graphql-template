@@ -1,0 +1,30 @@
+schema: "src/graphql/types/**/*.graphql"
+
+generates:
+  src/generated/resolvers-types.ts:
+    plugins:
+      - typescript
+      - typescript-resolvers
+    config:
+      useIndexSignature: true
+      contextType: "../server/apollo#GraphQLContext"
+      mappers:
+        User: "@prisma/client#User"
+        Role: "@prisma/client#Role"
+        Permission: "@prisma/client#Permission"
+
+  ../mobile/src/generated/:
+    preset: client
+    documents:
+      - "../mobile/src/**/*.graphql"
+      - "../mobile/src/**/*.gql"
+      - "../mobile/src/graphql/**/*.ts"
+      - "../mobile/src/graphql/**/*.tsx"
+      - "../mobile/src/graphql/operations.ts"
+    config:
+      useTypeImports: true
+      skipTypename: false
+
+  src/generated/schema.json:
+    plugins:
+      - introspection

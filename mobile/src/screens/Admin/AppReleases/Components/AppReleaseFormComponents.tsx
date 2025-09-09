@@ -3,6 +3,7 @@ import { StyleSheet, View, TextInput, Switch } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTheme } from '../../../../theme/ThemeProvider';
 import { Body, Button, Input, Card } from '../../../../components';
+import type { AppVersionRule } from '../../../../generated/graphql';
 import { useAppUpdateGate } from '../../../../update/useAppUpdateGate';
 
 type AppPlatform = 'ios' | 'android';
@@ -21,16 +22,16 @@ interface FormData {
 }
 
 interface ActiveRules {
-  ios: any;
-  android: any;
+  ios: AppVersionRule | null;
+  android: AppVersionRule | null;
 }
 
 interface AppReleaseFormComponentsProps {
   formData: FormData;
-  updateFormData: (field: string, value: any) => void;
+  updateFormData: (field: string, value: string | boolean | number) => void;
   activeRules: ActiveRules;
   selectedDate: Date;
-  handleDateChange: (event: any, date?: Date) => void;
+  handleDateChange: (event: unknown, date?: Date) => void;
 }
 
 // Individual component functions (kept for internal use)
@@ -88,7 +89,7 @@ const FormToggle = ({ field, label, description, formData, updateFormData }: {
   label: string;
   description?: string;
   formData: FormData;
-  updateFormData: (field: string, value: any) => void;
+  updateFormData: (field: string, value: string | boolean | number) => void;
 }) => {
   const { colors, typography } = useTheme();
 
@@ -353,10 +354,6 @@ const styles = StyleSheet.create({
   cardTitle: {
   },
   cardDescription: {
-  },
-  input: {
-  },
-  sectionSpacing: {
   },
   helperText: {
   },

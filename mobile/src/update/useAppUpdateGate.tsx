@@ -7,19 +7,8 @@ import DeviceInfo from 'react-native-device-info';
 import { QUERY_APP_SETTINGS } from '../graphql/operations';
 import { compareSemver } from './versionUtils';
 import { RootState } from '../store';
-
-type AppPlatform = 'ios' | 'android';
-
-type AppSettings = {
-  platform: AppPlatform;
-  minVersion: string;
-  latestVersion: string;
-  enforced: boolean;
-  forceAt: string | null;
-  message: string | null;
-  storeUrl: string;
-  softSnoozeSeconds: number | null;
-};
+import type { AppSettings, AppSettingsQuery } from '../generated/graphql';
+import { AppPlatform } from '../generated/graphql';
 
 type Gate = {
   hard: boolean;
@@ -54,7 +43,7 @@ export function useAppUpdateGate() {
     authStateRef.current = { user, isAuthenticated };
   }, [user, isAuthenticated]);
 
-  const platform: AppPlatform = Platform.OS === 'ios' ? 'ios' : 'android';
+  const platform: AppPlatform = Platform.OS === 'ios' ? AppPlatform.Ios : AppPlatform.Android;
 
   const getCurrentVersion = useCallback(async (): Promise<string> => {
     try {
@@ -78,13 +67,13 @@ export function useAppUpdateGate() {
 
   const fetchAppSettings = useCallback(async (): Promise<AppSettings | null> => {
     try {
-      const result = await apolloClient.query({
+      const result = await apolloClient.query<AppSettingsQuery>({
         query: QUERY_APP_SETTINGS,
         variables: { platform },
         fetchPolicy: 'network-only', // Always fetch fresh data
       });
 
-      return (result.data as any)?.appSettings || null;
+      return result.data?.appSettings || null;
     } catch (error) {
       console.warn('[AppUpdateGate] Failed to fetch app settings:', error);
       return null;

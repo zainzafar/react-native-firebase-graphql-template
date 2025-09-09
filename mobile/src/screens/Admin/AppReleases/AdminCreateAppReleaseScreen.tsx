@@ -2,20 +2,26 @@ import React, { useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { useMutation } from '@apollo/client/react';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import type { NavigationProp, RouteProp } from '@react-navigation/native';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { Screen, Button } from '../../../components';
 import { MUTATION_ADMIN_CREATE_APP_VERSION_RULE, QUERY_ADMIN_LIST_APP_VERSION_RULES } from '../../../graphql/operations';
+import type { AppVersionRule } from '../../../generated/graphql';
 import {
   AppReleaseForm,
 } from './Components';
 
 type AppPlatform = 'ios' | 'android';
 
+type AdminCreateAppReleaseScreenParams = {
+  activeRules?: { ios: AppVersionRule | null; android: AppVersionRule | null };
+};
+
 export default function AdminCreateAppReleaseScreen() {
   const { layout } = useTheme();
-  const navigation = useNavigation<any>();
-  const route = useRoute<any>();
-  const activeRules = route.params?.activeRules || { ios: null, android: null };
+  const navigation = useNavigation<NavigationProp<Record<string, object | undefined>>>();
+  const route = useRoute<RouteProp<Record<string, object | undefined>, 'AdminCreateAppRelease'>>();
+  const activeRules = (route.params as AdminCreateAppReleaseScreenParams)?.activeRules || { ios: null, android: null };
   
   const [formData, setFormData] = useState({
     platform: 'ios' as AppPlatform,
@@ -60,16 +66,16 @@ export default function AdminCreateAppReleaseScreen() {
         },
       });
       setCreateSuccess(true);
-    } catch (error) {
+    } catch {
       setCreateError(true);
     }
   };
 
-  const updateFormData = (field: string, value: any) => {
+  const updateFormData = (field: string, value: string | boolean | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleDateChange = (event: any, date?: Date) => {
+  const handleDateChange = (event: unknown, date?: Date) => {
     if (date) {
       setSelectedDate(date);
       const dateString = date.toISOString().split('T')[0]; // Format as YYYY-MM-DD

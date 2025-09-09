@@ -50,3 +50,6 @@ ios/tmp.xcconfig
 # Ruby / Bundler
 vendor/
 vendor/bundle/
+
+# Generated files
+src/generated/

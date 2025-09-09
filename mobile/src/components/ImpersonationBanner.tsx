@@ -7,6 +7,7 @@ import { clearImpersonationToken } from '../auth/tokenStorage';
 import { apolloClient } from '../graphql/client';
 import { useTheme } from '../theme/ThemeProvider';
 import { useNavigation } from '@react-navigation/native';
+import type { NavigationProp } from '@react-navigation/native';
 
 type ImpersonationBannerProps = {
   style?: ViewStyle;
@@ -49,7 +50,7 @@ export function ImpersonationBanner({ style }: ImpersonationBannerProps) {
               dispatch(endImpersonation());
               
               // Reset navigation and go to home screen
-              (navigation as any).reset({
+              (navigation as NavigationProp<Record<string, object | undefined>>).reset({
                 index: 0,
                 routes: [{ name: 'Home' }],
               });

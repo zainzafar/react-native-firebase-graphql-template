@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Modal, Pressable, ScrollView, View, Animated, PanResponder, Dimensions, StyleSheet, Text } from 'react-native';
+import { Modal, Pressable, ScrollView, View, Animated, PanResponder, Dimensions, StyleSheet, Text, LayoutChangeEvent } from 'react-native';
 import { useTheme } from '../theme/ThemeProvider';
 
 interface BottomSheetProps {
@@ -56,7 +56,7 @@ export default function BottomSheet({
   const sheetTranslateY = useRef(new Animated.Value(sheetInitialY)).current;
 
   // Measure content height when it changes
-  const handleContentLayout = (event: any) => {
+  const handleContentLayout = (event: LayoutChangeEvent) => {
     const { height: measuredHeight } = event.nativeEvent.layout;
     if (measuredHeight > 0 && measuredHeight !== contentHeight) {
       setContentHeight(measuredHeight);

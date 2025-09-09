@@ -6,6 +6,7 @@ import { useQuery } from '@apollo/client/react';
 import { QUERY_ADMIN_LIST_USERS } from '../../../graphql/operations';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import { useNavigation } from '@react-navigation/native';
+import type { NavigationProp } from '@react-navigation/native';
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
 
 import { usePermissions } from '../../../features/auth/hooks';
@@ -22,12 +23,12 @@ const USERS_PER_PAGE = 20;
 
 export default function AdminManageUsersScreen() {
   const { colors, layout } = useTheme();
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<NavigationProp<Record<string, object | undefined>>>();
   const [search, setSearch] = useState('');
   const [debounced, setDebounced] = useState('');
   const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const debounceRef = useRef<any>(null);
+  const debounceRef = useRef<number | null>(null);
 
   // Permission checks
   const { canViewUsers, canSearchUsers, canUpdateUserProfile, canUpdateUserPassword, canDeleteUsers, canImpersonateUsers } = usePermissions();
@@ -44,7 +45,9 @@ export default function AdminManageUsersScreen() {
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => setDebounced(search.trim()), 400);
-    return () => debounceRef.current && clearTimeout(debounceRef.current);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
   }, [search]);
 
   const edges: Edge[] = useMemo(() => data?.adminListUsers?.edges ?? [], [data]);
@@ -83,7 +86,7 @@ export default function AdminManageUsersScreen() {
         return p;
       }
     };
-    const signupStr = formatTimestamp((u as any).createdAt);
+    const signupStr = formatTimestamp((u as { createdAt?: string }).createdAt);
     return (
       <Pressable 
         onPress={() => canViewUserDetails && navigation.navigate('AdminUserDetail', { id: u.id })}
@@ -196,7 +199,6 @@ const styles = StyleSheet.create({
   meta: { },
   metaText: { opacity: 0.7 },
   disabledCard: { opacity: 0.6 },
-  headerLoader: { paddingVertical: 0, alignItems: 'center' },
   footerLoader: { paddingVertical: 16, alignItems: 'center' },
   emptyState: { paddingTop: 40, alignItems: 'center' },
   emptyText: { textAlign: 'center', fontSize: 16 },

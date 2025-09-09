@@ -7,6 +7,7 @@ import { useQuery } from '@apollo/client/react';
 import { Body, Button, Card, Screen, LoadingContainer } from '../../../components';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import { useNavigation } from '@react-navigation/native';
+import type { NavigationProp } from '@react-navigation/native';
 import {
   QUERY_ADMIN_LIST_MANAGEABLE_ROLES,
 } from '../../../graphql/operations';
@@ -21,7 +22,7 @@ type Role = {
 
 export default function AdminRolesScreen() {
   const { colors, layout } = useTheme();
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<NavigationProp<Record<string, object | undefined>>>();
   const permissions = useAppSelector(selectUserPermissions) as string[];
   
   // Permission checks

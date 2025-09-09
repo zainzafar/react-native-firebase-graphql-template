@@ -2,12 +2,12 @@ import React from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
 import { Body, Card } from './ui';
 import { useTheme } from '../theme/ThemeProvider';
-import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
+import FontAwesome6, { type FontAwesome6SolidIconName } from '@react-native-vector-icons/fontawesome6';
 
 interface NavigationCardProps {
   title: string;
   description: string;
-  icon: string;
+  icon: FontAwesome6SolidIconName;
   onPress: () => void;
   disabled?: boolean;
   iconColor?: string;
@@ -42,7 +42,7 @@ export default function NavigationCard({
               { backgroundColor: iconBackgroundColor || '#007AFF' + '20', borderRadius: borderRadius.lg }
             ]}>
               <FontAwesome6 
-                name={icon as any} 
+                name={icon} 
                 iconStyle="solid" 
                 size={20} 
                 color={iconColor || '#007AFF'} 

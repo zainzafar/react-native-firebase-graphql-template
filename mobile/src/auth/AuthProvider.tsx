@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { NavigationProp } from '@react-navigation/native';
 import { getApp } from '@react-native-firebase/app';
 import {
   getAuth,
@@ -24,9 +25,10 @@ import { useAppDispatch } from '../store/hooks';
 import { logout, setUser as setUserAction, beginImpersonation, endImpersonation, type AuthUser } from '../features/auth/authSlice';
 import { persistor, store } from '../store';
 import AppleAuth from '@invertase/react-native-apple-authentication';
+import type { UserFieldsFragment, LoginWithIdTokenMutation, MeQuery } from '../generated/graphql';
 
 // Helper function to create user profile from GraphQL data
-const createUserProfile = (userData: any): AuthUser => ({
+const createUserProfile = (userData: UserFieldsFragment): AuthUser => ({
   id: userData.id,
   uid: userData.uid,
   email: userData.email ?? undefined,
@@ -36,7 +38,7 @@ const createUserProfile = (userData: any): AuthUser => ({
   lastLoginProvider: userData.lastLoginProvider ?? undefined,
   permissions: Array.isArray(userData.permissions) ? userData.permissions : [],
   identities: Array.isArray(userData.identities) ? userData.identities : [],
-  roles: Array.isArray(userData.roles) ? userData.roles : [],
+  roles: userData.role ? [{ id: userData.role.id, name: userData.role.name }] : [],
 });
 
 type AuthContextValue = {
@@ -47,8 +49,8 @@ type AuthContextValue = {
   getSignInMethodsForEmail: (email: string) => Promise<string[]>;
   signInWithGoogle: () => Promise<void>;
   signInWithApple: () => Promise<void>;
-  signInWithPhone: (phoneNumber: string) => Promise<any>;
-  confirmPhoneCode: (confirmation: any, code: string) => Promise<void>;
+  signInWithPhone: (phoneNumber: string) => Promise<{ confirm: (code: string) => Promise<unknown> }>;
+  confirmPhoneCode: (confirmation: { confirm: (code: string) => Promise<unknown> }, code: string) => Promise<void>;
   updatePassword: (newPassword: string) => Promise<void>;
   signOut: () => Promise<void>;
 };
@@ -72,18 +74,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           const freshIdToken = await getIdToken(u, true);
           if (freshIdToken) {
-            const { data } = await apolloClient.mutate({
+            const { data } = await apolloClient.mutate<LoginWithIdTokenMutation>({
               mutation: MUTATION_LOGIN_WITH_ID_TOKEN,
               variables: { idToken: freshIdToken },
             });
-            const accessToken = (data as any)?.loginWithIdToken?.accessToken as string | undefined;
-            const userData = (data as any)?.loginWithIdToken?.user;
+            const accessToken = data?.loginWithIdToken?.accessToken;
+            const userData = data?.loginWithIdToken?.user;
             if (accessToken) {
               await saveAccessToken(accessToken);
             }
             if (userData) {
               // Update Redux state with database user data only
-              dispatch(setUserAction(createUserProfile(userData)));
+              dispatch(setUserAction(createUserProfile(userData as UserFieldsFragment)));
             }
           }
         } catch (e) {
@@ -105,14 +107,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const token = await getAccessToken();
       if (token) {
         try {
-          const { data } = await apolloClient.query({ 
+          const { data } = await apolloClient.query<MeQuery>({ 
             query: QUERY_ME, 
             fetchPolicy: 'network-only' 
           });
-          const userData = (data as any)?.me;
+          const userData = data?.me;
           if (userData) {
             // Update Redux state with database user data
-            dispatch(setUserAction(createUserProfile(userData)));
+            dispatch(setUserAction(createUserProfile(userData as UserFieldsFragment)));
           }
         } catch {
           await clearAccessToken();
@@ -128,16 +130,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (impersonationToken) {
         try {
           // Fetch user data for impersonated user
-          const { data } = await apolloClient.query({ 
+          const { data } = await apolloClient.query<MeQuery>({ 
             query: QUERY_ME, 
             fetchPolicy: 'network-only' 
           });
-          const userData = (data as any)?.me;
+          const userData = data?.me;
           if (userData) {
             // Set impersonation state - this will hide admin UI immediately
             dispatch(beginImpersonation({
               token: impersonationToken,
-              user: createUserProfile(userData)
+              user: createUserProfile(userData as UserFieldsFragment)
             }));
           } else {
             // Invalid impersonation token, clear it
@@ -170,7 +172,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           dispatch(endImpersonation());
           
           // Reset navigation and go to home screen
-          (navigation as any).reset({
+          (navigation as NavigationProp<Record<string, object | undefined>>).reset({
             index: 0,
             routes: [{ name: 'Home' }],
           });
@@ -191,14 +193,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // App has come to the foreground and user is logged in
         try {
           console.log('[Auth] App came to foreground, refetching user data...');
-          const { data } = await apolloClient.query({ 
+          const { data } = await apolloClient.query<MeQuery>({ 
             query: QUERY_ME, 
             fetchPolicy: 'network-only' 
           });
-          const userData = (data as any)?.me;
+          const userData = data?.me;
           if (userData) {
             // Update Redux state with fresh database user data
-            dispatch(setUserAction(createUserProfile(userData)));
+            dispatch(setUserAction(createUserProfile(userData as UserFieldsFragment)));
             console.log('[Auth] User data refreshed successfully');
           }
         } catch (error) {
@@ -219,18 +221,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (freshIdToken) {
       try {
         console.log(`[Auth] Exchanging ${authMethod} Firebase ID token for app JWT via mutation`);
-        const { data } = await apolloClient.mutate({
+        const { data } = await apolloClient.mutate<LoginWithIdTokenMutation>({
           mutation: MUTATION_LOGIN_WITH_ID_TOKEN,
           variables: { idToken: freshIdToken },
         });
-        const accessToken = (data as any)?.loginWithIdToken?.accessToken as string | undefined;
-        const userData = (data as any)?.loginWithIdToken?.user;
+        const accessToken = data?.loginWithIdToken?.accessToken;
+        const userData = data?.loginWithIdToken?.user;
         if (accessToken) {
           await saveAccessToken(accessToken);
         }
         if (userData) {
           // Update Redux state with user data from GraphQL (includes lastLoginProvider)
-          dispatch(setUserAction(createUserProfile(userData)));
+          dispatch(setUserAction(createUserProfile(userData as UserFieldsFragment)));
         }
       } catch (e) {
         console.log(`[Auth] loginWithIdToken mutation failed after ${authMethod} sign-in`, e);
@@ -263,7 +265,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const getSignInMethodsForEmail = useCallback(async (email: string) => {
     const app = getApp();
     const authInstance = getAuth(app);
-    const list = await fetchSignInMethodsForEmail(authInstance as any, email.trim());
+    const list = await fetchSignInMethodsForEmail(authInstance, email.trim());
     return Array.isArray(list) ? list : [];
   }, []);
 
@@ -297,23 +299,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await signInWithCredential(authInstance, credential);
       // Ensure Firebase profile has a display name; set from Google profile if missing
       try {
-        const cur = authInstance.currentUser as any;
-        const existingName: string | undefined = cur?.displayName || undefined;
-        const candidateName: string | undefined = (gUser?.name as string | undefined) ||
-          (gUser?.givenName ? `${gUser.givenName} ${gUser?.familyName || ''}`.trim() : undefined);
-        if (cur && !existingName && candidateName) {
-          await updateProfile(cur, { displayName: candidateName });
+        const cur = authInstance.currentUser;
+        if (cur) {
+          const existingName: string | undefined = cur.displayName || undefined;
+          const candidateName: string | undefined = (gUser?.name as string | undefined) ||
+            (gUser?.givenName ? `${gUser.givenName} ${gUser?.familyName || ''}`.trim() : undefined);
+          if (!existingName && candidateName) {
+            await updateProfile(cur, { displayName: candidateName });
+          }
         }
       } catch {}
       await exchangeIdTokenForAppJWT('Google');
-    } catch (e: any) {
+    } catch (e: unknown) {
       // Handle user cancellation gracefully
-      if (e?.code === 'SIGN_IN_CANCELLED' || 
-          e?.code === 'SIGN_IN_REQUIRED' ||
-          e?.message?.includes('cancelled') ||
-          e?.message?.includes('canceled') ||
-          e?.message?.includes('user_cancelled') ||
-          e?.message?.includes('user_canceled')) {
+      const error = e as { code?: string; message?: string };
+      if (error?.code === 'SIGN_IN_CANCELLED' || 
+          error?.code === 'SIGN_IN_REQUIRED' ||
+          error?.message?.includes('cancelled') ||
+          error?.message?.includes('canceled') ||
+          error?.message?.includes('user_cancelled') ||
+          error?.message?.includes('user_canceled')) {
         // User cancelled the Google Sign-In flow - this is not an error
         console.log('[Auth] Google Sign-In cancelled by user');
         return; // Silently return without throwing an error
@@ -346,9 +351,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const credential = AppleAuthProvider.credential(identityToken, rawNonce);
       await signInWithCredential(authInstance, credential);
       await exchangeIdTokenForAppJWT('Apple');
-    } catch (e: any) {
+    } catch (e: unknown) {
       // Handle user cancellation gracefully
-      if (e?.code === 1001 || e?.message?.includes('1001')) {
+      const error = e as { code?: number; message?: string };
+      if (error?.code === 1001 || error?.message?.includes('1001')) {
         // User cancelled the Apple Sign-In flow - this is not an error
         console.log('[Auth] Apple Sign-In cancelled by user');
         return; // Silently return without throwing an error
@@ -364,43 +370,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const authInstance = getAuth(app);
       const confirmation = await signInWithPhoneNumber(authInstance, phoneNumber);
       return confirmation;
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error('Phone auth error:', e);
       let errorMessage = 'Failed to send code';
       
-      if (e?.code === 'auth/invalid-multi-factor-session') {
+      const error = e as { code?: string; message?: string };
+      if (error?.code === 'auth/invalid-multi-factor-session') {
         errorMessage = 'Phone authentication not properly configured. Please check Firebase settings.';
-      } else if (e?.code === 'auth/invalid-phone-number') {
+      } else if (error?.code === 'auth/invalid-phone-number') {
         errorMessage = 'Invalid phone number format';
-      } else if (e?.code === 'auth/too-many-requests') {
+      } else if (error?.code === 'auth/too-many-requests') {
         errorMessage = 'Too many attempts. Please try again later.';
-      } else if (e?.code === 'auth/quota-exceeded') {
+      } else if (error?.code === 'auth/quota-exceeded') {
         errorMessage = 'SMS quota exceeded. Please try again later.';
-      } else if (e?.message) {
-        errorMessage = e.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
       }
       
       throw new Error(errorMessage);
     }
   }, []);
 
-  const confirmPhoneCode = useCallback(async (confirmation: any, code: string) => {
+  const confirmPhoneCode = useCallback(async (confirmation: { confirm: (code: string) => Promise<unknown> }, code: string) => {
     try {
       const result = await confirmation.confirm(code);
       console.log('Sign in result:', result);
       await exchangeIdTokenForAppJWT('Phone');
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error('Code confirmation error:', e);
       let errorMessage = 'Failed to confirm code';
       
-      if (e?.code === 'auth/invalid-verification-code') {
+      const error = e as { code?: string; message?: string };
+      if (error?.code === 'auth/invalid-verification-code') {
         errorMessage = 'Invalid verification code. Please check the code and try again.';
-      } else if (e?.code === 'auth/code-expired') {
+      } else if (error?.code === 'auth/code-expired') {
         errorMessage = 'Verification code has expired. Please request a new code.';
-      } else if (e?.code === 'auth/too-many-requests') {
+      } else if (error?.code === 'auth/too-many-requests') {
         errorMessage = 'Too many attempts. Please try again later.';
-      } else if (e?.message) {
-        errorMessage = e.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
       }
       
       throw new Error(errorMessage);
@@ -418,7 +426,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       await currentUser.updatePassword(newPassword);
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error('Password update error:', e);
       throw e;
     }

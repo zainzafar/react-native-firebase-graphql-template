@@ -102,7 +102,7 @@ export default function GrantRuleForm({ type, items, granterRoleName = 'Admin', 
 
   const isFormValid = (scope === 'ALL' || (scope === 'SPECIFIC' && selectedItemId)) && (canAssign || canRevoke || (type === 'role' ? canManage : true));
 
-  const formatItemName = (item: any) => {
+  const formatItemName = (item: { name: string }) => {
     if (type === 'role') {
       return item.name;
     }

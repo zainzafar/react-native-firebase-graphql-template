@@ -7,6 +7,7 @@ import { useQuery } from '@apollo/client/react';
 import { Body, Card, NavigationCard, Screen, LoadingContainer } from '../../../components';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import type { RouteProp, NavigationProp } from '@react-navigation/native';
 import {
   QUERY_ADMIN_GET_ROLE,
 } from '../../../graphql/operations';
@@ -25,13 +26,17 @@ type Role = {
   }[];
 };
 
+type AdminRoleDetailScreenParams = {
+  roleId?: string;
+};
+
 export default function AdminRoleDetailScreen() {
   const { colors, layout } = useTheme();
-  const route = useRoute<any>();
-  const navigation = useNavigation<any>();
+  const route = useRoute<RouteProp<Record<string, object | undefined>, 'AdminRoleDetail'>>();
+  const navigation = useNavigation<NavigationProp<Record<string, object | undefined>>>();
   const permissions = useAppSelector(selectUserPermissions) as string[];
   
-  const roleId = route.params?.roleId;
+  const roleId = (route.params as AdminRoleDetailScreenParams)?.roleId;
   
   // Permission checks
   const canViewRoles = permissions.includes('ADMIN_ROLES_VIEW');

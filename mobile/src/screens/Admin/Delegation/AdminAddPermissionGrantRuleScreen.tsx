@@ -8,6 +8,7 @@ import { useAppSelector } from '../../../store/hooks';
 import { selectUserPermissions } from '../../../features/auth/selectors';
 import { useQuery, useMutation } from '@apollo/client/react';
 import { QUERY_ADMIN_LIST_GRANTABLE_PERMISSIONS, QUERY_ADMIN_GET_ROLE, MUTATION_ADMIN_CREATE_PERMISSION_GRANT_RULE } from '../../../graphql/operations';
+import type { AdminListAssignablePermissionsQuery, AdminGetRoleQuery } from '../../../generated/graphql';
 
 type AdminAddPermissionGrantRuleRouteParams = {
   roleId: string;
@@ -26,11 +27,11 @@ export default function AdminAddPermissionGrantRule() {
 
   const canCreatePermissionGrantRules = permissions.includes('ADMIN_PERMISSION_GRANT_RULES_CREATE');
 
-  const { data: permissionsData, loading: permissionsLoading } = useQuery(QUERY_ADMIN_LIST_GRANTABLE_PERMISSIONS, {
+  const { data: permissionsData, loading: permissionsLoading } = useQuery<AdminListAssignablePermissionsQuery>(QUERY_ADMIN_LIST_GRANTABLE_PERMISSIONS, {
     skip: !canCreatePermissionGrantRules
   });
 
-  const { data: roleData } = useQuery(QUERY_ADMIN_GET_ROLE, {
+  const { data: roleData } = useQuery<AdminGetRoleQuery>(QUERY_ADMIN_GET_ROLE, {
     variables: { id: roleId },
     skip: !canCreatePermissionGrantRules
   });
@@ -45,19 +46,25 @@ export default function AdminAddPermissionGrantRule() {
     }
   });
 
-  const allPermissions = (permissionsData as any)?.adminListAssignablePermissions || [];
-  const existingPermissionGrantRules = (roleData as any)?.adminGetRole?.canGrantPermissionsRules || [];
+  const allPermissions = permissionsData?.adminListAssignablePermissions || [];
+  const existingPermissionGrantRules = roleData?.adminGetRole?.canGrantPermissionsRules || [];
   
   // Check if there's an "ALL" scope rule - if so, no "All permissions" option should be available
-  const hasAllScopeRule = existingPermissionGrantRules.some((rule: any) => rule.scope === 'ALL');
+  const hasAllScopeRule = existingPermissionGrantRules.some((rule) => rule.scope === 'ALL');
   
   // Get permission IDs that already have grant rules
   const existingPermissionIds = existingPermissionGrantRules
-    .filter((rule: any) => rule.scope === 'PERMISSION' && rule.permission?.id)
-    .map((rule: any) => rule.permission.id);
+    .filter((rule) => rule.scope === 'PERMISSION' && rule.permission?.id)
+    .map((rule) => rule.permission!.id);
   
   // Filter out permissions that already have grant rules
-  const availablePermissions = allPermissions.filter((permission: any) => !existingPermissionIds.includes(permission.id));
+  const availablePermissions = allPermissions
+    .filter((permission) => !existingPermissionIds.includes(permission.id))
+    .map((permission) => ({
+      id: permission.id,
+      name: permission.name,
+      description: permission.description || undefined
+    }));
 
   // Check if no permissions are available and navigate back with alert
   useEffect(() => {

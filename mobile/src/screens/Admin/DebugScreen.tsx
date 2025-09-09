@@ -114,7 +114,7 @@ export default function DebugScreen() {
         mutation: MUTATION_LOGIN_WITH_ID_TOKEN,
         variables: { idToken: freshIdToken },
       });
-      const accessToken = (data as any)?.loginWithIdToken?.accessToken as string | undefined;
+      const accessToken = (data as { loginWithIdToken?: { accessToken?: string } })?.loginWithIdToken?.accessToken;
       if (accessToken) {
         console.log('[Debug] Got access token, saving...');
         await saveAccessToken(accessToken);
@@ -406,11 +406,11 @@ function AccordionSection({
 
 function CompactMeInfo() {
   const { colors } = useTheme();
-  const { data, loading, error } = useQuery<{ me?: any }>(QUERY_ME, {
+  const { data, loading, error } = useQuery<{ me?: unknown }>(QUERY_ME, {
     fetchPolicy: 'network-only',
   });
   
-  const me = data?.me;
+  const me = data?.me as { uid?: string; email?: string; displayName?: string; identities?: { providerId: string }[]; lastLoginProvider?: string } | undefined;
   
   if (loading) return (
     <View style={styles.loadingContainer}>
@@ -423,11 +423,11 @@ function CompactMeInfo() {
   
   return (
     <>
-      <InfoRow label="GraphQL UID" value={me.uid} />
-      <InfoRow label="Email" value={me.email || '(none)'} />
-      <InfoRow label="Name" value={me.displayName || '(none)'} />
-      <InfoRow label="Providers" value={Array.isArray(me.identities) && me.identities.length > 0 ? me.identities.map((p: any) => p.providerId).join(', ') : '(none)'} />
-      <InfoRow label="Last Login Provider" value={me.lastLoginProvider || '(not set)'} />
+      <InfoRow label="GraphQL UID" value={me?.uid || '(none)'} />
+      <InfoRow label="Email" value={me?.email || '(none)'} />
+      <InfoRow label="Name" value={me?.displayName || '(none)'} />
+      <InfoRow label="Providers" value={Array.isArray(me?.identities) && me.identities!.length > 0 ? me.identities!.map((p: { providerId: string }) => p.providerId).join(', ') : '(none)'} />
+      <InfoRow label="Last Login Provider" value={me?.lastLoginProvider || '(not set)'} />
     </>
   );
 }

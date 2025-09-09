@@ -5,8 +5,9 @@ import { useAppSelector } from '../../../store/hooks';
 import { selectUserPermissions } from '../../../features/auth/selectors';
 import { useQuery, useMutation } from '@apollo/client/react';
 import { Body, Button, Card, PermissionList, Screen } from '../../../components';
-import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
+import FontAwesome6, { type FontAwesome6SolidIconName } from '@react-native-vector-icons/fontawesome6';
 import { useNavigation } from '@react-navigation/native';
+import type { NavigationProp } from '@react-navigation/native';
 import {
   QUERY_ADMIN_LIST_GRANTABLE_PERMISSIONS,
   QUERY_ADMIN_LIST_MANAGEABLE_ROLES,
@@ -22,7 +23,7 @@ type Permission = {
 
 export default function AdminCreateRoleScreen() {
   const { colors, layout, borderRadius } = useTheme();
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<NavigationProp<Record<string, object | undefined>>>();
   const permissions = useAppSelector(selectUserPermissions) as string[];
   
   // Permission checks
@@ -83,9 +84,9 @@ export default function AdminCreateRoleScreen() {
       
       setCreateSuccess(true);
       // Navigate back after a short delay to show success state
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to create role:', error);
-      setCreateError(error?.message || 'Failed to create role');
+      setCreateError((error as Error)?.message || 'Failed to create role');
       setCreateErrorFlash(true);
     } finally {
       setCreateLoading(false);
@@ -101,9 +102,9 @@ export default function AdminCreateRoleScreen() {
     }
   };
 
-  const renderSectionHeader = (title: string, icon: string) => (
+  const renderSectionHeader = (title: string, icon: FontAwesome6SolidIconName) => (
     <View style={styles.sectionHeader}>
-      <FontAwesome6 name={icon as any} iconStyle="solid" size={16} color={colors.primary} />
+      <FontAwesome6 name={icon} iconStyle="solid" size={16} color={colors.primary} />
       <Body style={[{ color: colors.text }, styles.sectionTitle]}>{title}</Body>
     </View>
   );

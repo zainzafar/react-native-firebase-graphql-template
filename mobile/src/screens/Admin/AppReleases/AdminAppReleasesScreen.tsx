@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useQuery } from '@apollo/client/react';
 import { useNavigation } from '@react-navigation/native';
+import type { NavigationProp } from '@react-navigation/native';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { usePermissions } from '../../../features/auth/hooks';
@@ -26,7 +27,7 @@ type PlatformFilter = 'all' | 'ios' | 'android';
 
 export default function AdminAppReleasesScreen() {
   const { colors, layout, typography, borderRadius } = useTheme();
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<NavigationProp<Record<string, object | undefined>>>();
   const { canManageAppReleases } = usePermissions();
   const [platformFilter, setPlatformFilter] = useState<PlatformFilter>('all');
 

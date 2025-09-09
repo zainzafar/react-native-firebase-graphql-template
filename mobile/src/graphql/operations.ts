@@ -277,21 +277,6 @@ export const MUTATION_ADMIN_DELETE_APP_VERSION_RULE = gql`
   }
 `;
 
-export const MUTATION_ADMIN_SET_ACTIVE_APP_VERSION_RULE = gql`
-  mutation AdminSetActiveAppVersionRule($platform: AppPlatform!, $ruleId: ID!) {
-    adminSetActiveAppVersionRule(platform: $platform, ruleId: $ruleId) {
-      platform
-      minVersion
-      latestVersion
-      enforced
-      forceAt
-      message
-      storeUrl
-      softSnoozeSeconds
-    }
-  }
-`;
-
 export const MUTATION_ADMIN_DELETE_ROLE = gql`
   mutation AdminDeleteRole($id: ID!) {
     adminDeleteRole(id: $id)

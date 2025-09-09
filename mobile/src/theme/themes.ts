@@ -19,7 +19,7 @@ const themesRegistry = themeFolders.reduce((acc, folderName) => {
   const themeName = `${folderName}Theme` as keyof typeof module;
   acc[folderName] = module[themeName];
   return acc;
-}, {} as Record<string, any>);
+}, {} as Record<string, unknown>);
 
 export const themes = themesRegistry as {
   dark: typeof darkThemeModule.darkTheme;

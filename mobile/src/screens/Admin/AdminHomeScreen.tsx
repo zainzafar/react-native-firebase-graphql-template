@@ -3,12 +3,13 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Body, Card, Screen } from '../../components';
 import { useTheme } from '../../theme/ThemeProvider';
 import { useNavigation } from '@react-navigation/native';
+import type { NavigationProp } from '@react-navigation/native';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import { usePermissions } from '../../features/auth/hooks';
 
 export default function AdminHomeScreen() {
   const { colors, layout } = useTheme();
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<NavigationProp<Record<string, object | undefined>>>();
 
   // Permission checks for user management
   const { canViewUsers, canSearchUsers, canUpdateUserProfile, canUpdateUserPassword, canDeleteUsers, canImpersonateUsers, canAccessDebug, canViewRoles, canViewPermissions, canViewAppReleases, canManageAppReleases } = usePermissions();

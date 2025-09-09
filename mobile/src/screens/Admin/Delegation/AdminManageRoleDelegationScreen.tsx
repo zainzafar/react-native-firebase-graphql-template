@@ -6,6 +6,7 @@ import { selectUserPermissions } from '../../../features/auth/selectors';
 import { useQuery } from '@apollo/client/react';
 import { Body, Card, NavigationCard, Screen, LoadingContainer } from '../../../components';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import type { RouteProp, NavigationProp } from '@react-navigation/native';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import {
   QUERY_ADMIN_GET_ROLE,
@@ -18,13 +19,17 @@ type Role = {
 };
 
 
+type AdminManageRoleDelegationScreenParams = {
+  roleId?: string;
+};
+
 export default function AdminManageRoleDelegation() {
   const { colors, layout } = useTheme();
-  const route = useRoute<any>();
-  const navigation = useNavigation<any>();
+  const route = useRoute<RouteProp<Record<string, object | undefined>, 'AdminManageRoleDelegation'>>();
+  const navigation = useNavigation<NavigationProp<Record<string, object | undefined>>>();
   const permissions = useAppSelector(selectUserPermissions) as string[];
   
-  const roleId = route.params?.roleId;
+  const roleId = (route.params as AdminManageRoleDelegationScreenParams)?.roleId;
   
   // Permission checks
   const canViewRoleGrants = permissions.includes('ADMIN_ROLE_GRANT_RULES_VIEW');
