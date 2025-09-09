@@ -39,7 +39,6 @@ Scripts (api/package.json)
 Environment
 - Required: `DATABASE_URL`, `JWT_SECRET`
 - Optional (Firebase Admin): `FIREBASE_SERVICE_ACCOUNT` (base64 JSON), or `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`
-- Optional web config endpoint: `FIREBASE_WEB_CONFIG`
 
 ### Impersonation Flow
 1) Admin calls `startImpersonation` mutation → receives short-lived impersonation token + target user
