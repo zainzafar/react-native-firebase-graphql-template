@@ -133,7 +133,7 @@ GOOGLE_WEB_CLIENT_ID=your-web-client-id.apps.googleusercontent.com    # Google O
 ## 4. Install Dependencies & Run
 
 ```bash
-npm install
+npm install --legacy-peer-deps
 cd ios && pod install
 cd ..
 npm run ios     # For iOS
