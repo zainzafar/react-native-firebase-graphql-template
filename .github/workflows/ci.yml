@@ -36,7 +36,7 @@ jobs:
 
       - name: Install Mobile deps
         working-directory: mobile
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: Lint Mobile
         working-directory: mobile
