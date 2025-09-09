@@ -17,6 +17,7 @@ Scripts (mobile/package.json)
 - android, ios, start, clean, lint, typecheck, test
 - bundle:ios, bundle:android
 - generate-types (runs API codegen to update mobile types)
+- Comprehensive cleanup system with multiple cleaning levels and platform-specific options
 
 Environment
 - Use `react-native-config` keys: `GRAPHQL_API_URL`, `GOOGLE_WEB_CLIENT_ID`, `ANDROID_APPLICATION_ID`, `APP_DISPLAY_NAME`
