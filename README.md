@@ -1,5 +1,7 @@
 # React Native Firebase Authentication Template
 
+![Build](https://github.com/zainzafar/react-native-firebase-graphql-template/actions/workflows/ci.yml/badge.svg)
+
 A production-ready React Native template with comprehensive Firebase authentication, including email/password, Google Sign-In, Apple Sign-In, and phone authentication. This template provides a solid foundation for building secure mobile applications with modern authentication flows.
 
 ## 🚀 Features
