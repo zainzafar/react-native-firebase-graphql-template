@@ -49,7 +49,19 @@ export default function AuthScreen() {
       setGoogleLoading(true);
       await signInWithGoogle();
     } catch (e: unknown) {
-      const msg = (e as Error)?.message || 'Google Sign-In failed';
+      // Handle user cancellation gracefully
+      const error = e as { code?: string; message?: string };
+      if (error?.code === 'SIGN_IN_CANCELLED' || 
+          error?.code === 'SIGN_IN_REQUIRED' ||
+          error?.message?.includes('cancelled') ||
+          error?.message?.includes('canceled') ||
+          error?.message?.includes('user_cancelled') ||
+          error?.message?.includes('user_canceled')) {
+        // User cancelled - this is not an error, do nothing
+        return;
+      }
+      // For other errors, show alert
+      const msg = error?.message || 'Google Sign-In failed';
       Alert.alert('Google Sign-In', msg);
     } finally {
       setGoogleLoading(false);
@@ -61,7 +73,14 @@ export default function AuthScreen() {
       setAppleLoading(true);
       await signInWithApple();
     } catch (e: unknown) {
-      const msg = (e as Error)?.message || 'Apple Sign-In failed';
+      // Handle user cancellation gracefully
+      const error = e as { code?: number; message?: string };
+      if (error?.code === 1001 || error?.message?.includes('1001')) {
+        // User cancelled - this is not an error, do nothing
+        return;
+      }
+      // For other errors, show alert
+      const msg = error?.message || 'Apple Sign-In failed';
       Alert.alert('Apple Sign-In', msg);
     } finally {
       setAppleLoading(false);

@@ -275,57 +275,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signInWithGoogle = useCallback(async () => {
-    try {
-      GoogleSignin.configure({
-        webClientId: googleWebClientId,
-        forceCodeForRefreshToken: true,
-        scopes: ['profile', 'email'],
-      });
-      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
-      const signInResponse = await GoogleSignin.signIn();
-      if (isCancelledResponse(signInResponse)) {
-        console.log('[Auth] Google Sign-In cancelled by user');
-        return; // Silently return without throwing an error
-      }
-      if (!isSuccessResponse(signInResponse)) {
-        throw new Error('Google Sign-In failed');
-      }
-      const idToken = signInResponse.data.idToken;
-      const gUser = signInResponse.data.user;
-      if (!idToken) throw new Error('Google Sign-In failed: no idToken returned');
-      const app = getApp();
-      const authInstance = getAuth(app);
-      const credential = GoogleAuthProvider.credential(idToken);
-      await signInWithCredential(authInstance, credential);
-      // Ensure Firebase profile has a display name; set from Google profile if missing
-      try {
-        const cur = authInstance.currentUser;
-        if (cur) {
-          const existingName: string | undefined = cur.displayName || undefined;
-          const candidateName: string | undefined = (gUser?.name as string | undefined) ||
-            (gUser?.givenName ? `${gUser.givenName} ${gUser?.familyName || ''}`.trim() : undefined);
-          if (!existingName && candidateName) {
-            await updateProfile(cur, { displayName: candidateName });
-          }
-        }
-      } catch {}
-      await exchangeIdTokenForAppJWT('Google');
-    } catch (e: unknown) {
-      // Handle user cancellation gracefully
-      const error = e as { code?: string; message?: string };
-      if (error?.code === 'SIGN_IN_CANCELLED' || 
-          error?.code === 'SIGN_IN_REQUIRED' ||
-          error?.message?.includes('cancelled') ||
-          error?.message?.includes('canceled') ||
-          error?.message?.includes('user_cancelled') ||
-          error?.message?.includes('user_canceled')) {
-        // User cancelled the Google Sign-In flow - this is not an error
-        console.log('[Auth] Google Sign-In cancelled by user');
-        return; // Silently return without throwing an error
-      }
-      // Re-throw other errors
-      throw e;
+    GoogleSignin.configure({
+      webClientId: googleWebClientId,
+      forceCodeForRefreshToken: true,
+      scopes: ['profile', 'email'],
+    });
+    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+    const signInResponse = await GoogleSignin.signIn();
+    if (isCancelledResponse(signInResponse)) {
+      console.log('[Auth] Google Sign-In cancelled by user');
+      return; // Silently return without throwing an error
     }
+    if (!isSuccessResponse(signInResponse)) {
+      throw new Error('Google Sign-In failed');
+    }
+    const idToken = signInResponse.data.idToken;
+    const gUser = signInResponse.data.user;
+    if (!idToken) throw new Error('Google Sign-In failed: no idToken returned');
+    const app = getApp();
+    const authInstance = getAuth(app);
+    const credential = GoogleAuthProvider.credential(idToken);
+    await signInWithCredential(authInstance, credential);
+    // Ensure Firebase profile has a display name; set from Google profile if missing
+    try {
+      const cur = authInstance.currentUser;
+      if (cur) {
+        const existingName: string | undefined = cur.displayName || undefined;
+        const candidateName: string | undefined = (gUser?.name as string | undefined) ||
+          (gUser?.givenName ? `${gUser.givenName} ${gUser?.familyName || ''}`.trim() : undefined);
+        if (!existingName && candidateName) {
+          await updateProfile(cur, { displayName: candidateName });
+        }
+      }
+    } catch {}
+    await exchangeIdTokenForAppJWT('Google');
   }, [exchangeIdTokenForAppJWT]);
 
   const signInWithApple = useCallback(async () => {
@@ -333,86 +316,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!AppleAuth?.isSupported) {
       throw new Error('Apple Sign-In not supported on this device');
     }
-    try {
-      // Generate a nonce and include it on the request, per Firebase docs
-      const rawNonce = Array.from({ length: 32 })
-        .map(() => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'.charAt(Math.floor(Math.random() * 62)))
-        .join('');
-      // Request Apple credential (identity token)
-      const response = await AppleAuth.performRequest({
-        requestedOperation: AppleAuth.Operation.LOGIN,
-        requestedScopes: [AppleAuth.Scope.EMAIL, AppleAuth.Scope.FULL_NAME],
-        nonce: rawNonce,
-      });
-      const { identityToken } = response;
-      if (!identityToken) throw new Error('Apple Sign-In failed: no identity token');
-      const app = getApp();
-      const authInstance = getAuth(app);
-      const credential = AppleAuthProvider.credential(identityToken, rawNonce);
-      await signInWithCredential(authInstance, credential);
-      await exchangeIdTokenForAppJWT('Apple');
-    } catch (e: unknown) {
-      // Handle user cancellation gracefully
-      const error = e as { code?: number; message?: string };
-      if (error?.code === 1001 || error?.message?.includes('1001')) {
-        // User cancelled the Apple Sign-In flow - this is not an error
-        console.log('[Auth] Apple Sign-In cancelled by user');
-        return; // Silently return without throwing an error
-      }
-      // Re-throw other errors
-      throw e;
-    }
+    // Generate a nonce and include it on the request, per Firebase docs
+    const rawNonce = Array.from({ length: 32 })
+      .map(() => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'.charAt(Math.floor(Math.random() * 62)))
+      .join('');
+    // Request Apple credential (identity token)
+    const response = await AppleAuth.performRequest({
+      requestedOperation: AppleAuth.Operation.LOGIN,
+      requestedScopes: [AppleAuth.Scope.EMAIL, AppleAuth.Scope.FULL_NAME],
+      nonce: rawNonce,
+    });
+    const { identityToken } = response;
+    if (!identityToken) throw new Error('Apple Sign-In failed: no identity token');
+    const app = getApp();
+    const authInstance = getAuth(app);
+    const credential = AppleAuthProvider.credential(identityToken, rawNonce);
+    await signInWithCredential(authInstance, credential);
+    await exchangeIdTokenForAppJWT('Apple');
   }, [exchangeIdTokenForAppJWT]);
 
   const signInWithPhone = useCallback(async (phoneNumber: string) => {
-    try {
-      const app = getApp();
-      const authInstance = getAuth(app);
-      const confirmation = await signInWithPhoneNumber(authInstance, phoneNumber);
-      return confirmation;
-    } catch (e: unknown) {
-      console.error('Phone auth error:', e);
-      let errorMessage = 'Failed to send code';
-      
-      const error = e as { code?: string; message?: string };
-      if (error?.code === 'auth/invalid-multi-factor-session') {
-        errorMessage = 'Phone authentication not properly configured. Please check Firebase settings.';
-      } else if (error?.code === 'auth/invalid-phone-number') {
-        errorMessage = 'Invalid phone number format';
-      } else if (error?.code === 'auth/too-many-requests') {
-        errorMessage = 'Too many attempts. Please try again later.';
-      } else if (error?.code === 'auth/quota-exceeded') {
-        errorMessage = 'SMS quota exceeded. Please try again later.';
-      } else if (error?.message) {
-        errorMessage = error.message;
-      }
-      
-      throw new Error(errorMessage);
-    }
+    const app = getApp();
+    const authInstance = getAuth(app);
+    const confirmation = await signInWithPhoneNumber(authInstance, phoneNumber);
+    return confirmation;
   }, []);
 
   const confirmPhoneCode = useCallback(async (confirmation: { confirm: (code: string) => Promise<unknown> }, code: string) => {
-    try {
-      const result = await confirmation.confirm(code);
-      console.log('Sign in result:', result);
-      await exchangeIdTokenForAppJWT('Phone');
-    } catch (e: unknown) {
-      console.error('Code confirmation error:', e);
-      let errorMessage = 'Failed to confirm code';
-      
-      const error = e as { code?: string; message?: string };
-      if (error?.code === 'auth/invalid-verification-code') {
-        errorMessage = 'Invalid verification code. Please check the code and try again.';
-      } else if (error?.code === 'auth/code-expired') {
-        errorMessage = 'Verification code has expired. Please request a new code.';
-      } else if (error?.code === 'auth/too-many-requests') {
-        errorMessage = 'Too many attempts. Please try again later.';
-      } else if (error?.message) {
-        errorMessage = error.message;
-      }
-      
-      throw new Error(errorMessage);
-    }
+    const result = await confirmation.confirm(code);
+    console.log('Sign in result:', result);
+    await exchangeIdTokenForAppJWT('Phone');
   }, [exchangeIdTokenForAppJWT]);
 
   const updatePassword = useCallback(async (newPassword: string) => {

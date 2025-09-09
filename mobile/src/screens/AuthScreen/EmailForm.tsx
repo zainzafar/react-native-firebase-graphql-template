@@ -52,6 +52,8 @@ export default function EmailForm({ onBack, onGoogleSignIn, googleLoading, onApp
         return 'Too many failed attempts. Please try again later.';
       case 'auth/network-request-failed':
         return 'Network error. Please check your connection and try again.';
+      case 'auth/operation-not-allowed':
+        return 'Email & password sign-in is not enabled. Please contact support.';
       default:
         return 'Something went wrong. Please try again.';
     }
@@ -203,7 +205,22 @@ export default function EmailForm({ onBack, onGoogleSignIn, googleLoading, onApp
               onPress={async () => {
                 try {
                   if (onGoogleSignIn) await onGoogleSignIn(); else await signInWithGoogle();
-                } catch {}
+                } catch (e: unknown) {
+                  // Handle user cancellation gracefully
+                  const error = e as { code?: string; message?: string };
+                  if (error?.code === 'SIGN_IN_CANCELLED' || 
+                      error?.code === 'SIGN_IN_REQUIRED' ||
+                      error?.message?.includes('cancelled') ||
+                      error?.message?.includes('canceled') ||
+                      error?.message?.includes('user_cancelled') ||
+                      error?.message?.includes('user_canceled')) {
+                    // User cancelled - this is not an error, do nothing
+                    return;
+                  }
+                  // For other errors, show them to the user
+                  const errorMessage = getErrorMessage(error?.code || error?.message || '');
+                  setError(errorMessage);
+                }
               }}
               loading={!!googleLoading}
               disabled={!!googleLoading || !!appleLoading}
@@ -214,7 +231,17 @@ export default function EmailForm({ onBack, onGoogleSignIn, googleLoading, onApp
               onPress={async () => {
                 try {
                   if (onAppleSignIn) await onAppleSignIn();
-                } catch {}
+                } catch (e: unknown) {
+                  // Handle user cancellation gracefully
+                  const error = e as { code?: number; message?: string };
+                  if (error?.code === 1001 || error?.message?.includes('1001')) {
+                    // User cancelled - this is not an error, do nothing
+                    return;
+                  }
+                  // For other errors, show them to the user
+                  const errorMessage = getErrorMessage(error?.code?.toString() || error?.message || '');
+                  setError(errorMessage);
+                }
               }}
               loading={!!appleLoading}
               disabled={!!appleLoading || !!googleLoading}
