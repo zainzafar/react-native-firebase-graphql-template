@@ -14,17 +14,3 @@ try {
   console.error('Failed to copy GraphQL SDL', e);
   process.exit(1);
 }
-
-// Copy public assets to dist/public
-try {
-  const PUB_SRC = join(process.cwd(), 'src', 'public');
-  const PUB_DEST = join(process.cwd(), 'dist', 'public');
-  mkdirSync(PUB_DEST, { recursive: true });
-  cpSync(PUB_SRC, PUB_DEST, { recursive: true });
-  console.log('Copied public assets to dist');
-} catch (e) {
-  console.error('Failed to copy public assets', e);
-  process.exit(1);
-}
-
-
