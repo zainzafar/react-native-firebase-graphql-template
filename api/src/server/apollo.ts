@@ -90,7 +90,7 @@ function createLoggingPlugin() {
   } as any;
 }
 
-type GraphQLContext = {
+export type GraphQLContext = {
   requestId: string;
   req: Request;
   res: Response;

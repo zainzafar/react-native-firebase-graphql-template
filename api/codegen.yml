@@ -8,10 +8,8 @@ generates:
     config:
       useIndexSignature: true
       contextType: "../server/apollo#GraphQLContext"
-      mappers:
-        User: "@prisma/client#User"
-        Role: "@prisma/client#Role"
-        Permission: "@prisma/client#Permission"
+      avoidOptionals: true
+      enumsAsTypes: true
 
   ../mobile/src/generated/:
     preset: client
