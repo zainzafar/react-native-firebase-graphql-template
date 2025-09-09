@@ -13,7 +13,7 @@ import {
   updateProfile,
   signInWithPhoneNumber,
 } from '@react-native-firebase/auth';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { GoogleSignin, isSuccessResponse, isCancelledResponse } from '@react-native-google-signin/google-signin';
 import { GoogleAuthProvider, AppleAuthProvider, signInWithCredential } from '@react-native-firebase/auth';
 import { googleWebClientId } from '../config/firebase';
 import { apolloClient } from '../graphql/client';
@@ -280,7 +280,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         scopes: ['profile', 'email'],
       });
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
-      const { idToken, user: gUser } = await GoogleSignin.signIn();
+      const signInResponse = await GoogleSignin.signIn();
+      if (isCancelledResponse(signInResponse)) {
+        console.log('[Auth] Google Sign-In cancelled by user');
+        return; // Silently return without throwing an error
+      }
+      if (!isSuccessResponse(signInResponse)) {
+        throw new Error('Google Sign-In failed');
+      }
+      const idToken = signInResponse.data.idToken;
+      const gUser = signInResponse.data.user;
       if (!idToken) throw new Error('Google Sign-In failed: no idToken returned');
       const app = getApp();
       const authInstance = getAuth(app);
