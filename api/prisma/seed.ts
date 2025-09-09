@@ -56,9 +56,27 @@ const ROLES_CONFIG: RoleConfig[] = [
     exclude: ['ADMIN_ROLE_GRANT_RULES_VIEW', 'ADMIN_ROLE_GRANT_RULES_CREATE', 'ADMIN_ROLE_GRANT_RULES_DELETE', 'ADMIN_PERMISSION_GRANT_RULES_VIEW', 'ADMIN_PERMISSION_GRANT_RULES_CREATE', 'ADMIN_PERMISSION_GRANT_RULES_DELETE'],
   },
   {
-    name: "Customer",
-    description: 'Customer with access to all features',
-    exclude: ['ADMIN_USERS_VIEW_ALL', 'ADMIN_USERS_SEARCH', 'ADMIN_USERS_UPDATE_PROFILE', 'ADMIN_USERS_UPDATE_PASSWORD', 'ADMIN_USERS_DELETE', 'ADMIN_USERS_IMPERSONATE', 'ADMIN_DEBUG', 'ADMIN_ROLES_VIEW', 'ADMIN_ROLES_CREATE', 'ADMIN_ROLES_UPDATE', 'ADMIN_ROLES_DELETE', 'ADMIN_ROLE_GRANT_RULES_VIEW', 'ADMIN_ROLE_GRANT_RULES_CREATE', 'ADMIN_ROLE_GRANT_RULES_DELETE', 'ADMIN_PERMISSION_GRANT_RULES_VIEW', 'ADMIN_PERMISSION_GRANT_RULES_CREATE', 'ADMIN_PERMISSION_GRANT_RULES_DELETE', 'ADMIN_PERMISSIONS_VIEW'],
+    name: 'Support',
+    description: 'Support team member with limited administrative access for customer assistance',
+    exclude: [
+      // Role and permission management - Support should not manage roles/permissions
+      'ADMIN_ROLES_CREATE',
+      'ADMIN_ROLES_UPDATE', 
+      'ADMIN_ROLES_DELETE',
+      'ADMIN_ROLE_GRANT_RULES_VIEW',
+      'ADMIN_ROLE_GRANT_RULES_CREATE',
+      'ADMIN_ROLE_GRANT_RULES_DELETE',
+      'ADMIN_PERMISSION_GRANT_RULES_VIEW',
+      'ADMIN_PERMISSION_GRANT_RULES_CREATE',
+      'ADMIN_PERMISSION_GRANT_RULES_DELETE',
+      'ADMIN_PERMISSIONS_VIEW',
+      
+      // System access - Support should not have debug access
+      'ADMIN_DEBUG',
+      
+      // App releases - Support should not manage app releases
+      'ADMIN_APP_RELEASES_MANAGE'
+    ],
   }
 ];
 
