@@ -90,9 +90,9 @@ jobs:
         run: |
           cat > .env <<'EOF'
           # Android-specific .env
-          APP_NAME=${{ secrets.APP_NAME }}
-          APP_DISPLAY_NAME=${{ secrets.APP_DISPLAY_NAME }}
-          ANDROID_APPLICATION_ID=${{ secrets.ANDROID_APPLICATION_ID }}
+          APP_NAME=${{ secrets.APP_NAME || 'App' }}
+          APP_DISPLAY_NAME=${{ secrets.APP_DISPLAY_NAME || 'App' }}
+          ANDROID_APPLICATION_ID=${{ secrets.ANDROID_APPLICATION_ID || 'com.example.app' }}
           GRAPHQL_API_URL=${{ secrets.GRAPHQL_API_URL }}
           EOF
 
