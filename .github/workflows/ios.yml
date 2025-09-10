@@ -94,9 +94,9 @@ jobs:
         run: |
           cat > .env <<'EOF'
           # iOS-specific .env
-          APP_NAME=${{ secrets.APP_NAME }}
-          APP_DISPLAY_NAME=${{ secrets.APP_DISPLAY_NAME }}
-          IOS_BUNDLE_ID=${{ secrets.IOS_BUNDLE_ID }}
+          APP_NAME=${{ secrets.APP_NAME || 'App' }}
+          APP_DISPLAY_NAME=${{ secrets.APP_DISPLAY_NAME || 'App' }}
+          IOS_BUNDLE_ID=${{ secrets.IOS_BUNDLE_ID || 'com.example.app' }}
           GOOGLE_WEB_CLIENT_ID=${{ secrets.GOOGLE_WEB_CLIENT_ID }}
           GOOGLE_REVERSED_CLIENT_ID=${{ secrets.GOOGLE_REVERSED_CLIENT_ID }}
           GRAPHQL_API_URL=${{ secrets.GRAPHQL_API_URL }}

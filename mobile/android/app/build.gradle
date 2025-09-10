@@ -1,8 +1,27 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
-apply plugin: "com.google.gms.google-services"
 apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
+
+// Conditionally apply Google Services plugin
+def gmsCandidates = [file("$projectDir/google-services.json")]
+
+// Dynamically add flavor-specific google-services.json files
+def flavorDirs = file("$projectDir/src").listFiles()?.findAll { it.isDirectory() } ?: []
+flavorDirs.each { flavorDir ->
+    gmsCandidates.add(file("$flavorDir/google-services.json"))
+}
+
+def hasGms = gmsCandidates.any { it.exists() }
+
+if (hasGms) {
+    apply plugin: 'com.google.gms.google-services'
+    logger.lifecycle("✅ Found google-services.json; applying Google Services plugin")
+} else {
+    logger.lifecycle("⚠️ google-services.json not found; skipping Google Services plugin")
+    // Optional: disable generated tasks in case they exist from prior config
+    tasks.matching { it.name.endsWith('GoogleServices') }.configureEach { it.enabled = false }
+}
 
 /**
  * This is the configuration block to customize your React Native Android app.
