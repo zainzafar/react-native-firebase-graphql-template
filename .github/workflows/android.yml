@@ -54,11 +54,11 @@ jobs:
         run: npm ci -legacy-peer-deps
 
       - name: Install API deps
-        working-directory: ../api
+        working-directory: api
         run: npm ci --no-audit --no-fund
 
       - name: Generate GraphQL types for mobile
-        working-directory: ../api
+        working-directory: api
         run: |
           if [ -f "codegen.yml" ]; then
             echo "🛠️ Running GraphQL Codegen using local schema from api/src/graphql/types/**/*.graphql"
