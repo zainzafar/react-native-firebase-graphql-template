@@ -49,6 +49,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: |
+            mobile/package-lock.json
+            api/package-lock.json
 
       - name: Install JS deps
         run: npm ci -legacy-peer-deps
@@ -113,6 +117,34 @@ jobs:
           if [ -n "${{ secrets.GOOGLE_PLAY_JSON_DATA }}" ]; then
             echo "GOOGLE_PLAY_JSON_DATA=${{ secrets.GOOGLE_PLAY_JSON_DATA }}" >> $GITHUB_ENV
           fi
+
+      - name: Ensure google-services.json for Debug
+        if: ${{ github.event.inputs.lane == 'build' }}   # only for build lane; beta should use real file
+        run: |
+          set -e
+          FLAVOR="${{ github.event.inputs.flavor || 'development' }}"
+          APP_ID="${{ secrets.ANDROID_APPLICATION_ID }}"
+          BASE="android/app"
+
+          # If a real file is already present (root or flavor), do nothing
+          if [ -f "$BASE/google-services.json" ] || [ -f "$BASE/src/$FLAVOR/google-services.json" ]; then
+            echo "google-services.json already present"
+            exit 0
+          fi
+
+          mkdir -p "$BASE/src/$FLAVOR"
+          cat > "$BASE/src/$FLAVOR/google-services.json" <<EOF
+          {
+            "project_info": { "project_number": "0", "project_id": "placeholder" },
+            "client": [{
+              "client_info": { "mobilesdk_app_id": "1:0:android:debug", "android_client_info": { "package_name": "$APP_ID" } },
+              "api_key": [{ "current_key": "debug-placeholder" }]
+            }],
+            "configuration_version": "1"
+          }
+          EOF
+
+          echo "Wrote placeholder google-services.json for flavor: $FLAVOR"
 
       - name: Fastlane Android build (dual-mode)
         env:
