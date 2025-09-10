@@ -70,7 +70,11 @@ end
 platform :ios do
   desc "Build iOS: Release archive if signing is configured, otherwise Simulator Debug (no signing)"
   lane :build do |options|
-    mode = (options[:mode] || ENV["IOS_BUILD_MODE"] || (has_ios_signing? ? "release" : "simulator")).to_s
+    # Handle auto/empty IOS_BUILD_MODE by falling back to signing-based logic
+    build_mode = ENV["IOS_BUILD_MODE"].to_s.strip
+    build_mode = nil if build_mode.empty? || build_mode == "auto"
+    
+    mode = (options[:mode] || build_mode || (has_ios_signing? ? "release" : "simulator")).to_s
 
     case mode
     when "release"
