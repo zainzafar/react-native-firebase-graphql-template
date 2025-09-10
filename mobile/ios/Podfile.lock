@@ -3000,7 +3000,7 @@ SPEC CHECKSUMS:
   GTMAppAuth: 217a876b249c3c585a54fd6f73e6b58c4f5c4238
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   hermes-engine: 4f8246b1f6d79f625e0d99472d1f3a71da4d28ca
-  PlistToJsonConverter: 47cd2182e6da4c6af5a2d9e7cd64f8da727b831b
+  PlistToJsonConverter: 5d21bb7777535176ee00b5b9392666e562e8fb27
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   RCT-Folly: 846fda9475e61ec7bcbf8a3fe81edfcaeb090669
   RCTDeprecation: c4b9e2fd0ab200e3af72b013ed6113187c607077
