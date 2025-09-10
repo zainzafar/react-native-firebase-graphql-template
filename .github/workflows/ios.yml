@@ -59,7 +59,7 @@ jobs:
         run: |
           if [ -f "codegen.yml" ]; then
             echo "🛠️ Running GraphQL Codegen using local schema from api/src/graphql/types/**/*.graphql"
-            npx --yes graphql-code-generator@latest --config codegen.yml
+            npx graphql-codegen --config codegen.yml
           else
             echo "❌ api/codegen.yml not found. Please add codegen config that outputs to ../mobile/src/generated/"
             exit 1
