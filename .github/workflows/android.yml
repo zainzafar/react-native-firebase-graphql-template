@@ -53,6 +53,21 @@ jobs:
       - name: Install JS deps
         run: npm ci -legacy-peer-deps
 
+      - name: Install API deps
+        working-directory: ../api
+        run: npm ci --no-audit --no-fund
+
+      - name: Generate GraphQL types for mobile
+        working-directory: ../api
+        run: |
+          if [ -f "codegen.yml" ]; then
+            echo "🛠️ Running GraphQL Codegen using local schema from api/src/graphql/types/**/*.graphql"
+            npx --yes graphql-code-generator@latest --config codegen.yml
+          else
+            echo "❌ api/codegen.yml not found. Please add codegen config that outputs to ../mobile/src/generated/"
+            exit 1
+          fi
+
       - name: Set up Ruby (for fastlane)
         uses: ruby/setup-ruby@v1
         with:
