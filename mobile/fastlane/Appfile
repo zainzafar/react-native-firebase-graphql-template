@@ -1,0 +1,8 @@
+# iOS (optional)
+app_identifier("")   # com.example.app
+apple_id("")         # dev@example.com
+itc_team_id("")      # optional
+
+# Android (optional)
+json_key_file("")    # path to Play service account JSON if using supply
+package_name("")     # com.example.app

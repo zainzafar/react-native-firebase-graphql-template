@@ -79,15 +79,27 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
+    // Allow overriding versionCode via -PversionCode
+    def cliVersionCode = project.hasProperty("versionCode") ? project.versionCode.toInteger() : null
     namespace "com.app"
     defaultConfig {
         applicationId (project.env.get("ANDROID_APPLICATION_ID") ?: "com.app")
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
+        versionCode cliVersionCode ?: 1
         versionName "1.0"
         resValue "string", "build_config_package", "com.app"
         resValue "string", "app_name", (project.env.get("APP_DISPLAY_NAME") ?: "Template App")
+    }
+    signingConfigs {
+        release {
+            // Read from env first, fallback to Gradle props or default file path
+            def ksPath = System.getenv("ANDROID_KEYSTORE_PATH") ?: "${rootDir}/app/release.keystore"
+            storeFile file(ksPath)
+            storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD") ?: project.findProperty("ANDROID_KEYSTORE_PASSWORD")
+            keyAlias      System.getenv("ANDROID_KEY_ALIAS")       ?: project.findProperty("ANDROID_KEY_ALIAS")
+            keyPassword   System.getenv("ANDROID_KEY_PASSWORD")    ?: project.findProperty("ANDROID_KEY_PASSWORD")
+        }
     }
     buildTypes {
         debug {
@@ -97,6 +109,7 @@ android {
             // see https://reactnative.dev/docs/signed-apk-android.
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            signingConfig signingConfigs.release
         }
     }
 

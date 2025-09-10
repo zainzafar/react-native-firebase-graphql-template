@@ -1,0 +1,90 @@
+name: iOS Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      lane:
+        description: 'Fastlane lane to run (build = dual-mode, beta = TestFlight upload)'
+        required: true
+        default: 'build'
+        type: choice
+        options:
+          - build
+          - beta
+      ios_build_mode:
+        description: 'Force IOS_BUILD_MODE (auto uses Fastfile logic)'
+        required: true
+        default: 'auto'
+        type: choice
+        options:
+          - auto
+          - simulator
+          - release
+      build_number:
+        description: 'Override build number (leave empty for auto-increment)'
+        required: false
+        default: ''
+        type: string
+
+jobs:
+  ios:
+    runs-on: macos-14
+    defaults:
+      run:
+        working-directory: mobile
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Node is needed because Xcode build runs the RN bundle step
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install JS deps
+        run: npm ci -legacy-peer-deps
+
+      - name: Set up Ruby (for fastlane/cocoapods)
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+          working-directory: mobile
+
+      - name: Install CocoaPods
+        run: |
+          cd ios
+          pod install
+          cd ..
+
+      - name: Write .env (for react-native-config)
+        run: |
+          cat > .env <<'EOF'
+          # iOS-specific .env
+          APP_NAME=${{ secrets.APP_NAME }}
+          APP_DISPLAY_NAME=${{ secrets.APP_DISPLAY_NAME }}
+          IOS_BUNDLE_ID=${{ secrets.IOS_BUNDLE_ID }}
+          GOOGLE_WEB_CLIENT_ID=${{ secrets.GOOGLE_WEB_CLIENT_ID }}
+          GOOGLE_REVERSED_CLIENT_ID=${{ secrets.GOOGLE_REVERSED_CLIENT_ID }}
+          GRAPHQL_API_URL=${{ secrets.GRAPHQL_API_URL }}
+          EOF
+
+      # ── Enable ONE signing method below when ready ─────────────
+      # App Store Connect API Key (preferred for CI)
+      # env:
+      #   ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      #   ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      #   ASC_KEY_CONTENTS: ${{ secrets.ASC_KEY_CONTENTS }}
+      #
+      # OR fastlane match (certs/profiles)
+      # env:
+      #   MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+      #   MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+      # ───────────────────────────────────────────────────────────
+
+      - name: Fastlane iOS build (dual-mode)
+        env:
+          # Note: beta lane always archives Release and uploads to TestFlight; IOS_BUILD_MODE is ignored for beta.
+          IOS_BUILD_MODE: ${{ github.event.inputs.lane == 'build' && github.event.inputs.ios_build_mode != 'auto' && github.event.inputs.ios_build_mode || '' }}
+        run: bundle exec fastlane ios ${{ github.event.inputs.lane || 'build' }}

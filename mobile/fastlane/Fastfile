@@ -1,0 +1,241 @@
+# frozen_string_literal: true
+
+default_platform(:ios)
+
+# ───────────────────────── Helpers ─────────────────────────
+
+# iOS: return true only if ALL ASC_* exist OR match is configured
+def has_ios_signing?
+  asc_ok   = %w[ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_CONTENTS].all? { |k| ENV[k].to_s.strip != "" }
+  match_ok = ENV["MATCH_GIT_URL"].to_s.strip != ""
+  asc_ok || match_ok
+end
+
+# Android: detect if keystore is present (path or default file)
+def has_android_keystore?
+  ENV["ANDROID_KEYSTORE_PATH"].to_s.strip != "" || File.exist?("android/app/release.keystore")
+end
+
+# Android: check presence of google-services.json (global or flavor)
+def android_google_services_present?(flavor)
+  app_dir = "android/app"
+  return true if File.exist?(File.join(app_dir, "google-services.json"))
+
+  fl = flavor.to_s.strip
+  return false if fl.empty?
+  File.exist?(File.join(app_dir, "src", fl, "google-services.json"))
+end
+
+# Android: compute next versionCode from Play internal track if credentials & package are present
+def android_next_version_code(track: 'internal')
+  pkg       = ENV['ANDROID_APPLICATION_ID'].to_s.strip
+  json_path = ENV['GOOGLE_PLAY_JSON_PATH'].to_s.strip
+  json_data = ENV['GOOGLE_PLAY_JSON_DATA'].to_s.strip
+
+  # Require package name and either a JSON path or inline JSON
+  return nil if pkg.empty? || (json_path.empty? && json_data.empty?)
+
+  begin
+    versions = google_play_track_version_codes(
+      package_name: pkg,
+      track: track,
+      json_key: (json_path.empty? ? nil : json_path),
+      json_key_data: (json_data.empty? ? nil : json_data)
+    )
+    current = (versions && versions.first) ? versions.first.to_i : 0
+    (current + 1)
+  rescue => e
+    UI.important("⚠️ Could not fetch version codes from Play: #{e}")
+    nil
+  end
+end
+
+# Android: compute versionCode using CI-aware rule
+# If CI → try Play latest (internal track) → else GITHUB_RUN_NUMBER → else Time.now
+# If not CI → GITHUB_RUN_NUMBER → else Time.now
+def android_compute_version_code(track: 'internal')
+  if ENV['CI'] == 'true'
+    fetched = android_next_version_code(track: track)
+    return fetched if fetched
+    return ENV['GITHUB_RUN_NUMBER'].to_i if ENV['GITHUB_RUN_NUMBER'].to_s.strip != ''
+    return Time.now.to_i
+  else
+    return ENV['GITHUB_RUN_NUMBER'].to_i if ENV['GITHUB_RUN_NUMBER'].to_s.strip != ''
+    return Time.now.to_i
+  end
+end
+
+# ───────────────────────── iOS ─────────────────────────
+
+platform :ios do
+  desc "Build iOS: Release archive if signing is configured, otherwise Simulator Debug (no signing)"
+  lane :build do |options|
+    mode = (options[:mode] || ENV["IOS_BUILD_MODE"] || (has_ios_signing? ? "release" : "simulator")).to_s
+
+    case mode
+    when "release"
+      UI.message("🔐 iOS: Release archive with signing")
+      # Uncomment if you use one of these:
+      # automatic_code_signing(use_automatic_signing: true, team_id: "<TEAM_ID>")
+      # match(type: "appstore", readonly: true)
+
+      # --- iOS build number (CI-aware) ---
+      if ENV['BUILD_NUMBER'] && !ENV['BUILD_NUMBER'].empty?
+        increment_build_number(
+          xcodeproj: "ios/app.xcodeproj",
+          build_number: ENV['BUILD_NUMBER'].to_i
+        )
+      elsif ENV['CI'] == 'true'
+        latest_build = latest_testflight_build_number(
+          app_identifier: ENV['IOS_BUNDLE_ID']
+        )
+        new_build_number = latest_build + 1
+        UI.message("📈 Incrementing build number: #{latest_build} → #{new_build_number}")
+        increment_build_number(
+          xcodeproj: "ios/app.xcodeproj",
+          build_number: new_build_number
+        )
+      else
+        # Fallback when APP_IDENTIFIER isn't set on CI
+        increment_build_number(xcodeproj: "ios/app.xcodeproj")
+      end
+      # --- end build number logic ---
+
+      build_app(
+        workspace: "ios/app.xcworkspace",
+        scheme: "app",
+        configuration: "Release",
+        export_method: "app-store"
+      )
+    when "simulator"
+      UI.important("ℹ️ iOS: Simulator DEBUG build (no signing, no archive)")
+      xcodebuild(
+        workspace: "ios/app.xcworkspace",
+        scheme: "app",
+        configuration: "Debug",
+        sdk: "iphonesimulator",
+        destination: "generic/platform=iOS Simulator",
+        derivedDataPath: "ios/build/DerivedData",
+        xcargs: "CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO DEVELOPMENT_TEAM= PROVISIONING_PROFILE_SPECIFIER="
+      )
+      UI.message("✅ Simulator build finished. Products in ios/build/DerivedData")
+    else
+      UI.user_error!("Unknown IOS_BUILD_MODE: #{mode.inspect} (use 'release' or 'simulator')")
+    end
+  end
+
+  desc "Upload to TestFlight (requires ASC_* or MATCH_*)"
+  lane :beta do
+    unless has_ios_signing?
+      UI.user_error!("No signing configured. Provide ASC_* or MATCH_* envs.")
+    end
+
+    # --- iOS build number (CI-aware) ---
+    if ENV['BUILD_NUMBER'] && !ENV['BUILD_NUMBER'].empty?
+      increment_build_number(
+        xcodeproj: "ios/app.xcodeproj",
+        build_number: ENV['BUILD_NUMBER'].to_i
+      )
+    elsif ENV['CI'] == 'true'
+      latest_build = latest_testflight_build_number(
+        app_identifier: ENV['IOS_BUNDLE_ID']
+      )
+      new_build_number = latest_build + 1
+      UI.message("📈 Incrementing build number: #{latest_build} → #{new_build_number}")
+      increment_build_number(
+        xcodeproj: "ios/app.xcodeproj",
+        build_number: new_build_number
+      )
+    else
+      # Fallback when IOS_BUNDLE_ID isn't set on CI
+      increment_build_number(xcodeproj: "ios/app.xcodeproj")
+    end
+    # --- end build number logic ---
+
+    build_app(
+      workspace: "ios/app.xcworkspace",
+      scheme: "app",
+      configuration: "Release",
+      export_method: "app-store"
+    )
+    upload_to_testflight(
+      skip_waiting_for_build_processing: true,
+      skip_submission: true
+    )
+  end
+
+  desc "Run iOS tests"
+  lane :test do
+    scan(
+      workspace: "ios/app.xcworkspace",
+      scheme: "app",
+      devices: ["iPhone 16"]
+    )
+  end
+end
+
+# ───────────────────────── Android ─────────────────────────
+
+platform :android do
+  desc "Build Android (dual-mode). Release if keystore present; otherwise Debug. Fails early if google-services.json required."
+  lane :build do |options|
+    flavor = (options[:flavor] || ENV["ANDROID_FLAVOR"]).to_s.strip # e.g., "development", "staging", "production"
+    flavor = "development" if flavor.empty?
+    build_type = has_android_keystore? ? "Release" : "Debug"
+
+    # Preflight: require google-services.json only for Release builds
+    if build_type == "Release" && !android_google_services_present?(flavor)
+      UI.user_error!("Missing google-services.json. Add one of:\n" \
+        "  • android/app/google-services.json\n" \
+        "  • android/app/src/#{flavor.empty? ? '<flavor>' : flavor}/google-services.json")
+    elsif build_type == "Debug" && !android_google_services_present?(flavor)
+      UI.important("⚠️ google-services.json not found. Proceeding without Firebase config.")
+    end
+
+    # --- Android versionCode (CI-aware) ---
+    version_code = android_compute_version_code(track: 'internal')
+    UI.message("📈 Android versionCode=#{version_code}")
+
+    # Build task (supports flavor → assembleDevelopmentDebug / assembleProductionRelease, etc.)
+    task =
+      if flavor.empty?
+        "assemble#{build_type}"
+      else
+        "assemble#{flavor.capitalize}#{build_type}"
+      end
+
+    UI.message("🏗️  Gradle task: #{task} (flavor=#{flavor.empty? ? '∅' : flavor}, type=#{build_type})")
+    gradle(
+      task: task,
+      project_dir: "android",
+      properties: { "versionCode" => version_code }
+    )
+  end
+
+  desc "Upload to Play internal track (requires Play API JSON configured via supply)"
+  lane :beta do
+    # --- Android versionCode (CI-aware) for bundle ---
+    version_code = android_compute_version_code(track: 'internal')
+    UI.message("📈 Android versionCode (bundle)=#{version_code}")
+    gradle(
+      task: "bundle",
+      build_type: "Release",
+      project_dir: "android",
+      properties: { "versionCode" => version_code }
+    )
+
+    # Ensure Google Play credentials are available
+    unless (ENV["GOOGLE_PLAY_JSON_PATH"].to_s.strip != "" || ENV["GOOGLE_PLAY_JSON_DATA"].to_s.strip != "")
+      UI.user_error!("Missing Google Play service account key. Provide GOOGLE_PLAY_SERVICE_KEY_B64 (preferred) or GOOGLE_PLAY_JSON_DATA.")
+    end
+
+    supply(
+      aab: Dir["android/app/build/outputs/bundle/release/*.aab"].first,
+      track: "internal",
+      json_key: ENV["GOOGLE_PLAY_JSON_PATH"],
+      json_key_data: ENV["GOOGLE_PLAY_JSON_DATA"],
+      skip_upload_changelogs: true,
+      release_status: ENV["RELEASE_STATUS"] || "draft"
+    )
+  end
+end

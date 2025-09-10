@@ -14,3 +14,6 @@ gem 'bigdecimal'
 gem 'logger'
 gem 'benchmark'
 gem 'mutex_m'
+
+gem "fastlane", ">= 2.220.0"
+gem "dotenv", "~> 2.8"

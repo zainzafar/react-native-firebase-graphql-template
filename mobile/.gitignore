@@ -53,3 +53,11 @@ vendor/bundle/
 
 # Generated files
 src/generated/
+
+# fastlane
+fastlane/report.xml
+fastlane/test_output.xml
+fastlane/fastlane.log
+fastlane/Preview.html
+fastlane/metadata
+fastlane/screenshots
