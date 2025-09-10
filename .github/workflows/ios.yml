@@ -87,4 +87,12 @@ jobs:
         env:
           # Note: beta lane always archives Release and uploads to TestFlight; IOS_BUILD_MODE is ignored for beta.
           IOS_BUILD_MODE: ${{ github.event.inputs.lane == 'build' && github.event.inputs.ios_build_mode != 'auto' && github.event.inputs.ios_build_mode || '' }}
+          BUILD_NUMBER: ${{ github.event.inputs.build_number || '' }}
+          # App Store Connect API Key (preferred for CI) - uncomment when ready
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID || '' }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID || '' }}
+          ASC_KEY_CONTENTS: ${{ secrets.ASC_KEY_CONTENTS || '' }}
+          # OR fastlane match (certs/profiles) - uncomment when ready
+          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL || '' }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD || '' }}
         run: bundle exec fastlane ios ${{ github.event.inputs.lane || 'build' }}
