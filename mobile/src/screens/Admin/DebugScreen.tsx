@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Platform, View, Pressable, Alert, StyleSheet, Text, Animated, ActivityIndicator, Switch } from 'react-native';
+import { Platform, View, Pressable, Alert, StyleSheet, Text, Animated, ActivityIndicator, Switch, ScrollView } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import Config from 'react-native-config';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
@@ -19,6 +19,7 @@ import { useTheme } from '../../theme/ThemeProvider';
 import { useQuery } from '@apollo/client/react';
 import { testUtils } from '../../hooks/useNetworkStatus';
 import { selectIsOnline } from '../../store/offlineSlice';
+import { PlistToJsonConverter } from '../../native';
 
 type TokenInfo = {
   present: boolean;
@@ -34,6 +35,8 @@ export default function DebugScreen() {
   const [reduxState, setReduxState] = useState<string | null>(null);
   const [showReduxState, setShowReduxState] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['app'])); // Start with app expanded
+  const [plistData, setPlistData] = useState<{ [key: string]: Record<string, unknown> }>({});
+  const [activePlistFile, setActivePlistFile] = useState<string | null>(null);
   
   const authState = useAppSelector(selectAuth);
   const isOnline = useAppSelector(selectIsOnline);
@@ -152,6 +155,24 @@ export default function DebugScreen() {
     }
   };
 
+  const onReadPlistFile = async (fileName: string) => {
+    setActivePlistFile(fileName);
+    
+    try {
+      const data = await PlistToJsonConverter.convertPlistToJson(fileName);
+      setPlistData({ [fileName]: data });
+    } catch (error) {
+      setPlistData({ 
+        [fileName]: { 
+          error: true, 
+          message: error instanceof Error ? error.message : String(error),
+          fileName 
+        } 
+      });
+      Alert.alert('Error', `Failed to read ${fileName}: ${error}`);
+    }
+  };
+
   const toggleSection = (sectionId: string) => {
     const newExpanded = new Set(expandedSections);
     if (newExpanded.has(sectionId)) {
@@ -263,7 +284,9 @@ export default function DebugScreen() {
                   <FontAwesome6 name="copy" iconStyle="solid" size={16} color="#0a84ff" />
                 </Pressable>
               </View>
-              <Text style={[{ color: colors.text }, styles.jsonText]}>{reduxState}</Text>
+              <ScrollView style={styles.jsonScrollView} showsVerticalScrollIndicator={true}>
+                <Text style={[{ color: colors.text }, styles.jsonText]}>{reduxState}</Text>
+              </ScrollView>
             </View>
           )}
         </>
@@ -293,6 +316,67 @@ export default function DebugScreen() {
         </>
       ),
     },
+    ...(Platform.OS === 'ios' ? [{
+      id: 'plist',
+      title: 'Plist Files',
+      content: (
+        <>
+          <View style={styles.pillContainer}>
+            <Pressable 
+              style={[
+                styles.pill,
+                activePlistFile === 'Info.plist' && styles.pillActive
+              ]} 
+              onPress={() => onReadPlistFile('Info.plist')}
+            >
+              <Text style={[
+                styles.pillText,
+                activePlistFile === 'Info.plist' && styles.pillTextActive
+              ]}>Info.plist</Text>
+            </Pressable>
+            <Pressable 
+              style={[
+                styles.pill,
+                activePlistFile === 'GoogleService-Info.plist' && styles.pillActive
+              ]} 
+              onPress={() => onReadPlistFile('GoogleService-Info.plist')}
+            >
+              <Text style={[
+                styles.pillText,
+                activePlistFile === 'GoogleService-Info.plist' && styles.pillTextActive
+              ]}>GoogleService-Info.plist</Text>
+            </Pressable>
+          </View>
+          {Object.entries(plistData).map(([fileName, data]) => (
+              <View key={fileName} style={[{ backgroundColor: colors.card, borderRadius: borderRadius.sm }, styles.jsonContainer]}>
+                <View style={styles.jsonHeader}>
+                  <Text style={[{ color: colors.text }, styles.jsonText]}>{fileName}</Text>
+                  <Pressable 
+                    style={styles.iconButton} 
+                    onPress={() => { 
+                      Clipboard.setString(JSON.stringify(data, null, 2)); 
+                      Alert.alert('Copied', `${fileName} copied to clipboard`); 
+                    }} 
+                    accessibilityLabel={`Copy ${fileName}`} 
+                    hitSlop={10}
+                  >
+                    <FontAwesome6 name="copy" iconStyle="solid" size={16} color="#0a84ff" />
+                  </Pressable>
+                </View>
+                <ScrollView style={styles.jsonScrollView} showsVerticalScrollIndicator={true}>
+                  {data && typeof data === 'object' && 'error' in data ? (
+                    <Text style={[styles.errorText, styles.jsonText]}>
+                      Error: {String(data.message)}
+                    </Text>
+                  ) : (
+                    <Text style={[{ color: colors.text }, styles.jsonText]}>{JSON.stringify(data, null, 2)}</Text>
+                  )}
+                </ScrollView>
+              </View>
+          ))}
+        </>
+      ),
+    }] : []),
   ];
 
   return (
@@ -441,9 +525,30 @@ const styles = StyleSheet.create({
   value: { fontSize: 14, flex: 1, textAlign: 'right', marginRight: 8 },
   note: { fontSize: 14, fontStyle: 'italic', marginTop: 4 },
   horizontalRule: { height: 1, marginVertical: 12 },
-  jsonContainer: { padding: 8, marginTop: 8 },
-  jsonHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  jsonContainer: { 
+    padding: 12, 
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#E5E5E7',
+    borderRadius: 8,
+  },
+  jsonHeader: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginBottom: 12,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E7',
+  },
+  jsonScrollView: { 
+    maxHeight: 200,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 6,
+    padding: 8,
+  },
   jsonText: { fontSize: 12, fontFamily: 'monospace' },
+  errorText: { color: '#ff3b30' },
   card: { padding: 20, margin: 0, gap: 0 },
   accordionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 0 },
   accordionTitleRow: { flexDirection: 'row', alignItems: 'center', flex: 1 },
@@ -465,6 +570,34 @@ const styles = StyleSheet.create({
     fontSize: 14, 
     fontWeight: '500',
     flex: 1,
+  },
+  pillContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 16,
+  },
+  pill: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#007AFF',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 28,
+  },
+  pillActive: {
+    backgroundColor: '#34C759',
+    borderColor: '#34C759',
+  },
+  pillText: {
+    color: '#007AFF',
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  pillTextActive: {
+    color: '#ffffff',
   },
 });
 

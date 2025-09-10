@@ -1,0 +1,5 @@
+#import <React/RCTBridgeModule.h>
+#import <Foundation/Foundation.h>
+
+@interface PlistToJsonConverter : NSObject <RCTBridgeModule>
+@end
