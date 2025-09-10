@@ -284,7 +284,7 @@ export default function DebugScreen() {
                   <FontAwesome6 name="copy" iconStyle="solid" size={16} color="#0a84ff" />
                 </Pressable>
               </View>
-              <ScrollView style={styles.jsonScrollView} showsVerticalScrollIndicator={true}>
+              <ScrollView style={[{ backgroundColor: colors.background }, styles.jsonScrollView]} showsVerticalScrollIndicator={true}>
                 <Text style={[{ color: colors.text }, styles.jsonText]}>{reduxState}</Text>
               </ScrollView>
             </View>
@@ -363,7 +363,7 @@ export default function DebugScreen() {
                     <FontAwesome6 name="copy" iconStyle="solid" size={16} color="#0a84ff" />
                   </Pressable>
                 </View>
-                <ScrollView style={styles.jsonScrollView} showsVerticalScrollIndicator={true}>
+                <ScrollView style={[{ backgroundColor: colors.background }, styles.jsonScrollView]} showsVerticalScrollIndicator={true}>
                   {data && typeof data === 'object' && 'error' in data ? (
                     <Text style={[styles.errorText, styles.jsonText]}>
                       Error: {String(data.message)}
@@ -543,7 +543,6 @@ const styles = StyleSheet.create({
   },
   jsonScrollView: { 
     maxHeight: 200,
-    backgroundColor: '#F8F9FA',
     borderRadius: 6,
     padding: 8,
   },
