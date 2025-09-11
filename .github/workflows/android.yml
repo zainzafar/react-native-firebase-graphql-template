@@ -138,6 +138,14 @@ jobs:
         run: |
           bundle exec fastlane android ${{ github.event.inputs.lane || 'build' }}
 
+      - name: List Android build artifacts
+        if: always()
+        run: |
+          echo "=== Android Build Directory Contents ==="
+          find android/app/build/outputs -name "*.apk" -o -name "*.aab" 2>/dev/null || echo "No APK/AAB files found"
+          echo "=== Fastlane Directory Contents ==="
+          find fastlane -name "*.xml" -o -name "*.log" 2>/dev/null || echo "No Fastlane logs found"
+
       - name: Upload Android APK/AAB files and logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -150,6 +158,7 @@ jobs:
             android/app/build/outputs/**/*.aab
             fastlane/report.xml
             fastlane/test_output/
+            fastlane/logs/
           retention-days: 30
 
       - name: Cleanup temp keystore

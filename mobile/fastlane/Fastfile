@@ -109,7 +109,9 @@ platform :ios do
         workspace: "ios/app.xcworkspace",
         scheme: "app",
         configuration: "Release",
-        export_method: "app-store"
+        export_method: "app-store",
+        output_directory: "ios/build",
+        output_name: "app.ipa"
       )
     when "simulator"
       UI.important("ℹ️ iOS: Simulator DEBUG build (no signing, no archive)")
@@ -134,46 +136,14 @@ platform :ios do
       UI.user_error!("No signing configured. Provide ASC_* or MATCH_* envs.")
     end
 
-    # --- iOS build number (CI-aware) ---
-    if ENV['BUILD_NUMBER'] && !ENV['BUILD_NUMBER'].empty?
-      increment_build_number(
-        xcodeproj: "ios/app.xcodeproj",
-        build_number: ENV['BUILD_NUMBER'].to_i
-      )
-    elsif ENV['CI'] == 'true'
-      latest_build = latest_testflight_build_number(
-        app_identifier: ENV['IOS_BUNDLE_ID']
-      )
-      new_build_number = latest_build + 1
-      UI.message("📈 Incrementing build number: #{latest_build} → #{new_build_number}")
-      increment_build_number(
-        xcodeproj: "ios/app.xcodeproj",
-        build_number: new_build_number
-      )
-    else
-      # Fallback when IOS_BUNDLE_ID isn't set on CI
-      increment_build_number(xcodeproj: "ios/app.xcodeproj")
-    end
-    # --- end build number logic ---
+    # Build the app first (this handles build number logic and creates the IPA)
+    build(mode: "release")
 
-    build_app(
-      workspace: "ios/app.xcworkspace",
-      scheme: "app",
-      configuration: "Release",
-      export_method: "app-store"
-    )
+    # Upload to TestFlight
     upload_to_testflight(
+      ipa: "ios/build/app.ipa",
       skip_waiting_for_build_processing: true,
       skip_submission: true
-    )
-  end
-
-  desc "Run iOS tests"
-  lane :test do
-    scan(
-      workspace: "ios/app.xcworkspace",
-      scheme: "app",
-      devices: ["iPhone 16"]
     )
   end
 end
@@ -221,9 +191,21 @@ platform :android do
     # --- Android versionCode (CI-aware) for bundle ---
     version_code = android_compute_version_code(track: 'internal')
     UI.message("📈 Android versionCode (bundle)=#{version_code}")
+    # Build the AAB first (this handles version code logic and creates the AAB)
+    flavor = (options[:flavor] || ENV["ANDROID_FLAVOR"]).to_s.strip # e.g., "development", "staging", "production"
+    flavor = "development" if flavor.empty?
+    
+    # Build task (supports flavor → bundleDevelopmentRelease / bundleProductionRelease, etc.)
+    task =
+      if flavor.empty?
+        "bundleRelease"
+      else
+        "bundle#{flavor.capitalize}Release"
+      end
+
+    UI.message("🏗️  Gradle task: #{task} (flavor=#{flavor.empty? ? '∅' : flavor})")
     gradle(
-      task: "bundle",
-      build_type: "Release",
+      task: task,
       project_dir: "android",
       properties: { "versionCode" => version_code }
     )
@@ -233,8 +215,16 @@ platform :android do
       UI.user_error!("Missing Google Play service account key. Provide GOOGLE_PLAY_SERVICE_KEY_B64 (preferred) or GOOGLE_PLAY_JSON_DATA.")
     end
 
+    # Use Fastlane's captured AAB path from the gradle task
+    aab_path = lane_context[SharedValues::GRADLE_AAB_OUTPUT_PATH]
+    
+    unless aab_path && File.exist?(aab_path)
+      UI.user_error!("AAB file not found. Expected at: #{aab_path || 'unknown path'}")
+    end
+
+    UI.message("📦 Uploading AAB: #{aab_path}")
     supply(
-      aab: Dir["android/app/build/outputs/bundle/release/*.aab"].first,
+      aab: aab_path,
       track: "internal",
       json_key: ENV["GOOGLE_PLAY_JSON_PATH"],
       json_key_data: ENV["GOOGLE_PLAY_JSON_DATA"],
