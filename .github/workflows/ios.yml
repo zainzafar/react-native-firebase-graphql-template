@@ -46,10 +46,10 @@ jobs:
             mobile/package-lock.json
             api/package-lock.json
 
-      - name: Select Xcode 16.2
+      - name: Select Xcode 16.4
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '16.2'
+          xcode-version: '16.4'
 
       - name: Install JS deps
         run: npm ci -legacy-peer-deps
