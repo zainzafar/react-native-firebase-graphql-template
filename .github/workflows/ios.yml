@@ -162,3 +162,15 @@ jobs:
           MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL || '' }}
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD || '' }}
         run: bundle exec fastlane ios ${{ github.event.inputs.lane || 'build' }}
+
+      - name: Upload iOS IPA files and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build-${{ github.run_number }}
+          path: |
+            ios/build/*.ipa
+            ios/build/**/*.ipa
+            fastlane/report.xml
+            fastlane/test_output/
+          retention-days: 30

@@ -138,6 +138,20 @@ jobs:
         run: |
           bundle exec fastlane android ${{ github.event.inputs.lane || 'build' }}
 
-      # - name: Cleanup temp keystore
-      #   if: always()
-      #   run: rm -rf /tmp/keystore
+      - name: Upload Android APK/AAB files and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-build-${{ github.run_number }}
+          path: |
+            android/app/build/outputs/apk/
+            android/app/build/outputs/**/*.apk
+            android/app/build/outputs/bundle/
+            android/app/build/outputs/**/*.aab
+            fastlane/report.xml
+            fastlane/test_output/
+          retention-days: 30
+
+      - name: Cleanup temp keystore
+        if: always()
+        run: rm -rf /tmp/keystore
