@@ -347,6 +347,19 @@ The workflows will build your apps and upload them to the respective stores:
 - **APK builds**: Creates signed `.apk` files for direct installation
 - **AAB builds**: Creates Android App Bundles and uploads to Google Play Store
 
+#### 4. **Artifacts (Downloadable from GitHub Actions)**
+
+During CI, build outputs are also copied into artifact directories and uploaded as workflow artifacts:
+
+- **Local artifact directories (ignored by git):**
+  - `mobile/artifacts/ios` — `.ipa`, `.dSYM.zip`, `.xcarchive` (release), or `.app` (simulator)
+  - `mobile/artifacts/android` — `.apk`, `.aab` (beta lane), and ProGuard `mapping` files
+- **GitHub Actions artifact names:**
+  - `ios-artifacts` uploaded by `.github/workflows/ios.yml`
+  - `android-artifacts` uploaded by `.github/workflows/android.yml`
+
+Artifacts are collected using Fastlane’s `copy_artifacts` action and Android’s Gradle lane context when available, with glob fallbacks. See Fastlane docs: [copy_artifacts](https://docs.fastlane.tools/actions/copy_artifacts/) and [lane_context](https://docs.fastlane.tools/advanced/lanes/#lane-context).
+
 ### CI/CD Best Practices
 
 1. **Start Simple**: Begin with the CI workflow to ensure code quality

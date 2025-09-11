@@ -202,14 +202,38 @@ platform :android do
       properties: { "versionCode" => version_code }
     )
 
-    # Collect Android artifacts for CI pickup (APKs/AABs/mapping)
+    # Collect Android artifacts for CI pickup using lane_context when available
+    apk_paths = []
+    if lane_context[SharedValues::GRADLE_ALL_APK_OUTPUT_PATHS]
+      apk_paths = Array(lane_context[SharedValues::GRADLE_ALL_APK_OUTPUT_PATHS])
+    elsif lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH]
+      apk_paths = [lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH]]
+    end
+
+    gradle_flavor = lane_context[SharedValues::GRADLE_FLAVOR]
+    gradle_build_type = lane_context[SharedValues::GRADLE_BUILD_TYPE]
+
+    mapping_patterns = []
+    if gradle_build_type && !gradle_build_type.to_s.strip.empty?
+      if gradle_flavor && !gradle_flavor.to_s.strip.empty?
+        mapping_patterns << "android/app/build/outputs/mapping/#{gradle_flavor}#{gradle_build_type}/**/*"
+      else
+        mapping_patterns << "android/app/build/outputs/mapping/#{gradle_build_type}/**/*"
+      end
+    end
+    # Generic mapping fallback
+    mapping_patterns << "android/app/build/outputs/mapping/**/*.txt"
+
+    artifact_patterns = []
+    artifact_patterns += apk_paths
+    artifact_patterns << "android/app/build/outputs/apk/**/*.apk" if apk_paths.empty?
+    # AABs are not produced by assemble, but keep fallback for robustness
+    artifact_patterns << "android/app/build/outputs/bundle/**/*.aab"
+    artifact_patterns += mapping_patterns
+
     copy_artifacts(
       target_path: "artifacts/android",
-      artifacts: [
-        "android/app/build/outputs/apk/**/*.apk",
-        "android/app/build/outputs/bundle/**/*.aab",
-        "android/app/build/outputs/mapping/**/*.txt"
-      ],
+      artifacts: artifact_patterns,
       fail_on_missing: false
     )
   end
@@ -253,13 +277,25 @@ platform :android do
     )
     UI.success("✅ Successfully uploaded to Google Play Store!")
 
-    # Collect Android bundle and mapping files for CI pickup (best-effort)
+    # Collect Android bundle and mapping files for CI pickup (use lane_context for mapping shape when possible)
+    gradle_flavor = lane_context[SharedValues::GRADLE_FLAVOR]
+    gradle_build_type = lane_context[SharedValues::GRADLE_BUILD_TYPE]
+
+    mapping_patterns = []
+    if gradle_build_type && !gradle_build_type.to_s.strip.empty?
+      if gradle_flavor && !gradle_flavor.to_s.strip.empty?
+        mapping_patterns << "android/app/build/outputs/mapping/#{gradle_flavor}#{gradle_build_type}/**/*"
+      else
+        mapping_patterns << "android/app/build/outputs/mapping/#{gradle_build_type}/**/*"
+      end
+    end
+    mapping_patterns << "android/app/build/outputs/mapping/**/*.txt"
+
     copy_artifacts(
       target_path: "artifacts/android",
       artifacts: [
         "android/app/build/outputs/bundle/**/*.aab",
-        "android/app/build/outputs/mapping/**/*.txt"
-      ],
+      ] + mapping_patterns,
       fail_on_missing: false
     )
   end

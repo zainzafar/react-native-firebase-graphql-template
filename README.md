@@ -32,6 +32,7 @@ A production-ready React Native template with comprehensive Firebase authenticat
   - TestFlight and Google Play Store deployment
   - Flexible signing and keystore management
   - Smart build numbering and version management
+  - Build artifacts uploaded from CI for download (IPA/APK/AAB/dSYM/mapping)
 
 
 
