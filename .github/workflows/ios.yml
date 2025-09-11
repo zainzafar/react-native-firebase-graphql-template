@@ -162,3 +162,11 @@ jobs:
           MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL || '' }}
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD || '' }}
         run: bundle exec fastlane ios ${{ github.event.inputs.lane || 'build' }}
+
+      - name: Upload iOS artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-artifacts
+          path: mobile/artifacts/ios
+          if-no-files-found: ignore
