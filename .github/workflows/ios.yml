@@ -149,9 +149,6 @@ jobs:
       #   MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
       # ───────────────────────────────────────────────────────────
 
-      - name: Create iOS build directory
-        run: mkdir -p ios/build
-
       - name: Fastlane iOS build (dual-mode)
         env:
           # Note: beta lane always archives Release and uploads to TestFlight; IOS_BUILD_MODE is ignored for beta.
@@ -165,24 +162,3 @@ jobs:
           MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL || '' }}
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD || '' }}
         run: bundle exec fastlane ios ${{ github.event.inputs.lane || 'build' }}
-
-      - name: List iOS build artifacts
-        if: always()
-        run: |
-          echo "=== iOS Build Directory Contents ==="
-          find ios/build -type f -name "*.ipa" 2>/dev/null || echo "No IPA files found"
-          echo "=== Fastlane Directory Contents ==="
-          find fastlane -name "*.xml" -o -name "*.log" 2>/dev/null || echo "No Fastlane logs found"
-
-      - name: Upload iOS IPA files and logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-build-${{ github.run_number }}
-          path: |
-            ios/build/*.ipa
-            ios/build/**/*.ipa
-            fastlane/report.xml
-            fastlane/test_output/
-            fastlane/logs/
-          retention-days: 30

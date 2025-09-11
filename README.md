@@ -26,6 +26,13 @@ A production-ready React Native template with comprehensive Firebase authenticat
   - Clean separation of concerns
   - Well-documented code structure
 
+- **CI/CD & Deployment**
+  - GitHub Actions workflows for automated testing
+  - iOS and Android build automation with Fastlane
+  - TestFlight and Google Play Store deployment
+  - Flexible signing and keystore management
+  - Smart build numbering and version management
+
 
 
 ## 🚀 Quick Start
@@ -51,6 +58,7 @@ The template follows a clean, modular architecture with:
 - **Environment-based configuration** for different build targets
 - **TypeScript support** throughout the codebase
 - **GraphQL integration** ready for backend connectivity
+- **CI/CD workflows** for automated testing and deployment
 
 ## 🔧 Customization
 

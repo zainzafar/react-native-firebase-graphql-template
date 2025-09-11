@@ -109,9 +109,7 @@ platform :ios do
         workspace: "ios/app.xcworkspace",
         scheme: "app",
         configuration: "Release",
-        export_method: "app-store",
-        output_directory: "ios/build",
-        output_name: "app.ipa"
+        export_method: "app-store"
       )
     when "simulator"
       UI.important("ℹ️ iOS: Simulator DEBUG build (no signing, no archive)")
@@ -140,11 +138,12 @@ platform :ios do
     build(mode: "release")
 
     # Upload to TestFlight
+    UI.message("📱 Uploading to TestFlight...")
     upload_to_testflight(
-      ipa: "ios/build/app.ipa",
       skip_waiting_for_build_processing: true,
       skip_submission: true
     )
+    UI.success("✅ Successfully uploaded to TestFlight!")
   end
 end
 
@@ -215,21 +214,14 @@ platform :android do
       UI.user_error!("Missing Google Play service account key. Provide GOOGLE_PLAY_SERVICE_KEY_B64 (preferred) or GOOGLE_PLAY_JSON_DATA.")
     end
 
-    # Use Fastlane's captured AAB path from the gradle task
-    aab_path = lane_context[SharedValues::GRADLE_AAB_OUTPUT_PATH]
-    
-    unless aab_path && File.exist?(aab_path)
-      UI.user_error!("AAB file not found. Expected at: #{aab_path || 'unknown path'}")
-    end
-
-    UI.message("📦 Uploading AAB: #{aab_path}")
-    supply(
-      aab: aab_path,
+    # Upload to Google Play Store
+    UI.message("📱 Uploading to Google Play Store...")
+    upload_to_play_store(
       track: "internal",
       json_key: ENV["GOOGLE_PLAY_JSON_PATH"],
       json_key_data: ENV["GOOGLE_PLAY_JSON_DATA"],
-      skip_upload_changelogs: true,
       release_status: ENV["RELEASE_STATUS"] || "draft"
     )
+    UI.success("✅ Successfully uploaded to Google Play Store!")
   end
 end

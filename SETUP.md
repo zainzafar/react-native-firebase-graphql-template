@@ -263,6 +263,107 @@ The app includes a scalable theme system that supports multiple themes with auto
 
 See: [Theme System Documentation](./mobile/theme.md)
 
+## 6. GitHub Actions CI/CD Setup
+
+This template includes comprehensive GitHub Actions workflows for automated building, testing, and deployment. The CI/CD system supports both iOS and Android builds with flexible configuration options.
+
+### Available Workflows
+
+#### 1. **CI Workflow** (`.github/workflows/ci.yml`)
+- **Triggers**: Runs on every push to `main` and on pull requests
+- **Purpose**: Automated testing and validation
+- **What it does**:
+  - Installs dependencies for both API and mobile
+  - Runs TypeScript type checking
+  - Builds the API
+  - Lints and tests the mobile app
+  - Ensures code quality before merging
+
+#### 2. **iOS Build Workflow** (`.github/workflows/ios.yml`)
+- **Triggers**: Manual dispatch only
+- **Purpose**: Build and deploy iOS apps
+- **Features**:
+  - Dual-mode builds (simulator debug or signed release)
+  - TestFlight uploads
+  - Automatic build number management
+  - Flexible signing options (App Store Connect API or Fastlane Match)
+
+#### 3. **Android Build Workflow** (`.github/workflows/android.yml`)
+- **Triggers**: Manual dispatch only
+- **Purpose**: Build and deploy Android apps
+- **Features**:
+  - Multi-flavor builds (development, staging, production)
+  - Google Play Store uploads
+  - Automatic version code management
+  - Flexible keystore handling
+
+### Setting Up GitHub Actions
+
+#### 1. **Configure Repository Secrets**
+
+Go to your repository → Settings → Secrets and variables → Actions, and add the required secrets based on your deployment needs.
+
+**📋 Complete Variable Reference**: See [mobile/fastlane/VARIABLES.md](mobile/fastlane/VARIABLES.md) for a comprehensive list of all available secrets, environment variables, and workflow inputs.
+
+**Quick Start Secrets:**
+- **Basic Setup**: `APP_NAME`, `APP_DISPLAY_NAME`, `ANDROID_APPLICATION_ID`, `IOS_BUNDLE_ID`, `GRAPHQL_API_URL`
+- **iOS Production**: `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_CONTENTS` (or `MATCH_GIT_URL`, `MATCH_PASSWORD`)
+- **Android Production**: `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`, `GOOGLE_PLAY_SERVICE_KEY_B64`
+- **Firebase**: `GOOGLE_SERVICES_JSON_B64`, `GOOGLE_SERVICE_INFO_PLIST_B64`, `GOOGLE_WEB_CLIENT_ID`, `GOOGLE_REVERSED_CLIENT_ID`
+
+#### 2. **Running Builds**
+
+**For Testing (CI):**
+- Push to `main` or create a pull request
+- CI workflow runs automatically
+- Check the Actions tab for results
+
+**For iOS Builds:**
+1. Go to Actions → iOS Build
+2. Click "Run workflow"
+3. Choose your options:
+   - **Lane**: `build` (dual-mode) or `beta` (TestFlight upload)
+   - **Build Mode**: `auto` (recommended), `simulator`, or `release`
+   - **Build Number**: Leave empty for auto-increment
+
+**For Android Builds:**
+1. Go to Actions → Android Build
+2. Click "Run workflow"
+3. Choose your options:
+   - **Lane**: `build` (dual-mode) or `beta` (Play Store upload)
+   - **Flavor**: `development`, `staging`, or `production`
+   - **Release Status**: `draft` or `completed`
+   - **Build Number**: Leave empty for auto-increment
+
+#### 3. **Build Outputs**
+
+The workflows will build your apps and upload them to the respective stores:
+
+**iOS Builds:**
+- **Release builds**: Creates signed `.ipa` files and uploads to TestFlight
+- **Simulator builds**: Creates debug builds for testing
+
+**Android Builds:**
+- **APK builds**: Creates signed `.apk` files for direct installation
+- **AAB builds**: Creates Android App Bundles and uploads to Google Play Store
+
+### CI/CD Best Practices
+
+1. **Start Simple**: Begin with the CI workflow to ensure code quality
+2. **Test Locally First**: Run `npm run lint && npm run typecheck && npm test` before pushing
+3. **Gradual Setup**: Add signing secrets only when ready for production builds
+4. **Monitor Builds**: Check the Actions tab regularly for build status
+5. **Use Manual Triggers**: iOS and Android builds are manual to prevent accidental deployments
+
+### Troubleshooting CI/CD
+
+- **Build Failures**: Check the Actions logs for detailed error messages
+- **Missing Secrets**: Ensure all required secrets are configured in repository settings
+- **Signing Issues**: Verify your signing certificates and provisioning profiles
+- **Firebase Errors**: Check that Firebase configuration files are properly base64 encoded
+
+For detailed variable documentation, see [mobile/fastlane/VARIABLES.md](mobile/fastlane/VARIABLES.md).
+
 ## ⚠️ Common Setup Issues
 
 1. **Firebase Configuration Not Found**: Make sure you've replaced all dummy Firebase files
@@ -270,3 +371,4 @@ See: [Theme System Documentation](./mobile/theme.md)
 3. **Apple Sign-In Issues**: Check Apple Developer account and Xcode capabilities
 4. **Build Errors**: Ensure all app identifiers are updated consistently
 5. **Theme Not Found**: Run `npm run generate-themes` after adding new theme folders
+6. **CI/CD Build Failures**: Check GitHub Actions logs and verify all secrets are configured
