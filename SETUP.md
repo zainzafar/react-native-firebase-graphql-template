@@ -220,6 +220,8 @@ The cleanup script includes several safety features:
 
 ## 1. Copy API Environment File
 
+The API includes an example environment file with all required configuration variables:
+
 ```bash
 cp api/.env.example api/.env
 ```
@@ -236,6 +238,13 @@ FIREBASE_SERVICE_ACCOUNT="your-base64-encoded-service-account-json-string-here"
 
 # Set up your database and update the connection string
 DATABASE_URL="postgresql://username:password@localhost:5432/your_database?schema=public"
+
+# JWT secret for authentication (generate a secure random string)
+APP_JWT_SECRET=a0fdc9d3b2f73ed6e4d0c75f1f5e2a53c82a5c8cdaefb11cc74031fd96ec4569
+
+# App store URLs (optional - for app store redirects in app version rules)
+IOS_APP_STORE_URL=
+ANDROID_PLAY_STORE_URL=
 ```
 
 ## 3. Start the API Server
