@@ -9,8 +9,8 @@ This guide will help you quickly set up the Firebase Authentication Template for
   - Android: `com.example.app.staging` and `com.example.app`
 - Bundle/package IDs are provided via environment variables (`IOS_BUNDLE_ID`, `ANDROID_APPLICATION_ID`).
 - Firebase native files are required:
-  - iOS: `mobile/ios/GoogleService-Info.plist` (CI may write a placeholder; use your real file)
-  - Android: `mobile/android/app/google-services.json` (locally or via CI secret)
+  - iOS: `mobile/ios/GoogleService-Info.plist` (locally or via CI secret; for fresh start, CI writes a placeholder to avoid build errors)
+  - Android: `mobile/android/app/google-services.json` (locally or via CI secret; for fresh start, CI ignores the google-signin config in build.gradle to avoid build errors)
 - Android Play upload track is selectable in CI (defaults to `internal`).
 
 # Mobile App Setup
