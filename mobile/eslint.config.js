@@ -7,9 +7,8 @@ import pluginRN from 'eslint-plugin-react-native';
 import globals from 'globals';
 
 export default [
-  // Files + ignores
+  // Global ignores
   {
-    files: ['**/*.{js,cjs,mjs,ts,tsx}'],
     ignores: [
       'node_modules/**',
       'android/**',
@@ -17,8 +16,14 @@ export default [
       'dist/**',
       'build/**',
       'coverage/**',
+      'vendor/**', // Ruby gems and Fastlane dependencies
       'src/generated/**', // Generated GraphQL types
     ],
+  },
+
+  // Files to lint
+  {
+    files: ['**/*.{js,cjs,mjs,ts,tsx}'],
   },
 
   // Base JS rules
