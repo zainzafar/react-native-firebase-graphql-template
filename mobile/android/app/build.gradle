@@ -100,7 +100,7 @@ android {
         versionCode cliVersionCode ?: 1
         versionName "1.0"
         resValue "string", "build_config_package", "com.app"
-        resValue "string", "app_name", (project.env.get("APP_DISPLAY_NAME") ?: "Template App")
+        resValue "string", "app_name", (project.env.get("APP_DISPLAY_NAME") ?: "Example App")
     }
     signingConfigs {
         release {
