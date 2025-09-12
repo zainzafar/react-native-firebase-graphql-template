@@ -79,7 +79,7 @@ platform :ios do
     # Preflight: Require Firebase plist for all iOS builds (simulator or release)
     # Note: The GitHub Action may write a placeholder GoogleService-Info.plist to bypass this error in CI.
     # You must replace it with your actual Firebase file for real usage.
-    plist_path = "ios/GoogleService-Info.plist"
+    plist_path = "../ios/GoogleService-Info.plist"
     unless File.exist?(plist_path)
       UI.user_error!("Missing #{plist_path}. Add your Firebase configuration file or configure CI to provide it.")
     end
