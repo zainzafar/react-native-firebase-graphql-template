@@ -234,7 +234,7 @@ Edit `api/.env` and update the following variables:
 # Get the Firebase service account JSON from Firebase Console → Project Settings → Service Accounts → Generate New Private Key
 # Firebase service account as base64 encoded JSON string
 # Convert using: base64 -i path/to/serviceAccountKey.json
-FIREBASE_SERVICE_ACCOUNT="your-base64-encoded-service-account-json-string-here"
+FIREBASE_SERVICE_ACCOUNT_B64="your-base64-encoded-service-account-json-string-here"
 
 # Set up your database and update the connection string
 DATABASE_URL="postgresql://username:password@localhost:5432/your_database?schema=public"

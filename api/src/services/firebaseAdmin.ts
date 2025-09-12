@@ -22,8 +22,8 @@ export type AuthContextUser = Omit<DbUserWithRelations, 'role'> & {
 let initialized = false;
 
 function getServiceAccountFromEnv(): admin.ServiceAccount | null {
-  const fromJson = process.env.FIREBASE_SERVICE_ACCOUNT
-    ? Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT, "base64").toString("utf8")
+  const fromJson = process.env.FIREBASE_SERVICE_ACCOUNT_B64
+    ? Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_B64, "base64").toString("utf8")
     : null;
   if (fromJson) {
     try {
