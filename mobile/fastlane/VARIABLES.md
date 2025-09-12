@@ -83,7 +83,6 @@ This document explains all the variables used in the Fastlane setup for iOS and 
 ### Android Configuration
 | Variable | Description | Set By | Default |
 |----------|-------------|---------|---------|
-| `ANDROID_FLAVOR` | Android build flavor | Workflow input | `"development"` |
 | `ANDROID_KEYSTORE_PATH` | Path to keystore file | GitHub Actions | `"android/app/release.keystore"` |
 | `GOOGLE_PLAY_JSON_PATH` | Path to Google Play service account JSON (auto-generated from [Base64-encoded Service Account Key](#1-base64-encoded-service-account-key-recommended)) | GitHub Actions | Auto-generated |
 | `GOOGLE_PLAY_JSON_DATA` | Inline Google Play service account JSON (auto-generated from [Base64-encoded Service Account Key](#1-base64-encoded-service-account-key-recommended)) | GitHub Actions | Auto-generated |
@@ -104,7 +103,7 @@ This document explains all the variables used in the Fastlane setup for iOS and 
 | Input | Description | Options | Default |
 |-------|-------------|---------|---------|
 | `lane` | Fastlane lane to execute | `"build"`, `"beta"` | `"build"` |
-| `flavor` | Android build flavor | `""`, `"development"`, `"staging"`, `"production"` | `""` (uses default) |
+| `track` | Google Play track for beta lane | `"internal"`, `"alpha"`, `"beta"`, `"production"` | `"internal"` |
 | `release_status` | Play Store release status | `"draft"`, `"completed"` | `"draft"` |
 | `build_number` | Override build number | Any integer | Auto-increment |
 
@@ -122,11 +121,6 @@ This document explains all the variables used in the Fastlane setup for iOS and 
 ### Android Build Types
 - **Debug**: Built when no keystore is provided
 - **Release**: Built when keystore is available
-
-### Android Flavors
-- **`development`**: Development environment
-- **`staging`**: Staging environment  
-- **`production`**: Production environment
 
 ---
 
