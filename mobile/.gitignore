@@ -27,6 +27,7 @@ ios/.xcode.env.local
 
 # React Native / Metro
 .metro-cache/
+watchman*
 
 # Android
 android/.gradle/
@@ -38,6 +39,7 @@ android/.cxx/
 android/app/src/release/keystore*
 android/app/*.keystore
 android/app/*.jks
+android/.kotlin
 
 # iOS
 ios/build/

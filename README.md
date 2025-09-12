@@ -21,7 +21,7 @@ A production-ready React Native template with comprehensive Firebase authenticat
   - TypeScript support
 
 - **Developer Experience**
-  - Environment-based configuration (development, staging, production)
+  - Environment-based configuration (development, staging, production) — Android is flavorless; IDs are env-driven
   - Comprehensive error handling
   - Clean separation of concerns
   - Well-documented code structure
@@ -41,6 +41,11 @@ A production-ready React Native template with comprehensive Firebase authenticat
 For detailed setup instructions, see [SETUP.md](SETUP.md).
 
 Get started quickly by cloning the repository, following the setup guide, and running the app.
+
+Assumptions:
+- Two apps per store: staging and production (distinct bundle/package IDs)
+- Provide `IOS_BUNDLE_ID` and `ANDROID_APPLICATION_ID` via env
+- Provide Firebase native files locally or via CI secrets
 
 ### Release Checklist
 

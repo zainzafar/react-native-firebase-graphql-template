@@ -31,14 +31,6 @@ Build iOS: Release archive if signing is configured, otherwise Simulator Debug (
 
 Upload to TestFlight (requires ASC_* or MATCH_*)
 
-### ios test
-
-```sh
-[bundle exec] fastlane ios test
-```
-
-Run iOS tests
-
 ----
 
 
@@ -58,7 +50,7 @@ Build Android (dual-mode). Release if keystore present; otherwise Debug. Fails e
 [bundle exec] fastlane android beta
 ```
 
-Upload to Play internal track (requires Play API JSON configured via supply)
+Upload to Google Play (track selectable via ANDROID_TRACK; default internal)
 
 ----
 

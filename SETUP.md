@@ -2,6 +2,17 @@
 
 This guide will help you quickly set up the Firebase Authentication Template for your project.
 
+## Template assumptions
+
+- Two apps per platform, no Android flavors in code:
+  - iOS: `com.example.app.staging` and `com.example.app`
+  - Android: `com.example.app.staging` and `com.example.app`
+- Bundle/package IDs are provided via environment variables (`IOS_BUNDLE_ID`, `ANDROID_APPLICATION_ID`).
+- Firebase native files are required:
+  - iOS: `mobile/ios/GoogleService-Info.plist` (CI may write a placeholder; use your real file)
+  - Android: `mobile/android/app/google-services.json` (locally or via CI secret)
+- Android Play upload track is selectable in CI (defaults to `internal`).
+
 # Mobile App Setup
 
 ## 1. App Store Connect Setup
@@ -27,7 +38,7 @@ This template is designed for a multi-environment setup with separate staging an
    - Add iOS app using the bundle identifier from your staging App Store Connect app
    - Add Android app using the package name from your `.env` file
      - When prompted for SHA-1 certificate, run: `cd mobile/android && ./gradlew :app:signingReport`
-     - Copy the SHA-1 from the "development" flavor output
+     - Copy the SHA-1 from the `debug` variant output
    - Add Web app to this project
    - Use this project for development and staging builds
 
@@ -35,7 +46,7 @@ This template is designed for a multi-environment setup with separate staging an
    - Add iOS app using the bundle identifier from your production App Store Connect app
    - Add Android app using the package name from your `.env` file
      - When prompted for SHA-1 certificate, run: `cd mobile/android && ./gradlew :app:signingReport`
-     - Copy the SHA-1 from the "production" flavor output
+     - Copy the SHA-1 from the `release` variant output
      - **Note**: For production builds, you'll also need to upload your upload signing key to your CI/CD system
    - Add Web app to this project
    - Use this project for production builds only
@@ -83,23 +94,18 @@ SHA-256: AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11
 **IMPORTANT**: This template does not include Firebase configuration files. You must download the actual Firebase configuration files from the Firebase Console and add them to your project as follows.
 
 #### Android Files to Add:
-1. Go to your **staging Firebase project** → Project Settings → Your Apps → Android app
-2. Download the `google-services.json` file
-3. Place the downloaded file at:
-   - `mobile/android/app/src/development/google-services.json`
-   - `mobile/android/app/src/staging/google-services.json`
-
-4. Go to your **production Firebase project** → Project Settings → Your Apps → Android app
-5. Download the `google-services.json` file
-6. For production builds, store the file content as base64 in your CI environment and write it during the build process
+1. From your **staging Firebase project** → Project Settings → Your Apps → Android app, download `google-services.json`.
+2. For local development, place it at: `mobile/android/app/google-services.json`.
+3. For CI, store the file as base64 in `GOOGLE_SERVICES_JSON_B64`; the workflow writes it to `mobile/android/app/google-services.json`.
+4. Repeat for your **production Firebase project** when building production; ensure the correct file is provided (locally or via CI secret) according to the `ANDROID_APPLICATION_ID` you target.
 
 #### iOS Files to Add:
-1. Go to your **staging Firebase project** → Project Settings → Your Apps → iOS app
-2. Download the `GoogleService-Info.plist` file
-3. Add the downloaded file to:
-   - `mobile/ios/GoogleService-Info.plist` (development builds use staging)
+1. From your **staging Firebase project** → Project Settings → Your Apps → iOS app, download `GoogleService-Info.plist`.
+2. Add it to: `mobile/ios/GoogleService-Info.plist`.
 
-**Note**: For production iOS builds, you can also store the `GoogleService-Info.plist` content as base64 in your CI environment and write it during the build process, similar to the Android approach.
+**Notes**:
+- For production iOS builds, you can store the `GoogleService-Info.plist` content as base64 in your CI environment; the workflow writes it to `mobile/ios/GoogleService-Info.plist`.
+- CI may write a minimal placeholder to bypass build errors, but you must replace it with your real file for actual usage.
 
 ## 3. Mobile Environment Configuration
 
@@ -122,7 +128,7 @@ ANDROID_APPLICATION_ID=com.yourcompany.yourapp    # Android package name (must m
 IOS_BUNDLE_ID=com.yourcompany.yourapp             # iOS bundle identifier (must match Firebase config)
 
 # API Configuration
-API_URL=https://api.yourcompany.com               # Your backend API endpoint
+GRAPHQL_API_URL=https://api.yourcompany.com/graphql  # Your GraphQL API endpoint
 
 # Getting the Google Web Client ID:
 # 1. Go to your Firebase Console → Authentication → Sign-in method
@@ -292,8 +298,8 @@ This template includes comprehensive GitHub Actions workflows for automated buil
 - **Triggers**: Manual dispatch only
 - **Purpose**: Build and deploy Android apps
 - **Features**:
-  - Multi-flavor builds (development, staging, production)
-  - Google Play Store uploads
+  - Flavorless builds (env-driven package name and Firebase file)
+  - Google Play Store uploads with selectable track (internal/alpha/beta/production)
   - Automatic version code management
   - Flexible keystore handling
 
@@ -331,7 +337,7 @@ Go to your repository → Settings → Secrets and variables → Actions, and ad
 2. Click "Run workflow"
 3. Choose your options:
    - **Lane**: `build` (dual-mode) or `beta` (Play Store upload)
-   - **Flavor**: `development`, `staging`, or `production`
+   - **Track**: `internal` (default), `alpha`, `beta`, or `production`
    - **Release Status**: `draft` or `completed`
    - **Build Number**: Leave empty for auto-increment
 

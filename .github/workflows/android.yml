@@ -11,15 +11,15 @@ on:
         options:
           - build
           - beta
-      flavor:
-        description: 'Android flavor (leave empty to use Fastfile default)'
+      track:
+        description: 'Google Play track for beta lane'
         required: false
-        default: ''
+        default: 'internal'
         type: choice
         options:
-          - ''
-          - development
-          - staging
+          - internal
+          - alpha
+          - beta
           - production
       release_status:
         description: 'Release Status (Internal track must be draft; Play blocks completed on internal)'
@@ -129,10 +129,10 @@ jobs:
 
       - name: Fastlane Android build (dual-mode)
         env:
-          ANDROID_FLAVOR: ${{ github.event.inputs.flavor }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_TRACK: ${{ github.event.inputs.track || 'internal' }}
           RELEASE_STATUS: ${{ github.event.inputs.release_status || 'draft' }}
           BUILD_NUMBER: ${{ github.event.inputs.build_number || '' }}
         run: |

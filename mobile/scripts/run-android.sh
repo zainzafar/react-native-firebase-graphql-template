@@ -13,4 +13,4 @@ fi
 echo "Using application ID: $APPID"
 
 # Run React Native Android with the detected app ID
-react-native run-android --mode developmentDebug --appId "$APPID" --verbose
+react-native run-android --mode debug --appId "$APPID" --verbose

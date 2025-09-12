@@ -76,6 +76,14 @@ platform :ios do
     
     mode = (options[:mode] || build_mode || (has_ios_signing? ? "release" : "simulator")).to_s
 
+    # Preflight: Require Firebase plist for all iOS builds (simulator or release)
+    # Note: The GitHub Action may write a placeholder GoogleService-Info.plist to bypass this error in CI.
+    # You must replace it with your actual Firebase file for real usage.
+    plist_path = "ios/GoogleService-Info.plist"
+    unless File.exist?(plist_path)
+      UI.user_error!("Missing #{plist_path}. Add your Firebase configuration file or configure CI to provide it.")
+    end
+
     case mode
     when "release"
       UI.message("🔐 iOS: Release archive with signing")
@@ -170,16 +178,12 @@ end
 platform :android do
   desc "Build Android (dual-mode). Release if keystore present; otherwise Debug. Fails early if google-services.json required."
   lane :build do |options|
-    flavor = (options[:flavor] || ENV["ANDROID_FLAVOR"]).to_s.strip # e.g., "development", "staging", "production"
-    flavor = "development" if flavor.empty?
     build_type = has_android_keystore? ? "Release" : "Debug"
 
     # Preflight: require google-services.json only for Release builds
-    if build_type == "Release" && !android_google_services_present?(flavor)
-      UI.user_error!("Missing google-services.json. Add one of:\n" \
-        "  • android/app/google-services.json\n" \
-        "  • android/app/src/#{flavor.empty? ? '<flavor>' : flavor}/google-services.json")
-    elsif build_type == "Debug" && !android_google_services_present?(flavor)
+    if build_type == "Release" && !android_google_services_present?("")
+      UI.user_error!("Missing google-services.json. Add: android/app/google-services.json")
+    elsif build_type == "Debug" && !android_google_services_present?("")
       UI.important("⚠️ google-services.json not found. Proceeding without Firebase config.")
     end
 
@@ -187,15 +191,10 @@ platform :android do
     version_code = android_compute_version_code(track: 'internal')
     UI.message("📈 Android versionCode=#{version_code}")
 
-    # Build task (supports flavor → assembleDevelopmentDebug / assembleProductionRelease, etc.)
-    task =
-      if flavor.empty?
-        "assemble#{build_type}"
-      else
-        "assemble#{flavor.capitalize}#{build_type}"
-      end
+    # Build task (flavorless)
+    task = "assemble#{build_type}"
 
-    UI.message("🏗️  Gradle task: #{task} (flavor=#{flavor.empty? ? '∅' : flavor}, type=#{build_type})")
+    UI.message("🏗️  Gradle task: #{task} (type=#{build_type})")
     gradle(
       task: task,
       project_dir: "android",
@@ -238,24 +237,22 @@ platform :android do
     )
   end
 
-  desc "Upload to Play internal track (requires Play API JSON configured via supply)"
+  desc "Upload to Google Play (track selectable via ANDROID_TRACK; default internal)"
   lane :beta do
+    # Select track (default internal)
+    track = (ENV["ANDROID_TRACK"].to_s.strip)
+    track = 'internal' if track.empty?
+    UI.message("🎯 Google Play track: #{track}")
+
     # --- Android versionCode (CI-aware) for bundle ---
-    version_code = android_compute_version_code(track: 'internal')
+    version_code = android_compute_version_code(track: track)
     UI.message("📈 Android versionCode (bundle)=#{version_code}")
     # Build the AAB first (this handles version code logic and creates the AAB)
-    flavor = (options[:flavor] || ENV["ANDROID_FLAVOR"]).to_s.strip # e.g., "development", "staging", "production"
-    flavor = "development" if flavor.empty?
     
-    # Build task (supports flavor → bundleDevelopmentRelease / bundleProductionRelease, etc.)
-    task =
-      if flavor.empty?
-        "bundleRelease"
-      else
-        "bundle#{flavor.capitalize}Release"
-      end
+    # Build task (flavorless)
+    task = "bundleRelease"
 
-    UI.message("🏗️  Gradle task: #{task} (flavor=#{flavor.empty? ? '∅' : flavor})")
+    UI.message("🏗️  Gradle task: #{task}")
     gradle(
       task: task,
       project_dir: "android",
@@ -270,7 +267,7 @@ platform :android do
     # Upload to Google Play Store
     UI.message("📱 Uploading to Google Play Store...")
     upload_to_play_store(
-      track: "internal",
+      track: track,
       json_key: ENV["GOOGLE_PLAY_JSON_PATH"],
       json_key_data: ENV["GOOGLE_PLAY_JSON_DATA"],
       release_status: ENV["RELEASE_STATUS"] || "draft"

@@ -3,16 +3,8 @@ apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
 
-// Conditionally apply Google Services plugin
-def gmsCandidates = [file("$projectDir/google-services.json")]
-
-// Dynamically add flavor-specific google-services.json files
-def flavorDirs = file("$projectDir/src").listFiles()?.findAll { it.isDirectory() } ?: []
-flavorDirs.each { flavorDir ->
-    gmsCandidates.add(file("$flavorDir/google-services.json"))
-}
-
-def hasGms = gmsCandidates.any { it.exists() }
+// Conditionally apply Google Services plugin (root-level only)
+def hasGms = file("$projectDir/google-services.json").exists()
 
 if (hasGms) {
     apply plugin: 'com.google.gms.google-services'
@@ -132,18 +124,6 @@ android {
         }
     }
 
-    flavorDimensions "env"
-    productFlavors {
-        development {
-            dimension "env"
-        }
-        staging {
-            dimension "env"
-        }
-        production {
-            dimension "env"
-        }
-    }
 }
 
 dependencies {
