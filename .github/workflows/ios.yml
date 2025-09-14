@@ -3,6 +3,11 @@ name: iOS Build
 on:
   workflow_dispatch:
     inputs:
+      environment:
+        description: "Target environment"
+        type: choice
+        default: staging
+        options: [staging, production]
       lane:
         description: 'Fastlane lane to run (build = dual-mode, beta = TestFlight upload)'
         required: true
@@ -25,9 +30,19 @@ on:
         required: false
         default: ''
         type: string
+      ios_signing_mode:
+        description: 'iOS signing mode (only applies when build mode is release)'
+        required: false
+        default: ''
+        type: choice
+        options:
+          - ''
+          - match
+          - automatic
 
 jobs:
   ios:
+    environment: ${{ inputs.environment }}
     runs-on: macos-15
     defaults:
       run:
@@ -94,12 +109,12 @@ jobs:
         run: |
           cat > .env <<'EOF'
           # iOS-specific .env
-          APP_NAME=${{ secrets.APP_NAME || 'App' }}
-          APP_DISPLAY_NAME=${{ secrets.APP_DISPLAY_NAME || 'App' }}
-          IOS_BUNDLE_ID=${{ secrets.IOS_BUNDLE_ID || 'com.example.app' }}
+          APP_NAME=${{ vars.APP_NAME || 'App' }}
+          APP_DISPLAY_NAME=${{ vars.APP_DISPLAY_NAME || 'App' }}
+          IOS_BUNDLE_ID=${{ vars.IOS_BUNDLE_ID || 'com.example.app' }}
+          GRAPHQL_API_URL=${{ vars.GRAPHQL_API_URL }}
           GOOGLE_WEB_CLIENT_ID=${{ secrets.GOOGLE_WEB_CLIENT_ID }}
           GOOGLE_REVERSED_CLIENT_ID=${{ secrets.GOOGLE_REVERSED_CLIENT_ID }}
-          GRAPHQL_API_URL=${{ secrets.GRAPHQL_API_URL }}
           EOF
 
       - name: Decode GoogleService-Info.plist (if provided)
@@ -117,7 +132,7 @@ jobs:
             <key>PROJECT_ID</key>
             <string>placeholder</string>
             <key>BUNDLE_ID</key>
-            <string>${{ secrets.IOS_BUNDLE_ID || 'com.example.app' }}</string>
+            <string>${{ vars.IOS_BUNDLE_ID || 'com.example.app' }}</string>
             <key>IS_ADS_ENABLED</key>
             <false/>
             <key>IS_ANALYTICS_ENABLED</key>
@@ -136,31 +151,45 @@ jobs:
             echo "⚠️ Created placeholder GoogleService-Info.plist (no Firebase config provided)"
           fi
 
-      # ── Enable ONE signing method below when ready ─────────────
-      # App Store Connect API Key (preferred for CI)
-      # env:
-      #   ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
-      #   ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-      #   ASC_KEY_CONTENTS: ${{ secrets.ASC_KEY_CONTENTS }}
+      # ── Enable signing methods in the "Fastlane iOS build" step below ─────────────
+      # For TestFlight upload, you need BOTH:
+      # 1) App Store Connect API Key (for upload)
+      # 2) Code signing (choose ONE method):
+      #    - Match signing (recommended for CI)
+      #    - Xcode automatic/managed signing
       #
-      # OR fastlane match (certs/profiles)
+      # App Store Connect API Key (required for TestFlight upload)
       # env:
-      #   MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+      #   APP_STORE_CONNECT_API_KEY_ID: ${{ vars.APP_STORE_CONNECT_API_KEY_ID }}
+      #   APP_STORE_CONNECT_ISSUER_ID: ${{ vars.APP_STORE_CONNECT_ISSUER_ID }}
+      #   APP_STORE_CONNECT_API_KEY_CONTENT_B64: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT_B64 }}
+      #
+      # Code signing method 1: Fastlane Match (recommended)
+      # env:
+      #   MATCH_GIT_URL: ${{ vars.MATCH_GIT_URL }}
       #   MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+      #   MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION || '' }}
+      #
+      # Code signing method 2: Xcode automatic/managed signing
+      # env:
+      #   APPLE_DEVELOPER_TEAM_ID: ${{ vars.APPLE_DEVELOPER_TEAM_ID }}
+      #   IOS_SIGNING_MODE: automatic
       # ───────────────────────────────────────────────────────────
 
       - name: Fastlane iOS build (dual-mode)
         env:
           # Note: beta lane always archives Release and uploads to TestFlight; IOS_BUILD_MODE is ignored for beta.
           IOS_BUILD_MODE: ${{ github.event.inputs.lane == 'build' && github.event.inputs.ios_build_mode != 'auto' && github.event.inputs.ios_build_mode || '' }}
+          IOS_SIGNING_MODE: ${{ github.event.inputs.ios_signing_mode || '' }}
           BUILD_NUMBER: ${{ github.event.inputs.build_number || '' }}
           # App Store Connect API Key (preferred for CI) - uncomment when ready
-          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID || '' }}
-          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID || '' }}
-          ASC_KEY_CONTENTS: ${{ secrets.ASC_KEY_CONTENTS || '' }}
-          # OR fastlane match (certs/profiles) - uncomment when ready
-          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL || '' }}
+          APPLE_DEVELOPER_TEAM_ID: ${{ vars.APPLE_DEVELOPER_TEAM_ID || '' }}
+          APP_STORE_CONNECT_API_KEY_ID: ${{ vars.APP_STORE_CONNECT_API_KEY_ID || '' }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ vars.APP_STORE_CONNECT_ISSUER_ID || '' }}
+          APP_STORE_CONNECT_API_KEY_CONTENT_B64: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT_B64 || '' }}
+          MATCH_GIT_URL: ${{ vars.MATCH_GIT_URL || '' }}
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD || '' }}
+          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION || '' }}
         run: bundle exec fastlane ios ${{ github.event.inputs.lane || 'build' }}
 
       - name: Upload iOS artifacts

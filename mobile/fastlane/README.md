@@ -21,7 +21,7 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 [bundle exec] fastlane ios build
 ```
 
-Build iOS: Release archive if signing is configured, otherwise Simulator Debug (no signing)
+Build iOS: Release archive with signing (match or automatic), or Simulator Debug (no signing)
 
 ### ios beta
 
@@ -29,7 +29,39 @@ Build iOS: Release archive if signing is configured, otherwise Simulator Debug (
 [bundle exec] fastlane ios beta
 ```
 
-Upload to TestFlight (requires ASC_* or MATCH_*)
+Upload to TestFlight (build requires signing; upload requires App Store Connect API key)
+
+### ios sync_certificates_in_ci
+
+```sh
+[bundle exec] fastlane ios sync_certificates_in_ci
+```
+
+Sync certificates in CI (read-only match)
+
+### ios certificates_production
+
+```sh
+[bundle exec] fastlane ios certificates_production
+```
+
+Create/repair production signing (App Store)
+
+### ios certificates_staging
+
+```sh
+[bundle exec] fastlane ios certificates_staging
+```
+
+Create/repair development signing
+
+### ios nuke_certificates
+
+```sh
+[bundle exec] fastlane ios nuke_certificates
+```
+
+Nuke all certificates & profiles for this app (use carefully)
 
 ----
 

@@ -5,6 +5,7 @@ This document explains all the variables used in the Fastlane setup for iOS and 
 ## 📋 Quick Reference
 
 - **GitHub Secrets**: Set in your repository's Settings → Secrets and variables → Actions
+- **GitHub Variables**: Set in your repository's Settings → Secrets and variables → Actions
 - **Environment Variables**: Set in `.env` file or GitHub Actions environment
 - **Workflow Inputs**: Set when manually triggering workflows
 
@@ -15,26 +16,22 @@ This document explains all the variables used in the Fastlane setup for iOS and 
 ### App Configuration
 | Secret | Description | Required For | Default |
 |--------|-------------|--------------|---------|
-| `APP_NAME` | Internal app name used in build scripts | All builds | `"App"` |
-| `APP_DISPLAY_NAME` | User-facing app name displayed on device | All builds | `"App"` |
-| `ANDROID_APPLICATION_ID` | Android package name (e.g., `com.company.app`) | Android builds | `"com.example.app"` |
-| `IOS_BUNDLE_ID` | iOS bundle identifier (e.g., `com.company.app`) | iOS builds | `"com.example.app"` |
-| `GRAPHQL_API_URL` | Backend GraphQL API endpoint URL | All builds | None |
+| `GOOGLE_WEB_CLIENT_ID` | Google OAuth web client ID | iOS builds with Google Sign-In | None |
+| `GOOGLE_REVERSED_CLIENT_ID` | Google OAuth reversed client ID | iOS builds with Google Sign-In | None |
+| `GOOGLE_SERVICE_INFO_PLIST_B64` | Base64-encoded GoogleService-Info.plist file | iOS builds with Firebase | None |
 
-### iOS Signing (Choose ONE method)
+### iOS Signing (Both Required for App Store)
 
-#### 1. App Store Connect API Key (Recommended)
+#### App Store Connect API Key (for TestFlight uploads)
 | Secret | Description | Required For |
 |--------|-------------|--------------|
-| `ASC_KEY_ID` | App Store Connect API Key ID | iOS Release builds & TestFlight |
-| `ASC_ISSUER_ID` | App Store Connect API Issuer ID | iOS Release builds & TestFlight |
-| `ASC_KEY_CONTENTS` | App Store Connect API Key content (JSON) | iOS Release builds & TestFlight |
+| `APP_STORE_CONNECT_API_KEY_CONTENT_B64` | Base64-encoded App Store Connect API Key (.p8 file) | iOS Release builds & TestFlight |
 
-#### 2. Fastlane Match (Alternative)
+#### Fastlane Match (for code signing)
 | Secret | Description | Required For |
 |--------|-------------|--------------|
-| `MATCH_GIT_URL` | Git repository URL for certificates/profiles | iOS Release builds & TestFlight |
 | `MATCH_PASSWORD` | Password for encrypted certificates repository | iOS Release builds & TestFlight |
+| `MATCH_GIT_BASIC_AUTHORIZATION` | Basic auth for private match repository (optional) | Private match repositories |
 
 ### Android Signing
 | Secret | Description | Required For |
@@ -60,9 +57,32 @@ This document explains all the variables used in the Fastlane setup for iOS and 
 | Secret | Description | Required For |
 |--------|-------------|--------------|
 | `GOOGLE_SERVICES_JSON_B64` | Base64-encoded google-services.json file | Android builds with Firebase |
-| `GOOGLE_SERVICE_INFO_PLIST_B64` | Base64-encoded GoogleService-Info.plist file | iOS builds with Firebase |
-| `GOOGLE_WEB_CLIENT_ID` | Google OAuth web client ID | iOS builds with Google Sign-In |
-| `GOOGLE_REVERSED_CLIENT_ID` | Google OAuth reversed client ID | iOS builds with Google Sign-In |
+
+---
+
+## 🌍 GitHub Variables
+
+### App Configuration
+| Variable | Description | Required For | Default |
+|----------|-------------|--------------|---------|
+| `APP_NAME` | Internal app name used in build scripts | All builds | `"App"` |
+| `APP_DISPLAY_NAME` | User-facing app name displayed on device | All builds | `"App"` |
+| `ANDROID_APPLICATION_ID` | Android package name (e.g., `com.company.app`) | Android builds | `"com.example.app"` |
+| `IOS_BUNDLE_ID` | iOS bundle identifier (e.g., `com.company.app`) | iOS builds | `"com.example.app"` |
+| `GRAPHQL_API_URL` | Backend GraphQL API endpoint URL | All builds | None |
+
+### iOS Signing
+| Variable | Description | Required For |
+|----------|-------------|--------------|
+| `APP_STORE_CONNECT_API_KEY_ID` | App Store Connect API Key ID | iOS Release builds & TestFlight |
+| `APP_STORE_CONNECT_ISSUER_ID` | App Store Connect API Issuer ID | iOS Release builds & TestFlight |
+| `APPLE_DEVELOPER_TEAM_ID` | Apple Developer Team ID | iOS Release builds & TestFlight |
+| `MATCH_GIT_URL` | Git repository URL for certificates/profiles | iOS Release builds with Match |
+
+### Android Configuration
+| Variable | Description | Required For |
+|----------|-------------|--------------|
+| `GOOGLE_PLAY_JSON_PATH` | Path to Google Play service account JSON | Android Play Store uploads |
 
 ---
 
@@ -75,17 +95,18 @@ This document explains all the variables used in the Fastlane setup for iOS and 
 | `GITHUB_RUN_NUMBER` | GitHub Actions run number for build numbering | GitHub Actions | Dynamic |
 | `BUILD_NUMBER` | Override build number (manual input) | Workflow input | Auto-increment |
 
-### iOS Build Mode
+### iOS Build Configuration
 | Variable | Description | Values | Default |
 |----------|-------------|---------|---------|
 | `IOS_BUILD_MODE` | iOS build mode selection | `"auto"`, `"simulator"`, `"release"` | `"auto"` |
+in| `IOS_SIGNING_MODE` | iOS signing method (only applies when build mode is release) | `""` (auto), `"match"`, `"automatic"` | `""` (auto) |
+| `IOS_BUNDLE_ID_STAGING` | Staging bundle ID for development certificates | Manual | `IOS_BUNDLE_ID` |
 
 ### Android Configuration
 | Variable | Description | Set By | Default |
 |----------|-------------|---------|---------|
 | `ANDROID_KEYSTORE_PATH` | Path to keystore file | GitHub Actions | `"android/app/release.keystore"` |
-| `GOOGLE_PLAY_JSON_PATH` | Path to Google Play service account JSON (auto-generated from [Base64-encoded Service Account Key](#1-base64-encoded-service-account-key-recommended)) | GitHub Actions | Auto-generated |
-| `GOOGLE_PLAY_JSON_DATA` | Inline Google Play service account JSON (auto-generated from [Base64-encoded Service Account Key](#1-base64-encoded-service-account-key-recommended)) | GitHub Actions | Auto-generated |
+| `ANDROID_TRACK` | Google Play track for beta lane | Workflow input | `"internal"` |
 | `RELEASE_STATUS` | Play Store release status | Workflow input | `"draft"` |
 
 ---
@@ -95,8 +116,10 @@ This document explains all the variables used in the Fastlane setup for iOS and 
 ### iOS Workflow (`ios.yml`)
 | Input | Description | Options | Default |
 |-------|-------------|---------|---------|
+| `environment` | Target environment | `"staging"`, `"production"` | `"staging"` |
 | `lane` | Fastlane lane to execute | `"build"`, `"beta"` | `"build"` |
 | `ios_build_mode` | Force specific iOS build mode | `"auto"`, `"simulator"`, `"release"` | `"auto"` |
+| `ios_signing_mode` | iOS signing method (only applies when build mode is release) | `""` (auto), `"match"`, `"automatic"` | `""` (auto) |
 | `build_number` | Override build number | Any integer | Auto-increment |
 
 ### Android Workflow (`android.yml`)
@@ -149,17 +172,27 @@ No secrets required! The system will:
 - Skip signing and store uploads
 
 ### Production Setup
-1. **Set basic app info**:
+1. **Set basic app info** (GitHub Variables):
    ```
    APP_NAME=MyApp
    APP_DISPLAY_NAME=My App
    ANDROID_APPLICATION_ID=com.mycompany.myapp
    IOS_BUNDLE_ID=com.mycompany.myapp
+   GRAPHQL_API_URL=https://api.myapp.com/graphql
    ```
 
-2. **For iOS App Store**:
-   - Set up App Store Connect API Key (`ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_CONTENTS`)
-   - Or use Fastlane Match (`MATCH_GIT_URL`, `MATCH_PASSWORD`)
+2. **For iOS App Store** (requires App Store Connect API Key + ONE signing method):
+   - **App Store Connect API Key** (for TestFlight uploads):
+     - `APP_STORE_CONNECT_API_KEY_ID` (Variable)
+     - `APP_STORE_CONNECT_ISSUER_ID` (Variable)
+     - `APP_STORE_CONNECT_API_KEY_CONTENT_B64` (Secret)
+   - **Code signing method** (choose ONE):
+     - **Option A: Fastlane Match** (recommended for CI):
+       - `MATCH_GIT_URL` (Variable)
+       - `MATCH_PASSWORD` (Secret)
+     - **Option B: Xcode automatic/managed signing**:
+       - `APPLE_DEVELOPER_TEAM_ID` (Variable)
+       - Set `IOS_SIGNING_MODE=automatic` in workflow input
 
 3. **For Android Play Store**:
    - Set up keystore (`ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`)
@@ -168,18 +201,25 @@ No secrets required! The system will:
 4. **For Firebase**:
    - **Android**: Set `GOOGLE_SERVICES_JSON_B64` with your google-services.json
    - **iOS**: Set `GOOGLE_SERVICE_INFO_PLIST_B64` with your GoogleService-Info.plist
-   - Set `GRAPHQL_API_URL` for your backend
+   - **Google Sign-In**: Set `GOOGLE_WEB_CLIENT_ID` and `GOOGLE_REVERSED_CLIENT_ID`
 
 ---
 
 ## 🔍 Troubleshooting
 
 ### Common Issues
-- **"No signing configured"**: Set up iOS signing secrets
-- **"Missing google-services.json"**: Add Firebase config files or the build will proceed without Firebase
+- **"No signing configured"**: Set up iOS signing secrets (App Store Connect API Key or Match)
+- **"Missing GoogleService-Info.plist"**: Add Firebase config files or the build will proceed without Firebase
 - **"Unknown IOS_BUILD_MODE"**: Use `auto`, `simulator`, or `release`
+- **"App Store Connect API key not configured"**: Set `APP_STORE_CONNECT_API_KEY_ID`, `APP_STORE_CONNECT_ISSUER_ID`, and `APP_STORE_CONNECT_API_KEY_CONTENT_B64`
 - **Build number conflicts**: Use `BUILD_NUMBER` input to override
 
 ### Debug Mode
 - iOS: Use `ios_build_mode: simulator` for unsigned builds
 - Android: Omit keystore secrets for debug builds
+
+### Signing Methods
+- **App Store Connect API Key + Match**: Recommended for CI/CD (API key for uploads, Match for signing)
+- **App Store Connect API Key + Automatic Signing**: Alternative using Xcode managed signing with `APPLE_DEVELOPER_TEAM_ID`
+- **Match**: Encrypted certificate repository for code signing (requires App Store Connect API Key)
+- **Automatic Signing**: Xcode managed signing (requires App Store Connect API Key + `APPLE_DEVELOPER_TEAM_ID`)

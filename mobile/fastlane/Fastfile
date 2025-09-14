@@ -4,11 +4,45 @@ default_platform(:ios)
 
 # ───────────────────────── Helpers ─────────────────────────
 
-# iOS: return true only if ALL ASC_* exist OR match is configured
-def has_ios_signing?
-  asc_ok   = %w[ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_CONTENTS].all? { |k| ENV[k].to_s.strip != "" }
-  match_ok = ENV["MATCH_GIT_URL"].to_s.strip != ""
-  asc_ok || match_ok
+# App Store Connect API key from new envs only
+def asc_env
+  {
+    id:      ENV['APP_STORE_CONNECT_API_KEY_ID'].to_s.strip,
+    issuer:  ENV['APP_STORE_CONNECT_ISSUER_ID'].to_s.strip,
+    key:     ENV['APP_STORE_CONNECT_API_KEY_CONTENT_B64'].to_s.strip # base64 contents of the .p8
+  }
+end
+
+def has_app_store_connect_key?
+  e = asc_env
+  [e[:id], e[:issuer], e[:key]].all? { |v| v != '' }
+end
+
+# Get App Store Connect API key, setting it up if needed
+def get_app_store_connect_api_key
+  return lane_context[SharedValues::APP_STORE_CONNECT_API_KEY] if lane_context[SharedValues::APP_STORE_CONNECT_API_KEY]
+  
+  unless has_app_store_connect_key?
+    UI.user_error!("App Store Connect API key not configured. Set APP_STORE_CONNECT_API_KEY_ID, APP_STORE_CONNECT_ISSUER_ID, and APP_STORE_CONNECT_API_KEY_CONTENT_B64 (base64).")
+  end
+
+  e = asc_env
+  key = app_store_connect_api_key(
+    key_id: e[:id],
+    issuer_id: e[:issuer],
+    key_content: e[:key],
+    is_key_content_base64: true
+  )
+  
+  # Even though fastlane automatically sets the lane_context, 
+  # some versions might not do it, so we do it manually to be explicit
+  lane_context[SharedValues::APP_STORE_CONNECT_API_KEY] = key
+  key
+end
+
+# iOS: match configured?
+def has_match_signing?
+  ENV['MATCH_GIT_URL'].to_s.strip != '' && ENV['MATCH_PASSWORD'].to_s.strip != ''
 end
 
 # Android: detect if keystore is present (path or default file)
@@ -51,30 +85,27 @@ def android_next_version_code(track: 'internal')
 end
 
 # Android: compute versionCode using CI-aware rule
-# If CI → try Play latest (internal track) → else GITHUB_RUN_NUMBER → else Time.now
+# If CI → try Play latest (passed track) → else GITHUB_RUN_NUMBER → else Time.now
 # If not CI → GITHUB_RUN_NUMBER → else Time.now
 def android_compute_version_code(track: 'internal')
   if ENV['CI'] == 'true'
     fetched = android_next_version_code(track: track)
     return fetched if fetched
-    return ENV['GITHUB_RUN_NUMBER'].to_i if ENV['GITHUB_RUN_NUMBER'].to_s.strip != ''
-    return Time.now.to_i
-  else
-    return ENV['GITHUB_RUN_NUMBER'].to_i if ENV['GITHUB_RUN_NUMBER'].to_s.strip != ''
-    return Time.now.to_i
   end
+  return ENV['GITHUB_RUN_NUMBER'].to_i if ENV['GITHUB_RUN_NUMBER'].to_s.strip != ''
+  return Time.now.to_i
 end
 
 # ───────────────────────── iOS ─────────────────────────
 
 platform :ios do
-  desc "Build iOS: Release archive if signing is configured, otherwise Simulator Debug (no signing)"
+
+  desc "Build iOS: Release archive with signing (match or automatic), or Simulator Debug (no signing)"
   lane :build do |options|
     # Handle auto/empty IOS_BUILD_MODE by falling back to signing-based logic
-    build_mode = ENV["IOS_BUILD_MODE"].to_s.strip
-    build_mode = nil if build_mode.empty? || build_mode == "auto"
-    
-    mode = (options[:mode] || build_mode || (has_ios_signing? ? "release" : "simulator")).to_s
+    build_mode = ENV['IOS_BUILD_MODE'].to_s.strip
+    build_mode = nil if build_mode.empty? || build_mode == 'auto'
+    mode = (options[:mode] || build_mode || (has_match_signing? ? 'release' : 'simulator')).to_s
 
     # Preflight: Require Firebase plist for all iOS builds (simulator or release)
     # Note: The GitHub Action may write a placeholder GoogleService-Info.plist to bypass this error in CI.
@@ -85,91 +116,116 @@ platform :ios do
     end
 
     case mode
-    when "release"
-      UI.message("🔐 iOS: Release archive with signing")
-      # Uncomment if you use one of these:
-      # automatic_code_signing(use_automatic_signing: true, team_id: "<TEAM_ID>")
-      # match(type: "appstore", readonly: true)
+    when 'release'
+      signing_mode = (ENV['IOS_SIGNING_MODE'] || '').strip # 'match' | 'automatic' | '' (auto)
+      use_match = ['match', ''].include?(signing_mode) && has_match_signing?
+      use_automatic = !use_match && signing_mode == 'automatic'
+
+      if use_match
+        setup_ci
+        sync_certificates_in_ci
+      elsif use_automatic
+        UI.message('🔧 Using Xcode automatic code signing for Release')
+        automatic_code_signing(use_automatic_signing: true, team_id: ENV['APPLE_DEVELOPER_TEAM_ID'])
+      else
+        UI.user_error!("No signing configured. Provide MATCH_* for match or set IOS_SIGNING_MODE=automatic with APPLE_DEVELOPER_TEAM_ID.")
+      end
 
       # --- iOS build number (CI-aware) ---
       if ENV['BUILD_NUMBER'] && !ENV['BUILD_NUMBER'].empty?
-        increment_build_number(
-          xcodeproj: "ios/app.xcodeproj",
-          build_number: ENV['BUILD_NUMBER'].to_i
-        )
-      elsif ENV['CI'] == 'true'
-        latest_build = latest_testflight_build_number(
-          app_identifier: ENV['IOS_BUNDLE_ID']
-        )
+        increment_build_number(xcodeproj: 'ios/app.xcodeproj', build_number: ENV['BUILD_NUMBER'].to_i)
+      elsif ENV['CI'] == 'true' && has_app_store_connect_key?
+        latest_build = latest_testflight_build_number(api_key: get_app_store_connect_api_key)
         new_build_number = latest_build + 1
         UI.message("📈 Incrementing build number: #{latest_build} → #{new_build_number}")
-        increment_build_number(
-          xcodeproj: "ios/app.xcodeproj",
-          build_number: new_build_number
-        )
+        increment_build_number(xcodeproj: 'ios/app.xcodeproj', build_number: new_build_number)
       else
-        # Fallback when APP_IDENTIFIER isn't set on CI
-        increment_build_number(xcodeproj: "ios/app.xcodeproj")
+        increment_build_number(xcodeproj: 'ios/app.xcodeproj')
       end
       # --- end build number logic ---
 
-      build_app(
-        workspace: "ios/app.xcworkspace",
-        scheme: "app",
-        configuration: "Release",
-        export_method: "app-store"
-      )
-      # Collect build artifacts (IPA, dSYM, xcarchive) for CI pickup
+      if use_match
+        update_code_signing_settings(
+          path: 'ios/app.xcodeproj',
+          team_id: ENV['APPLE_DEVELOPER_TEAM_ID'],
+          build_configurations: ['Release'],
+          code_sign_identity: 'Apple Distribution',
+          profile_name: lane_context[SharedValues::MATCH_PROVISIONING_PROFILE_MAPPING][ENV['IOS_BUNDLE_ID']]
+        )
+        build_app(
+          workspace: 'ios/app.xcworkspace',
+          export_method: (lane_context[SharedValues::SIGH_PROFILE_TYPE] || 'app-store'),
+          export_options: {
+            signingStyle: 'manual',
+            provisioningProfiles: lane_context[SharedValues::MATCH_PROVISIONING_PROFILE_MAPPING]
+          }
+        )
+      else
+        build_app(workspace: 'ios/app.xcworkspace', export_method: 'app-store')
+      end
+
+      # Collect build artifacts
       ios_artifacts = []
       ios_artifacts << lane_context[SharedValues::IPA_OUTPUT_PATH] if lane_context[SharedValues::IPA_OUTPUT_PATH]
       ios_artifacts << lane_context[SharedValues::DSYM_OUTPUT_PATH] if lane_context[SharedValues::DSYM_OUTPUT_PATH]
       ios_artifacts << lane_context[SharedValues::XCODEBUILD_ARCHIVE] if lane_context[SharedValues::XCODEBUILD_ARCHIVE]
-      copy_artifacts(
-        target_path: "artifacts/ios",
-        artifacts: ios_artifacts,
-        fail_on_missing: false
-      )
-    when "simulator"
-      UI.important("ℹ️ iOS: Simulator DEBUG build (no signing, no archive)")
+      copy_artifacts(target_path: 'artifacts/ios', artifacts: ios_artifacts, fail_on_missing: false)
+
+    when 'simulator'
+      UI.important('ℹ️ iOS: Simulator DEBUG build (no signing, no archive)')
       xcodebuild(
-        workspace: "ios/app.xcworkspace",
-        scheme: "app",
-        configuration: "Debug",
-        sdk: "iphonesimulator",
-        destination: "generic/platform=iOS Simulator",
-        derivedDataPath: "ios/build/DerivedData",
-        xcargs: "CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO DEVELOPMENT_TEAM= PROVISIONING_PROFILE_SPECIFIER="
+        workspace: 'ios/app.xcworkspace',
+        scheme: 'app',
+        configuration: 'Debug',
+        sdk: 'iphonesimulator',
+        destination: 'generic/platform=iOS Simulator',
+        derivedDataPath: 'ios/build/DerivedData',
+        xcargs: 'CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO DEVELOPMENT_TEAM= PROVISIONING_PROFILE_SPECIFIER='
       )
-      UI.message("✅ Simulator build finished. Products in ios/build/DerivedData")
-      # Collect simulator build products (*.app) for CI pickup (best-effort)
-      copy_artifacts(
-        target_path: "artifacts/ios",
-        artifacts: [
-          "ios/build/DerivedData/Build/Products/Debug-iphonesimulator/*.app"
-        ],
-        fail_on_missing: false
-      )
+      copy_artifacts(target_path: 'artifacts/ios', artifacts: ['ios/build/DerivedData/Build/Products/Debug-iphonesimulator/*.app'], fail_on_missing: false)
     else
       UI.user_error!("Unknown IOS_BUILD_MODE: #{mode.inspect} (use 'release' or 'simulator')")
     end
   end
 
-  desc "Upload to TestFlight (requires ASC_* or MATCH_*)"
+  desc 'Upload to TestFlight (build requires signing; upload requires App Store Connect API key)'
   lane :beta do
-    unless has_ios_signing?
-      UI.user_error!("No signing configured. Provide ASC_* or MATCH_* envs.")
-    end
-
-    # Build the app first (this handles build number logic and creates the IPA)
-    build(mode: "release")
-
-    # Upload to TestFlight
-    UI.message("📱 Uploading to TestFlight...")
+    build(mode: 'release')
+    UI.message('📱 Uploading to TestFlight...')
     upload_to_testflight(
+      api_key: get_app_store_connect_api_key,
       skip_waiting_for_build_processing: true,
       skip_submission: true
     )
-    UI.success("✅ Successfully uploaded to TestFlight!")
+    UI.success('✅ Successfully uploaded to TestFlight!')
+  end
+
+  desc 'Sync certificates in CI (read-only match)'
+  lane :sync_certificates_in_ci do
+    match(api_key: get_app_store_connect_api_key, readonly: true, type: 'appstore')
+  end
+
+  desc 'Create/repair production signing (App Store)'
+  lane :certificates_production do
+    match(api_key: get_app_store_connect_api_key, type: 'appstore', app_identifier: [ENV['IOS_BUNDLE_ID']])
+  end
+
+  desc 'Create/repair development signing'
+  lane :certificates_staging do
+    match(api_key: get_app_store_connect_api_key, type: 'development', app_identifier: [ENV['IOS_BUNDLE_ID_STAGING'] || ENV['IOS_BUNDLE_ID']])
+  end
+
+  desc 'Nuke all certificates & profiles for this app (use carefully)'
+  lane :nuke_certificates do
+    ['appstore', 'development', 'adhoc'].each do |type|
+      match_nuke(
+        team_id: ENV['APPLE_DEVELOPER_TEAM_ID'],
+        type: type,
+        app_identifier: [ENV['IOS_BUNDLE_ID']],
+        api_key: get_app_store_connect_api_key,
+        skip_confirmation: true
+      )
+    end
   end
 end
 
