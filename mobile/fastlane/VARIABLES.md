@@ -76,6 +76,7 @@ This document explains all the variables used in the Fastlane setup for iOS and 
 |----------|-------------|--------------|
 | `APP_STORE_CONNECT_API_KEY_ID` | App Store Connect API Key ID | iOS Release builds & TestFlight |
 | `APP_STORE_CONNECT_ISSUER_ID` | App Store Connect API Issuer ID | iOS Release builds & TestFlight |
+| `APP_STORE_CONNECT_TEAM_ID` | App Store Connect Team ID | iOS Release builds & TestFlight |
 | `APPLE_DEVELOPER_TEAM_ID` | Apple Developer Team ID | iOS Release builds & TestFlight |
 | `MATCH_GIT_URL` | Git repository URL for certificates/profiles | iOS Release builds with Match |
 
@@ -185,6 +186,7 @@ No secrets required! The system will:
    - **App Store Connect API Key** (for TestFlight uploads):
      - `APP_STORE_CONNECT_API_KEY_ID` (Variable)
      - `APP_STORE_CONNECT_ISSUER_ID` (Variable)
+     - `APP_STORE_CONNECT_TEAM_ID` (Variable)
      - `APP_STORE_CONNECT_API_KEY_CONTENT_B64` (Secret)
    - **Code signing method** (choose ONE):
      - **Option A: Fastlane Match** (recommended for CI):

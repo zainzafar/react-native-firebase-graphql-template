@@ -184,6 +184,7 @@ jobs:
           BUILD_NUMBER: ${{ github.event.inputs.build_number || '' }}
           # App Store Connect API Key (preferred for CI) - uncomment when ready
           APPLE_DEVELOPER_TEAM_ID: ${{ vars.APPLE_DEVELOPER_TEAM_ID || '' }}
+          APP_STORE_CONNECT_TEAM_ID: ${{ vars.APP_STORE_CONNECT_TEAM_ID || '' }}
           APP_STORE_CONNECT_API_KEY_ID: ${{ vars.APP_STORE_CONNECT_API_KEY_ID || '' }}
           APP_STORE_CONNECT_ISSUER_ID: ${{ vars.APP_STORE_CONNECT_ISSUER_ID || '' }}
           APP_STORE_CONNECT_API_KEY_CONTENT_B64: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT_B64 || '' }}

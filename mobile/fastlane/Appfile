@@ -1,8 +1,8 @@
 # iOS (optional)
-app_identifier("")   # com.example.app
-apple_id("")         # dev@example.com
-itc_team_id("")      # optional
+app_identifier(ENV['IOS_BUNDLE_ID'] || '')   # com.example.app
+team_id(ENV['APPLE_DEVELOPER_TEAM_ID'] || '')          # optional
+itc_team_id(ENV['APP_STORE_CONNECT_TEAM_ID'] || '')      # optional
 
 # Android (optional)
-json_key_file("")    # path to Play service account JSON if using supply
-package_name("")     # com.example.app
+json_key_file(ENV['GOOGLE_PLAY_SERVICE_KEY_B64'] || '')    # path to Play service account JSON if using supply
+package_name(ENV['ANDROID_APPLICATION_ID'] || '')     # com.example.app
