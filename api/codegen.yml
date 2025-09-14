@@ -1,4 +1,6 @@
 schema: "src/graphql/types/**/*.graphql"
+ignoreNoDocuments: true
+allowPartialOutputs: true
 
 generates:
   src/generated/resolvers-types.ts:
