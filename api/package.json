@@ -11,7 +11,9 @@
     "dev": "concurrently -c \"cyan,magenta\" -n server,codegen \"nodemon\" \"npm:codegen:watch\"",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "prisma:migrate:deploy": "prisma migrate deploy",
     "seed": "ts-node prisma/seed.ts",
+    "seed:prod": "node dist/prisma/seed.js",
     "import:firebase-users": "ts-node scripts/import-firebase-users.ts",
     "codegen": "graphql-codegen --config codegen.yml",
     "codegen:watch": "graphql-codegen --config codegen.yml --watch"
