@@ -36,7 +36,7 @@ This document provides a complete reference for all variables used in the iOS an
 |----------|-------------|--------------|---------|
 | `APP_STORE_CONNECT_API_KEY_ID` | App Store Connect API Key ID | App Store Connect → Users and Access → Keys → Generate API Key | `ABC123DEF4` |
 | `APP_STORE_CONNECT_ISSUER_ID` | App Store Connect Issuer ID | App Store Connect → Users and Access → Keys → Generate API Key | `12345678-1234-1234-1234-123456789012` |
-| `APP_STORE_CONNECT_TEAM_ID` | App Store Connect Team ID | App Store Connect → Users and Access → Keys → Generate API Key | `1234567890` |
+| `APP_STORE_CONNECT_TEAM_ID` | App Store Connect Team ID | See below for multiple methods to obtain this value | `1234567890` |
 | `APPLE_DEVELOPER_TEAM_ID` | Apple Developer Team ID | Apple Developer → Membership → Team ID | `ABC123DEF4` |
 
 #### GitHub Secrets
@@ -48,9 +48,13 @@ This document provides a complete reference for all variables used in the iOS an
 1. Go to [App Store Connect](https://appstoreconnect.apple.com) → Users and Access → Keys
 2. Click "Generate API Key" → Select "App Manager" or "Admin" role
 3. Download the `.p8` file
-4. Copy the Key ID, Issuer ID, and Team ID from the key details
+4. Copy the Key ID and Issuer ID from the key details
 5. Encode the `.p8` file: `base64 -i AuthKey_ABC123DEF4.p8`
-6. Set all values in GitHub repository settings
+6. **Get App Store Connect Team ID** using one of these methods:
+   - **Method 1 (Easiest)**: Run `fastlane deliver` and it will show available teams with their IDs
+   - **Method 2**: Visit [App Store Connect API endpoint](https://appstoreconnect.apple.com/WebObjects/iTunesConnect.woa/ra/user/detail) and look for `contentProviderId` in the `associatedAccounts` array
+   - **Method 3**: Use Spaceship playground: `fastlane spaceship` → `Spaceship::Tunes.select_team`
+7. Set all values in GitHub repository settings
 
 ### Code Signing (Choose ONE method)
 
