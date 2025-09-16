@@ -47,17 +47,17 @@ end
 
 # Android: detect if keystore is present (path or default file)
 def has_android_keystore?
-  ENV["ANDROID_KEYSTORE_PATH"].to_s.strip != "" || File.exist?("android/app/release.keystore")
+  ENV["ANDROID_KEYSTORE_PATH"].to_s.strip != "" || File.exist?("../android/app/release.keystore")
 end
 
-# Android: check presence of google-services.json (global or flavor)
-def android_google_services_present?(flavor)
-  app_dir = "android/app"
-  return true if File.exist?(File.join(app_dir, "google-services.json"))
-
-  fl = flavor.to_s.strip
-  return false if fl.empty?
-  File.exist?(File.join(app_dir, "src", fl, "google-services.json"))
+# Android: check presence of google-services.json
+def android_google_services_present?
+  # Fastlane runs from mobile/fastlane, so we need to go up one level to mobile/
+  app_dir = "../android/app"
+  file_path = File.join(app_dir, "google-services.json")
+  exists = File.exist?(file_path)
+  UI.message("🔍 Checking for google-services.json at: #{File.expand_path(file_path)} - #{exists ? 'Found' : 'Not found'}")
+  exists
 end
 
 # Android: compute next versionCode from Play internal track if credentials & package are present
@@ -234,12 +234,31 @@ end
 platform :android do
   desc "Build Android (dual-mode). Release if keystore present; otherwise Debug. Fails early if google-services.json required."
   lane :build do |options|
-    build_type = has_android_keystore? ? "Release" : "Debug"
+    # Determine build type: use env var if set, otherwise fall back to keystore-based logic
+    env_build_type = ENV['ANDROID_BUILD_TYPE'].to_s.strip
+    if env_build_type.empty? || env_build_type == 'auto'
+      build_type = has_android_keystore? ? "Release" : "Debug"
+    else
+      build_type = env_build_type
+    end
+    
+    # Determine packaging format: use env var if set, otherwise fall back to logic
+    env_packaging = ENV['ANDROID_PACKAGING'].to_s.strip
+    if env_packaging.empty? || env_packaging == 'auto'
+      # Auto logic: AAB for Release builds, APK for Debug builds
+      packaging = build_type == "Release" ? "aab" : "apk"
+    else
+      packaging = env_packaging
+    end
+
+    UI.message("🏗️ Android build type: #{build_type} (env: #{env_build_type})")
+    UI.message("📦 Android packaging: #{packaging} (env: #{env_packaging})")
+    UI.message("📁 Current working directory: #{Dir.pwd}")
 
     # Preflight: require google-services.json only for Release builds
-    if build_type == "Release" && !android_google_services_present?("")
+    if build_type == "Release" && !android_google_services_present?
       UI.user_error!("Missing google-services.json. Add: android/app/google-services.json")
-    elsif build_type == "Debug" && !android_google_services_present?("")
+    elsif build_type == "Debug" && !android_google_services_present?
       UI.important("⚠️ google-services.json not found. Proceeding without Firebase config.")
     end
 
@@ -247,8 +266,8 @@ platform :android do
     version_code = android_compute_version_code(track: 'internal')
     UI.message("📈 Android versionCode=#{version_code}")
 
-    # Build task (flavorless)
-    task = "assemble#{build_type}"
+    # Build task based on packaging format
+    task = packaging == "aab" ? "bundle#{build_type}" : "assemble#{build_type}"
 
     UI.message("🏗️  Gradle task: #{task} (type=#{build_type})")
     gradle(
@@ -258,32 +277,39 @@ platform :android do
     )
 
     # Collect Android artifacts for CI pickup using lane_context when available
-    apk_paths = []
-    if lane_context[SharedValues::GRADLE_ALL_APK_OUTPUT_PATHS]
-      apk_paths = Array(lane_context[SharedValues::GRADLE_ALL_APK_OUTPUT_PATHS])
-    elsif lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH]
-      apk_paths = [lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH]]
-    end
-
-    gradle_flavor = lane_context[SharedValues::GRADLE_FLAVOR]
+    artifact_paths = []
     gradle_build_type = lane_context[SharedValues::GRADLE_BUILD_TYPE]
+
+    # Collect paths based on packaging format
+    if packaging == "aab"
+      if lane_context[SharedValues::GRADLE_ALL_AAB_OUTPUT_PATHS]
+        artifact_paths = Array(lane_context[SharedValues::GRADLE_ALL_AAB_OUTPUT_PATHS])
+      elsif lane_context[SharedValues::GRADLE_AAB_OUTPUT_PATH]
+        artifact_paths = [lane_context[SharedValues::GRADLE_AAB_OUTPUT_PATH]]
+      end
+    else # apk
+      if lane_context[SharedValues::GRADLE_ALL_APK_OUTPUT_PATHS]
+        artifact_paths = Array(lane_context[SharedValues::GRADLE_ALL_APK_OUTPUT_PATHS])
+      elsif lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH]
+        artifact_paths = [lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH]]
+      end
+    end
 
     mapping_patterns = []
     if gradle_build_type && !gradle_build_type.to_s.strip.empty?
-      if gradle_flavor && !gradle_flavor.to_s.strip.empty?
-        mapping_patterns << "android/app/build/outputs/mapping/#{gradle_flavor}#{gradle_build_type}/**/*"
-      else
-        mapping_patterns << "android/app/build/outputs/mapping/#{gradle_build_type}/**/*"
-      end
+      mapping_patterns << "android/app/build/outputs/mapping/#{gradle_build_type}/**/*"
     end
     # Generic mapping fallback
     mapping_patterns << "android/app/build/outputs/mapping/**/*.txt"
 
     artifact_patterns = []
-    artifact_patterns += apk_paths
-    artifact_patterns << "android/app/build/outputs/apk/**/*.apk" if apk_paths.empty?
-    # AABs are not produced by assemble, but keep fallback for robustness
-    artifact_patterns << "android/app/build/outputs/bundle/**/*.aab"
+    artifact_patterns += artifact_paths
+    # Fallback patterns based on packaging format
+    if packaging == "aab"
+      artifact_patterns << "android/app/build/outputs/bundle/**/*.aab" if artifact_paths.empty?
+    else # apk
+      artifact_patterns << "android/app/build/outputs/apk/**/*.apk" if artifact_paths.empty?
+    end
     artifact_patterns += mapping_patterns
 
     copy_artifacts(
@@ -305,6 +331,11 @@ platform :android do
     UI.message("📈 Android versionCode (bundle)=#{version_code}")
     # Build the AAB first (this handles version code logic and creates the AAB)
     
+    # Preflight: require google-services.json for Release builds
+    unless android_google_services_present?
+      UI.user_error!("Missing google-services.json. Add: android/app/google-services.json")
+    end
+
     # Build task (flavorless)
     task = "bundleRelease"
 
@@ -331,16 +362,11 @@ platform :android do
     UI.success("✅ Successfully uploaded to Google Play Store!")
 
     # Collect Android bundle and mapping files for CI pickup (use lane_context for mapping shape when possible)
-    gradle_flavor = lane_context[SharedValues::GRADLE_FLAVOR]
     gradle_build_type = lane_context[SharedValues::GRADLE_BUILD_TYPE]
 
     mapping_patterns = []
     if gradle_build_type && !gradle_build_type.to_s.strip.empty?
-      if gradle_flavor && !gradle_flavor.to_s.strip.empty?
-        mapping_patterns << "android/app/build/outputs/mapping/#{gradle_flavor}#{gradle_build_type}/**/*"
-      else
-        mapping_patterns << "android/app/build/outputs/mapping/#{gradle_build_type}/**/*"
-      end
+      mapping_patterns << "android/app/build/outputs/mapping/#{gradle_build_type}/**/*"
     end
     mapping_patterns << "android/app/build/outputs/mapping/**/*.txt"
 

@@ -3,6 +3,11 @@ name: Android Build
 on:
   workflow_dispatch:
     inputs:
+      environment:
+        description: "Target environment"
+        type: choice
+        default: staging
+        options: [staging, production]
       lane:
         description: 'Fastlane lane to run (build = dual-mode, beta = Play internal upload)'
         required: true
@@ -29,6 +34,24 @@ on:
           - draft
           - completed
         default: "draft"
+      build_type:
+        description: 'Android build type (Auto = Release if keystore present, otherwise Debug)'
+        required: false
+        default: 'auto'
+        type: choice
+        options:
+          - auto
+          - Release
+          - Debug
+      packaging:
+        description: "Packaging format (AAB for Play, APK for testing)"
+        required: false
+        default: "auto"
+        type: choice
+        options:
+          - aab
+          - apk
+          - auto
       build_number:
         description: 'Override build number (leave empty for auto-increment)'
         required: false
@@ -37,6 +60,7 @@ on:
 
 jobs:
   android:
+    environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -90,10 +114,11 @@ jobs:
         run: |
           cat > .env <<'EOF'
           # Android-specific .env
-          APP_NAME=${{ secrets.APP_NAME || 'App' }}
-          APP_DISPLAY_NAME=${{ secrets.APP_DISPLAY_NAME || 'App' }}
-          ANDROID_APPLICATION_ID=${{ secrets.ANDROID_APPLICATION_ID || 'com.example.app' }}
-          GRAPHQL_API_URL=${{ secrets.GRAPHQL_API_URL }}
+          APP_NAME=${{ vars.APP_NAME || 'App' }}
+          APP_DISPLAY_NAME=${{ vars.APP_DISPLAY_NAME || 'App' }}
+          ANDROID_APPLICATION_ID=${{ vars.ANDROID_APPLICATION_ID || 'com.example.app' }}
+          GRAPHQL_API_URL=${{ vars.GRAPHQL_API_URL }}
+          GOOGLE_WEB_CLIENT_ID=${{ secrets.GOOGLE_WEB_CLIENT_ID }}
           EOF
 
       - name: Decode keystore to temp path (if provided)
@@ -104,6 +129,9 @@ jobs:
             echo "ANDROID_KEYSTORE_PATH=/tmp/keystore/upload.jks" >> $GITHUB_ENV
           fi
 
+      # One of the following Google Play authentication methods is required:
+      # - GOOGLE_PLAY_SERVICE_KEY_B64: Base64-encoded service account key file
+      # - GOOGLE_PLAY_JSON_DATA: Inline JSON service account data
       - name: Decode Google Play service account key (if provided)
         run: |
           if [ -n "${{ secrets.GOOGLE_PLAY_SERVICE_KEY_B64 }}" ]; then
@@ -135,6 +163,8 @@ jobs:
           ANDROID_TRACK: ${{ github.event.inputs.track || 'internal' }}
           RELEASE_STATUS: ${{ github.event.inputs.release_status || 'draft' }}
           BUILD_NUMBER: ${{ github.event.inputs.build_number || '' }}
+          ANDROID_BUILD_TYPE: ${{ github.event.inputs.build_type || 'auto' }}
+          ANDROID_PACKAGING: ${{ github.event.inputs.packaging || 'aab' }}
         run: |
           bundle exec fastlane android ${{ github.event.inputs.lane || 'build' }}
 

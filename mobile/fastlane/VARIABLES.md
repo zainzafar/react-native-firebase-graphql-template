@@ -16,7 +16,7 @@ This document explains all the variables used in the Fastlane setup for iOS and 
 ### App Configuration
 | Secret | Description | Required For | Default |
 |--------|-------------|--------------|---------|
-| `GOOGLE_WEB_CLIENT_ID` | Google OAuth web client ID | iOS builds with Google Sign-In | None |
+| `GOOGLE_WEB_CLIENT_ID` | Google OAuth web client ID | iOS & Android builds with Google Sign-In | None |
 | `GOOGLE_REVERSED_CLIENT_ID` | Google OAuth reversed client ID | iOS builds with Google Sign-In | None |
 | `GOOGLE_SERVICE_INFO_PLIST_B64` | Base64-encoded GoogleService-Info.plist file | iOS builds with Firebase | None |
 

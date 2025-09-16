@@ -106,6 +106,13 @@ android {
         release {
             // Read from env first, fallback to Gradle props or default file path
             def ksPath = System.getenv("ANDROID_KEYSTORE_PATH") ?: "${rootDir}/app/release.keystore"
+            def ksFile = file(ksPath)
+
+            if (!ksFile.exists()) {
+                println("⚠️ Release keystore not found at config time: ${ksFile.absolutePath}")
+            }
+
+            println("✅ Using release keystore at: ${ksFile.absolutePath}")
             storeFile file(ksPath)
             storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD") ?: project.findProperty("ANDROID_KEYSTORE_PASSWORD")
             keyAlias      System.getenv("ANDROID_KEY_ALIAS")       ?: project.findProperty("ANDROID_KEY_ALIAS")

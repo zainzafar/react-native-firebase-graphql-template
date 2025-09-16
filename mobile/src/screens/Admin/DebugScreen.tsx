@@ -85,10 +85,14 @@ export default function DebugScreen() {
     run();
   }, []);
 
-  const envInfo = useMemo(() => ({
-    GRAPHQL_API_URL: Config.GRAPHQL_API_URL,
-    GOOGLE_WEB_CLIENT_ID: Config.GOOGLE_WEB_CLIENT_ID,
-  }), []);
+  const envInfo = useMemo(() => {
+    const configEntries: { [key: string]: string } = {};
+    for (const key in Config) {
+      if (typeof Config[key] === 'function') continue;
+      configEntries[key] = Config[key] || '(not set)';
+    }
+    return configEntries;
+  }, []);
 
   const appInfo = useMemo(() => ({
     platform: Platform.OS,
@@ -229,8 +233,9 @@ export default function DebugScreen() {
       title: 'Environment',
       content: (
         <>
-          <InfoRow label="GraphQL URL" value={envInfo.GRAPHQL_API_URL || '(not set)'} />
-          <InfoRow label="Google Client ID" value={envInfo.GOOGLE_WEB_CLIENT_ID || '(not set)'} />
+          {Object.entries(envInfo).map(([key, value]) => (
+            <InfoRow key={key} label={key} value={value} />
+          ))}
         </>
       ),
     },

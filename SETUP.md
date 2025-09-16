@@ -53,6 +53,21 @@ This template is designed for a multi-environment setup with separate staging an
 
 #### Getting SHA Keys for Android
 
+#### Google Play Signing & Firebase SHA-1
+
+When distributing your Android app through Google Play (internal, closed, or production tracks), Google Play Console may re‑sign your APK/AAB with its own App Signing key. This means the SHA‑1 used by Play‑signed builds can differ from the one produced locally with your debug or release keystore.
+
+To ensure Firebase features (Google Sign‑In, Dynamic Links, FCM, etc.) work correctly in both local and Play‑distributed builds, you must add **all relevant SHA‑1s** to your Firebase project:
+
+1. Go to **Play Console → Select App -> Test and release -> App Integrity → App signing**.
+2. Copy the **SHA‑1 (and SHA‑256)** from the App Signing certificate section.
+3. In **Firebase Console → Project Settings → Your apps → Android app**, add these SHA‑1s in addition to your local debug/release SHA‑1s.
+4. Save and re‑download the updated `google-services.json` file if required.
+
+This way:
+- Local builds (debug/release keystore) continue to work.
+- Builds re‑signed by Google Play also authenticate properly with Firebase.
+
 Firebase requires SHA-1 or SHA-256 keys for Android apps to enable certain authentication features.
 
 **Notes:**
@@ -130,7 +145,7 @@ IOS_BUNDLE_ID=com.yourcompany.yourapp             # iOS bundle identifier (must 
 # API Configuration
 GRAPHQL_API_URL=https://api.yourcompany.com/graphql  # Your GraphQL API endpoint
 
-# Getting the Google Web Client ID:
+# Getting the Google Web Client ID (required for both iOS and Android Google Sign-In):
 # 1. Go to your Firebase Console → Authentication → Sign-in method
 # 2. Enable "Google" as a sign-in provider
 # 3. After enabling Google Sign-In, you'll see the Web Client ID in the configuration
@@ -312,6 +327,8 @@ This template includes comprehensive GitHub Actions workflows for automated buil
   - Automatic version code management
   - Flexible keystore handling
 
+**⚠️ Important Google Play Store Limitation**: Fastlane can only upload to Google Play Store if there has been at least one manual upload of your app to the store first. This is a Google Play Console requirement, not a Fastlane limitation. You must manually upload your first APK/AAB through the Google Play Console before automated uploads via Fastlane will work. See [this GitHub issue](https://github.com/fastlane/fastlane/issues/21749) for more details.
+
 ### Setting Up GitHub Actions
 
 #### 1. **Configure Repository Secrets**
@@ -389,6 +406,7 @@ Artifacts are collected using Fastlane’s `copy_artifacts` action and Android�
 - **Missing Secrets**: Ensure all required secrets are configured in repository settings
 - **Signing Issues**: Verify your signing certificates and provisioning profiles
 - **Firebase Errors**: Check that Firebase configuration files are properly base64 encoded
+- **Google Play Upload Errors**: If you get "Package not found" errors when uploading to Google Play Store, you must first manually upload your app through the Google Play Console. Fastlane can only upload to apps that have been manually uploaded at least once. See [this GitHub issue](https://github.com/fastlane/fastlane/issues/21749) for details.
 
 For detailed variable documentation, see [mobile/fastlane/VARIABLES.md](mobile/fastlane/VARIABLES.md).
 
