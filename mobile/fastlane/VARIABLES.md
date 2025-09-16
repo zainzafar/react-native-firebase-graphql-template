@@ -1,162 +1,190 @@
 # Fastlane Variables Reference
 
-This document explains all the variables used in the Fastlane setup for iOS and Android builds. All variables are **optional** - the system will work with sensible defaults, but you can configure them for production builds and deployments.
+This document provides a complete reference for all variables used in the iOS and Android build workflows. All variables are **optional** - the system works with sensible defaults, but you can configure them for production builds and deployments.
 
 ## 📋 Quick Reference
 
-- **GitHub Secrets**: Set in your repository's Settings → Secrets and variables → Actions
-- **GitHub Variables**: Set in your repository's Settings → Secrets and variables → Actions
-- **Environment Variables**: Set in `.env` file or GitHub Actions environment
-- **Workflow Inputs**: Set when manually triggering workflows
+- **GitHub Secrets**: Set in your repository's Settings → Secrets and variables → Actions → Secrets
+- **GitHub Variables**: Set in your repository's Settings → Secrets and variables → Actions → Variables  
+- **Workflow Inputs**: Set when manually triggering workflows in GitHub Actions
+- **Environment Variables**: Automatically set by workflows or Fastfile
 
 ---
 
-## 🔧 GitHub Secrets
+## 🏗️ App Configuration
 
-### App Configuration
-| Secret | Description | Required For | Default |
-|--------|-------------|--------------|---------|
-| `GOOGLE_WEB_CLIENT_ID` | Google OAuth web client ID | iOS & Android builds with Google Sign-In | None |
-| `GOOGLE_REVERSED_CLIENT_ID` | Google OAuth reversed client ID | iOS builds with Google Sign-In | None |
-| `GOOGLE_SERVICE_INFO_PLIST_B64` | Base64-encoded GoogleService-Info.plist file | iOS builds with Firebase | None |
+### GitHub Variables
 
-### iOS Signing (Both Required for App Store)
+| Variable | Description | Where to Get | Example | Required For |
+|----------|-------------|--------------|---------|--------------|
+| `APP_NAME` | Internal app name used in build scripts | Choose your app name | `MyApp` | All builds |
+| `APP_DISPLAY_NAME` | User-facing app name displayed on device | Choose your display name | `My App` | All builds |
+| `ANDROID_APPLICATION_ID` | Android package name | Choose your package name | `com.mycompany.myapp` | Android builds |
+| `IOS_BUNDLE_ID` | iOS bundle identifier | Choose your bundle ID | `com.mycompany.myapp` | iOS builds |
+| `GRAPHQL_API_URL` | Backend GraphQL API endpoint URL | Your backend URL | `https://api.myapp.com/graphql` | All builds |
 
-#### App Store Connect API Key (for TestFlight uploads)
-| Secret | Description | Required For |
-|--------|-------------|--------------|
-| `APP_STORE_CONNECT_API_KEY_CONTENT_B64` | Base64-encoded App Store Connect API Key (.p8 file) | iOS Release builds & TestFlight |
-
-#### Fastlane Match (for code signing)
-| Secret | Description | Required For |
-|--------|-------------|--------------|
-| `MATCH_PASSWORD` | Password for encrypted certificates repository | iOS Release builds & TestFlight |
-| `MATCH_GIT_BASIC_AUTHORIZATION` | Basic auth for private match repository (optional) | Private match repositories |
-
-### Android Signing
-| Secret | Description | Required For |
-|--------|-------------|--------------|
-| `ANDROID_KEYSTORE_BASE64` | Base64-encoded keystore file | Android Release builds |
-| `ANDROID_KEYSTORE_PASSWORD` | Keystore password | Android Release builds |
-| `ANDROID_KEY_ALIAS` | Key alias in keystore | Android Release builds |
-| `ANDROID_KEY_PASSWORD` | Key password | Android Release builds |
-
-### Google Play Store (Choose ONE method)
-
-#### 1. Base64-encoded Service Account Key (Recommended)
-| Secret | Description | Required For |
-|--------|-------------|--------------|
-| `GOOGLE_PLAY_SERVICE_KEY_B64` | Base64-encoded Google Play service account JSON | Android Play Store uploads |
-
-#### 2. Inline JSON Data (Alternative)
-| Secret | Description | Required For |
-|--------|-------------|--------------|
-| `GOOGLE_PLAY_JSON_DATA` | Inline Google Play service account JSON | Android Play Store uploads |
-
-### Google Services (Firebase)
-| Secret | Description | Required For |
-|--------|-------------|--------------|
-| `GOOGLE_SERVICES_JSON_B64` | Base64-encoded google-services.json file | Android builds with Firebase |
+**How to set**: Go to your repository → Settings → Secrets and variables → Actions → Variables → New repository variable
 
 ---
 
-## 🌍 GitHub Variables
+## 🔐 iOS Configuration
 
-### App Configuration
-| Variable | Description | Required For | Default |
+### App Store Connect API Key (Required for TestFlight uploads)
+
+#### GitHub Variables
+| Variable | Description | Where to Get | Example |
 |----------|-------------|--------------|---------|
-| `APP_NAME` | Internal app name used in build scripts | All builds | `"App"` |
-| `APP_DISPLAY_NAME` | User-facing app name displayed on device | All builds | `"App"` |
-| `ANDROID_APPLICATION_ID` | Android package name (e.g., `com.company.app`) | Android builds | `"com.example.app"` |
-| `IOS_BUNDLE_ID` | iOS bundle identifier (e.g., `com.company.app`) | iOS builds | `"com.example.app"` |
-| `GRAPHQL_API_URL` | Backend GraphQL API endpoint URL | All builds | None |
+| `APP_STORE_CONNECT_API_KEY_ID` | App Store Connect API Key ID | App Store Connect → Users and Access → Keys → Generate API Key | `ABC123DEF4` |
+| `APP_STORE_CONNECT_ISSUER_ID` | App Store Connect Issuer ID | App Store Connect → Users and Access → Keys → Generate API Key | `12345678-1234-1234-1234-123456789012` |
+| `APP_STORE_CONNECT_TEAM_ID` | App Store Connect Team ID | App Store Connect → Users and Access → Keys → Generate API Key | `1234567890` |
+| `APPLE_DEVELOPER_TEAM_ID` | Apple Developer Team ID | Apple Developer → Membership → Team ID | `ABC123DEF4` |
 
-### iOS Signing
-| Variable | Description | Required For |
-|----------|-------------|--------------|
-| `APP_STORE_CONNECT_API_KEY_ID` | App Store Connect API Key ID | iOS Release builds & TestFlight |
-| `APP_STORE_CONNECT_ISSUER_ID` | App Store Connect API Issuer ID | iOS Release builds & TestFlight |
-| `APP_STORE_CONNECT_TEAM_ID` | App Store Connect Team ID | iOS Release builds & TestFlight |
-| `APPLE_DEVELOPER_TEAM_ID` | Apple Developer Team ID | iOS Release builds & TestFlight |
-| `MATCH_GIT_URL` | Git repository URL for certificates/profiles | iOS Release builds with Match |
+#### GitHub Secrets
+| Secret | Description | Where to Get | How to Encode |
+|--------|-------------|--------------|---------------|
+| `APP_STORE_CONNECT_API_KEY_CONTENT_B64` | Base64-encoded App Store Connect API Key (.p8 file) | App Store Connect → Users and Access → Keys → Download .p8 file | See below |
 
-### Android Configuration
-| Variable | Description | Required For |
-|----------|-------------|--------------|
-| `GOOGLE_PLAY_JSON_PATH` | Path to Google Play service account JSON | Android Play Store uploads |
+**Step-by-step setup:**
+1. Go to [App Store Connect](https://appstoreconnect.apple.com) → Users and Access → Keys
+2. Click "Generate API Key" → Select "App Manager" or "Admin" role
+3. Download the `.p8` file
+4. Copy the Key ID, Issuer ID, and Team ID from the key details
+5. Encode the `.p8` file: `base64 -i AuthKey_ABC123DEF4.p8`
+6. Set all values in GitHub repository settings
 
----
+### Code Signing (Choose ONE method)
 
-## 🌍 Environment Variables
+#### Option A: Fastlane Match (Recommended for CI)
 
-### Build Configuration
-| Variable | Description | Set By | Default |
-|----------|-------------|---------|---------|
-| `CI` | Indicates if running in CI environment | GitHub Actions | `"true"` in CI |
-| `GITHUB_RUN_NUMBER` | GitHub Actions run number for build numbering | GitHub Actions | Dynamic |
-| `BUILD_NUMBER` | Override build number (manual input) | Workflow input | Auto-increment |
+##### GitHub Variables
+| Variable | Description | Where to Get | Example |
+|----------|-------------|--------------|---------|
+| `MATCH_GIT_URL` | Git repository URL for certificates/profiles | Create a private Git repository for certificates | `https://github.com/yourcompany/certificates.git` |
 
-### iOS Build Configuration
-| Variable | Description | Values | Default |
-|----------|-------------|---------|---------|
-| `IOS_BUILD_MODE` | iOS build mode selection | `"auto"`, `"simulator"`, `"release"` | `"auto"` |
-in| `IOS_SIGNING_MODE` | iOS signing method (only applies when build mode is release) | `""` (auto), `"match"`, `"automatic"` | `""` (auto) |
-| `IOS_BUNDLE_ID_STAGING` | Staging bundle ID for development certificates | Manual | `IOS_BUNDLE_ID` |
+##### GitHub Secrets
+| Secret | Description | Where to Get | Example |
+|--------|-------------|--------------|---------|
+| `MATCH_PASSWORD` | Password for encrypted certificates repository | Choose a strong password | `MySecurePassword123!` |
+| `MATCH_GIT_BASIC_AUTHORIZATION` | Basic auth for private match repository (optional) | GitHub → Settings → Developer settings → Personal access tokens | `base64(username:token)` |
 
-### Android Configuration
-| Variable | Description | Set By | Default |
-|----------|-------------|---------|---------|
-| `ANDROID_KEYSTORE_PATH` | Path to keystore file | GitHub Actions | `"android/app/release.keystore"` |
-| `ANDROID_TRACK` | Google Play track for beta lane | Workflow input | `"internal"` |
-| `RELEASE_STATUS` | Play Store release status | Workflow input | `"draft"` |
+**Step-by-step setup:**
+1. Create a private Git repository for storing certificates
+2. Choose a strong password for encrypting certificates
+3. Set `MATCH_GIT_URL` to your repository URL
+4. Set `MATCH_PASSWORD` to your chosen password
+5. (Optional) Create a GitHub Personal Access Token and encode it for `MATCH_GIT_BASIC_AUTHORIZATION`:
+   ```bash
+   echo -n "username:your_personal_access_token" | base64
+   ```
 
----
+#### Option B: Xcode Automatic/Managed Signing
 
-## 🎛️ Workflow Inputs
+**Requirements:**
+- Set `APPLE_DEVELOPER_TEAM_ID` (GitHub Variable)
+- Use `ios_signing_mode: automatic` in workflow input
 
-### iOS Workflow (`ios.yml`)
-| Input | Description | Options | Default |
-|-------|-------------|---------|---------|
-| `environment` | Target environment | `"staging"`, `"production"` | `"staging"` |
-| `lane` | Fastlane lane to execute | `"build"`, `"beta"` | `"build"` |
-| `ios_build_mode` | Force specific iOS build mode | `"auto"`, `"simulator"`, `"release"` | `"auto"` |
-| `ios_signing_mode` | iOS signing method (only applies when build mode is release) | `""` (auto), `"match"`, `"automatic"` | `""` (auto) |
-| `build_number` | Override build number | Any integer | Auto-increment |
+### iOS Workflow Inputs
 
-### Android Workflow (`android.yml`)
-| Input | Description | Options | Default |
-|-------|-------------|---------|---------|
-| `lane` | Fastlane lane to execute | `"build"`, `"beta"` | `"build"` |
-| `track` | Google Play track for beta lane | `"internal"`, `"alpha"`, `"beta"`, `"production"` | `"internal"` |
-| `release_status` | Play Store release status | `"draft"`, `"completed"` | `"draft"` |
-| `build_number` | Override build number | Any integer | Auto-increment |
+| Input | Description | Options | Default | When to Use |
+|-------|-------------|---------|---------|-------------|
+| `environment` | Target environment | `staging`, `production` | `staging` | Choose based on your deployment target |
+| `lane` | Fastlane lane to execute | `build`, `beta` | `build` | `build` for local builds, `beta` for TestFlight |
+| `ios_build_mode` | Force specific iOS build mode | `auto`, `simulator`, `release` | `auto` | Override automatic mode selection |
+| `ios_signing_mode` | iOS signing method (only applies when build mode is release) | `""` (auto), `match`, `automatic` | `""` (auto) | Override automatic signing method |
+| `build_number` | Override build number | Any integer | Auto-increment | Manual build number control |
 
 ---
 
-## 📱 Build Modes & Behaviors
+## 🤖 Android Configuration
 
-### iOS Build Modes
-- **`auto`**: Automatically chooses based on signing availability
-  - If signing configured → `release` (signed archive)
-  - If no signing → `simulator` (debug build)
-- **`simulator`**: Debug build for iOS Simulator (no signing required)
-- **`release`**: Signed archive for App Store/TestFlight (requires signing)
+### Signing Configuration
 
-### Android Build Types
-- **Debug**: Built when no keystore is provided
-- **Release**: Built when keystore is available
+#### GitHub Secrets
+| Secret | Description | Where to Get | How to Encode |
+|--------|-------------|--------------|---------------|
+| `ANDROID_KEYSTORE_BASE64` | Base64-encoded keystore file | Generate with `keytool` or use existing | See below |
+| `ANDROID_KEYSTORE_PASSWORD` | Keystore password | Choose when creating keystore | `MyKeystorePassword123!` |
+| `ANDROID_KEY_ALIAS` | Key alias in keystore | Choose when creating keystore | `my-key-alias` |
+| `ANDROID_KEY_PASSWORD` | Key password | Choose when creating keystore | `MyKeyPassword123!` |
+
+**Step-by-step setup:**
+1. Generate a keystore: `keytool -genkeypair -v -keystore my-upload-key.keystore -alias my-key-alias -keyalg RSA -keysize 2048 -validity 10000`
+2. Encode the keystore: `base64 -i my-upload-key.keystore`
+3. Set all keystore values in GitHub repository settings
+
+### Google Play Store Upload (Choose ONE method)
+
+#### Option A: Base64-encoded Service Account Key (Recommended)
+
+##### GitHub Secrets
+| Secret | Description | Where to Get | How to Encode |
+|--------|-------------|--------------|---------------|
+| `GOOGLE_PLAY_SERVICE_KEY_B64` | Base64-encoded Google Play service account JSON | Google Play Console → Setup → API access → Create service account | See below |
+
+**Step-by-step setup:**
+1. Go to [Google Play Console](https://play.google.com/console) → Setup → API access
+2. Create a new service account or use existing one
+3. Download the JSON key file
+4. Encode the JSON file: `base64 -i play-store-service-key.json`
+5. Set the encoded value in GitHub repository settings
+
+#### Option B: Inline JSON Data (Alternative)
+
+##### GitHub Secrets
+| Secret | Description | Where to Get | Example |
+|--------|-------------|--------------|---------|
+| `GOOGLE_PLAY_JSON_DATA` | Inline Google Play service account JSON | Google Play Console → Setup → API access → Create service account | `{"type": "service_account", "project_id": "my-project", ...}` |
+
+### Android Workflow Inputs
+
+| Input | Description | Options | Default | When to Use |
+|-------|-------------|---------|---------|-------------|
+| `environment` | Target environment | `staging`, `production` | `staging` | Choose based on your deployment target |
+| `lane` | Fastlane lane to execute | `build`, `beta` | `build` | `build` for local builds, `beta` for Play Store |
+| `track` | Google Play track for beta lane | `internal`, `alpha`, `beta`, `production` | `internal` | Choose your distribution track |
+| `release_status` | Play Store release status | `draft`, `completed` | `draft` | `draft` for testing, `completed` for release |
+| `build_type` | Android build type | `auto`, `Release`, `Debug` | `auto` | Override automatic build type selection |
+| `packaging` | Packaging format | `aab`, `apk`, `auto` | `aab` | `aab` for Play Store, `apk` for testing |
+| `build_number` | Override build number | Any integer | Auto-increment | Manual build number control |
+
+---
+
+## 🔥 Firebase Configuration
+
+### GitHub Secrets
+| Secret | Description | Where to Get | How to Encode |
+|--------|-------------|--------------|---------------|
+| `GOOGLE_WEB_CLIENT_ID` | Google OAuth web client ID | Firebase Console → Authentication → Sign-in method → Google → Web SDK configuration | `123456789-abcdefghijklmnop.apps.googleusercontent.com` |
+| `GOOGLE_REVERSED_CLIENT_ID` | Google OAuth reversed client ID | iOS GoogleService-Info.plist → REVERSED_CLIENT_ID key | `com.googleusercontent.apps.123456789-abcdefghijklmnop` |
+| `GOOGLE_SERVICE_INFO_PLIST_B64` | Base64-encoded GoogleService-Info.plist file | Firebase Console → Project Settings → iOS app → Download GoogleService-Info.plist | See below |
+| `GOOGLE_SERVICES_JSON_B64` | Base64-encoded google-services.json file | Firebase Console → Project Settings → Android app → Download google-services.json | See below |
+
+**Step-by-step setup:**
+1. Go to [Firebase Console](https://console.firebase.google.com) → Your Project → Project Settings
+2. Add your iOS and Android apps
+3. Download the configuration files:
+   - iOS: `GoogleService-Info.plist`
+   - Android: `google-services.json`
+4. Encode the files:
+   ```bash
+   base64 -i GoogleService-Info.plist
+   base64 -i google-services.json
+   ```
+5. For Google Sign-In, enable Google authentication and copy the Web Client ID
+6. For iOS, copy the REVERSED_CLIENT_ID from the plist file
+7. Set all values in GitHub repository settings
 
 ---
 
 ## 🔄 Build Number Logic
 
-### iOS
-1. **Manual override**: If `BUILD_NUMBER` is set, use that value
+### iOS Build Numbers
+1. **Manual override**: If `build_number` input is set, use that value
 2. **CI with signing**: Fetch latest TestFlight build number + 1
 3. **Fallback**: Auto-increment from Xcode project
 
-### Android
-1. **Manual override**: If `BUILD_NUMBER` is set, use that value
+### Android Build Numbers
+1. **Manual override**: If `build_number` input is set, use that value
 2. **CI with Play Store access**: Fetch latest Play Store version code + 1
 3. **CI fallback**: Use `GITHUB_RUN_NUMBER`
 4. **Local fallback**: Use current timestamp
@@ -172,56 +200,69 @@ No secrets required! The system will:
 - Auto-increment build numbers
 - Skip signing and store uploads
 
-### Production Setup
-1. **Set basic app info** (GitHub Variables):
-   ```
-   APP_NAME=MyApp
-   APP_DISPLAY_NAME=My App
-   ANDROID_APPLICATION_ID=com.mycompany.myapp
-   IOS_BUNDLE_ID=com.mycompany.myapp
-   GRAPHQL_API_URL=https://api.myapp.com/graphql
-   ```
+### Production Setup Checklist
 
-2. **For iOS App Store** (requires App Store Connect API Key + ONE signing method):
-   - **App Store Connect API Key** (for TestFlight uploads):
-     - `APP_STORE_CONNECT_API_KEY_ID` (Variable)
-     - `APP_STORE_CONNECT_ISSUER_ID` (Variable)
-     - `APP_STORE_CONNECT_TEAM_ID` (Variable)
-     - `APP_STORE_CONNECT_API_KEY_CONTENT_B64` (Secret)
-   - **Code signing method** (choose ONE):
-     - **Option A: Fastlane Match** (recommended for CI):
-       - `MATCH_GIT_URL` (Variable)
-       - `MATCH_PASSWORD` (Secret)
-     - **Option B: Xcode automatic/managed signing**:
-       - `APPLE_DEVELOPER_TEAM_ID` (Variable)
-       - Set `IOS_SIGNING_MODE=automatic` in workflow input
+#### 1. Basic App Configuration
+- [ ] Set `APP_NAME` and `APP_DISPLAY_NAME`
+- [ ] Set `ANDROID_APPLICATION_ID` and `IOS_BUNDLE_ID`
+- [ ] Set `GRAPHQL_API_URL`
 
-3. **For Android Play Store**:
-   - Set up keystore (`ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`)
-   - Set up Google Play service account (`GOOGLE_PLAY_SERVICE_KEY_B64`)
+#### 2. iOS App Store (Choose ONE signing method)
+- [ ] Set App Store Connect API Key variables and secret
+- [ ] **Option A**: Set up Fastlane Match (recommended)
+- [ ] **Option B**: Set up Xcode automatic signing
 
-4. **For Firebase**:
-   - **Android**: Set `GOOGLE_SERVICES_JSON_B64` with your google-services.json
-   - **iOS**: Set `GOOGLE_SERVICE_INFO_PLIST_B64` with your GoogleService-Info.plist
-   - **Google Sign-In**: Set `GOOGLE_WEB_CLIENT_ID` and `GOOGLE_REVERSED_CLIENT_ID`
+#### 3. Android Play Store
+- [ ] Generate and encode Android keystore
+- [ ] Set up Google Play service account
+- [ ] Encode service account key
+
+#### 4. Firebase Integration
+- [ ] Download and encode Firebase config files
+- [ ] Set up Google Sign-In credentials
 
 ---
 
 ## 🔍 Troubleshooting
 
 ### Common Issues
-- **"No signing configured"**: Set up iOS signing secrets (App Store Connect API Key or Match)
-- **"Missing GoogleService-Info.plist"**: Add Firebase config files or the build will proceed without Firebase
-- **"Unknown IOS_BUILD_MODE"**: Use `auto`, `simulator`, or `release`
-- **"App Store Connect API key not configured"**: Set `APP_STORE_CONNECT_API_KEY_ID`, `APP_STORE_CONNECT_ISSUER_ID`, and `APP_STORE_CONNECT_API_KEY_CONTENT_B64`
-- **Build number conflicts**: Use `BUILD_NUMBER` input to override
+
+| Error | Solution |
+|-------|----------|
+| "No signing configured" | Set up iOS signing secrets (App Store Connect API Key + Match or Automatic) |
+| "Missing GoogleService-Info.plist" | Add Firebase config files or build will proceed without Firebase |
+| "Unknown IOS_BUILD_MODE" | Use `auto`, `simulator`, or `release` |
+| "App Store Connect API key not configured" | Set `APP_STORE_CONNECT_API_KEY_ID`, `APP_STORE_CONNECT_ISSUER_ID`, and `APP_STORE_CONNECT_API_KEY_CONTENT_B64` |
+| "Build number conflicts" | Use `build_number` input to override |
+| "Missing google-services.json" | Add Firebase config file for Android Release builds |
+| "No Google Play credentials" | Set up Google Play service account key |
 
 ### Debug Mode
-- iOS: Use `ios_build_mode: simulator` for unsigned builds
-- Android: Omit keystore secrets for debug builds
+- **iOS**: Use `ios_build_mode: simulator` for unsigned builds
+- **Android**: Omit keystore secrets for debug builds
 
-### Signing Methods
+### Signing Methods Explained
 - **App Store Connect API Key + Match**: Recommended for CI/CD (API key for uploads, Match for signing)
-- **App Store Connect API Key + Automatic Signing**: Alternative using Xcode managed signing with `APPLE_DEVELOPER_TEAM_ID`
-- **Match**: Encrypted certificate repository for code signing (requires App Store Connect API Key)
-- **Automatic Signing**: Xcode managed signing (requires App Store Connect API Key + `APPLE_DEVELOPER_TEAM_ID`)
+- **App Store Connect API Key + Automatic Signing**: Alternative using Xcode managed signing
+- **Match**: Encrypted certificate repository for code signing
+- **Automatic Signing**: Xcode managed signing (requires App Store Connect API Key + Team ID)
+
+---
+
+## 📝 Environment Variables (Auto-Generated)
+
+These variables are automatically set by the workflows and don't need manual configuration:
+
+| Variable | Set By | Description |
+|----------|--------|-------------|
+| `CI` | GitHub Actions | Indicates if running in CI environment |
+| `GITHUB_RUN_NUMBER` | GitHub Actions | GitHub Actions run number for build numbering |
+| `ANDROID_KEYSTORE_PATH` | GitHub Actions | Path to keystore file (when provided) |
+| `GOOGLE_PLAY_JSON_PATH` | GitHub Actions | Path to Google Play service account JSON (when provided) |
+| `IOS_BUILD_MODE` | Workflow Input | iOS build mode selection |
+| `IOS_SIGNING_MODE` | Workflow Input | iOS signing method |
+| `ANDROID_TRACK` | Workflow Input | Google Play track for beta lane |
+| `RELEASE_STATUS` | Workflow Input | Play Store release status |
+| `ANDROID_BUILD_TYPE` | Workflow Input | Android build type |
+| `ANDROID_PACKAGING` | Workflow Input | Packaging format |
+| `BUILD_NUMBER` | Workflow Input | Override build number |
