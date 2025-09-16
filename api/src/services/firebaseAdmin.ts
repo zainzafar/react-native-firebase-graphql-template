@@ -66,7 +66,8 @@ export async function verifyIdTokenSafe(idToken: string): Promise<admin.auth.Dec
   try {
     const auth = getFirebaseAuth();
     return await auth.verifyIdToken(idToken, true);
-  } catch {
+  } catch (error) {
+    console.error('Failed to verify ID token', error);
     return null;
   }
 }
