@@ -452,7 +452,7 @@ This template includes comprehensive GitHub Actions workflows for automated buil
 
 Go to your repository → Settings → Secrets and variables → Actions, and add the required secrets based on your deployment needs.
 
-**📋 Complete Variable Reference**: See [mobile/fastlane/VARIABLES.md](mobile/fastlane/VARIABLES.md) for a comprehensive list of all available secrets, environment variables, and workflow inputs.
+**📋 Complete Variable Reference**: See [VARIABLES.md](VARIABLES.md) for a comprehensive list of all available secrets, environment variables, and workflow inputs.
 
 **Quick Start Secrets:**
 - **Basic Setup**: `APP_NAME`, `APP_DISPLAY_NAME`, `ANDROID_APPLICATION_ID`, `IOS_BUNDLE_ID`, `GRAPHQL_API_URL`
@@ -527,7 +527,7 @@ Artifacts are collected using Fastlane’s `copy_artifacts` action and Android�
 - **Firebase Errors**: Check that Firebase configuration files are properly base64 encoded
 - **Google Play Upload Errors**: If you get "Package not found" errors when uploading to Google Play Store, you must first manually upload your app through the Google Play Console. Fastlane can only upload to apps that have been manually uploaded at least once. See [this GitHub issue](https://github.com/fastlane/fastlane/issues/21749) for details.
 
-For detailed variable documentation, see [mobile/fastlane/VARIABLES.md](mobile/fastlane/VARIABLES.md).
+For detailed variable documentation, see [VARIABLES.md](VARIABLES.md).
 
 ## ⚠️ Common Setup Issues
 
