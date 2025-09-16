@@ -2,16 +2,11 @@
 
 This guide will help you quickly set up the Firebase Authentication Template for your project.
 
-## Template assumptions
+# Template Assumptions
 
-- Two apps per platform, no Android flavors in code:
-  - iOS: `com.example.app.staging` and `com.example.app`
-  - Android: `com.example.app.staging` and `com.example.app`
-- Bundle/package IDs are provided via environment variables (`IOS_BUNDLE_ID`, `ANDROID_APPLICATION_ID`).
-- Firebase native files are required:
-  - iOS: `mobile/ios/GoogleService-Info.plist` (locally or via CI secret; for fresh start, CI writes a placeholder to avoid build errors)
-  - Android: `mobile/android/app/google-services.json` (locally or via CI secret; for fresh start, CI ignores the google-signin config in build.gradle to avoid build errors)
-- Android Play upload track is selectable in CI (defaults to `internal`).
+This template is designed for a dual-app setup with separate staging and production environments. You'll create two apps per platform (iOS and Android) - one for staging/development and one for production. This approach provides complete separation between environments without using Android flavors. For example, you might use bundle identifiers like `com.yourcompany.yourapp.staging` and `com.yourcompany.yourapp` for iOS, and package names like `com.yourcompany.yourapp.staging` and `com.yourcompany.yourapp` for Android.
+
+---
 
 # Mobile App Setup
 
@@ -28,101 +23,169 @@ You'll need to create two separate iOS apps in App Store Connect first, as their
    - Use this for App Store releases
    - Configure with your production bundle identifier (e.g., `com.yourcompany.yourapp`)
 
-## 2. Firebase Project Setup
+## 2. Play Store Setup
 
-This template is designed for a multi-environment setup with separate staging and production Firebase projects. You'll need to create two Firebase projects, each containing multiple apps (iOS, Android, Web).
+You'll need to create two separate Android apps in Google Play Console:
 
-### Create Firebase Projects
+1. **Staging App**: Create an Android app for staging/testing
+   - Use this for development and staging builds
+   - Can be distributed via internal testing or closed testing
+   - The package name will be automatically detected when you upload your first AAB file
+
+2. **Production App**: Create an Android app for production
+   - Use this for Google Play Store releases
+   - The package name will be automatically detected when you upload your first AAB file
+
+**Important**: Google Play Console doesn't ask for package names upfront. The package name is automatically detected from your first uploaded AAB file. Make sure your `ANDROID_APPLICATION_ID` in your `.env` file matches what you want to use.
+
+## 3. Firebase Project Setup
+
+This template supports flexible Firebase project configurations. You can choose between two approaches:
+
+### Option A: Single Firebase Project (Recommended for Simplicity)
+
+Create one Firebase project and add multiple apps with descriptive names:
+
+1. **Create Firebase Project**: Create a single Firebase project
+2. **Add Staging Apps**:
+   - Add iOS app with bundle identifier from your staging App Store Connect app (name it "Your App (Staging)")
+   - Add Android app with package name from your `.env` file (name it "Your App (Staging)")
+   - You can skip the SHA-1 certificate step for now - you'll add these later
+3. **Add Production Apps**:
+   - Add iOS app with bundle identifier from your production App Store Connect app (name it "Your App (Production)")
+   - Add Android app with package name from your `.env` file (name it "Your App (Production)")
+   - You can skip the SHA-1 certificate step for now - you'll add these later
+4. **Add Web App**: Add one web app to this project
+
+### Option B: Separate Firebase Projects (For Complete Separation)
+
+If you prefer complete separation between staging and production environments:
 
 1. **Staging Project**: Create your first Firebase project for staging environment
    - Add iOS app using the bundle identifier from your staging App Store Connect app
    - Add Android app using the package name from your `.env` file
-     - When prompted for SHA-1 certificate, run: `cd mobile/android && ./gradlew :app:signingReport`
-     - Copy the SHA-1 from the `debug` variant output
+   - You can skip the SHA-1 certificate step for now - you'll add these later
    - Add Web app to this project
    - Use this project for development and staging builds
 
 2. **Production Project**: Create your second Firebase project for production environment
    - Add iOS app using the bundle identifier from your production App Store Connect app
    - Add Android app using the package name from your `.env` file
-     - When prompted for SHA-1 certificate, run: `cd mobile/android && ./gradlew :app:signingReport`
-     - Copy the SHA-1 from the `release` variant output
-     - **Note**: For production builds, you'll also need to upload your upload signing key to your CI/CD system
+   - You can skip the SHA-1 certificate step for now - you'll add these later
+   - **Note**: For production builds, you'll also need to upload your upload signing key to your CI/CD system
    - Add Web app to this project
    - Use this project for production builds only
 
-#### Getting SHA Keys for Android
+### Getting SHA Keys for Android
 
-#### Google Play Signing & Firebase SHA-1
+**When to add SHA keys**: After creating your Android apps in Firebase, you'll need to add SHA-1 and SHA-256 keys to enable authentication features. You can add these keys later by going to Firebase Console → Project Settings → Your Apps → Android app → Add fingerprint.
 
-When distributing your Android app through Google Play (internal, closed, or production tracks), Google Play Console may re‑sign your APK/AAB with its own App Signing key. This means the SHA‑1 used by Play‑signed builds can differ from the one produced locally with your debug or release keystore.
+Firebase requires SHA-1 or SHA-256 keys for Android apps to enable certain authentication features. You'll need to add multiple SHA keys to your Firebase project to support different build types and distribution methods.
 
-To ensure Firebase features (Google Sign‑In, Dynamic Links, FCM, etc.) work correctly in both local and Play‑distributed builds, you must add **all relevant SHA‑1s** to your Firebase project:
+For each Android app (staging and production), you'll typically need to add **3 different sets of SHA keys**:
 
-1. Go to **Play Console → Select App -> Test and release -> App Integrity → App signing**.
-2. Copy the **SHA‑1 (and SHA‑256)** from the App Signing certificate section.
-3. In **Firebase Console → Project Settings → Your apps → Android app**, add these SHA‑1s in addition to your local debug/release SHA‑1s.
-4. Save and re‑download the updated `google-services.json` file if required.
+| Keystore Type | SHA-1 | SHA-256 | Usage |
+|---------------|-------|---------|-------|
+| Debug Keystore | Required | Required | Local development builds |
+| Upload Keystore | Required | Required | Release builds uploaded to Play Store |
+| Google App Signing | Required | Required | Play Store distributed builds |
 
-This way:
-- Local builds (debug/release keystore) continue to work.
-- Builds re‑signed by Google Play also authenticate properly with Firebase.
+#### 1. Debug Keystore
 
-Firebase requires SHA-1 or SHA-256 keys for Android apps to enable certain authentication features.
+Used for local development and testing builds.
 
-**Notes:**
-- Default debug keystore location: `~/.android/debug.keystore`
-- Default alias: `AndroidDebugKey`, password: `android`
-- Run again after configuring a release keystore to get release variant SHA keys
-- **This template automatically uses the system debug keystore** at `~/.android/debug.keystore` (no local keystore file needed)
-- Gradle will automatically generate the debug keystore at `~/.android/debug.keystore` if it doesn't exist
-- To manually generate a debug keystore, use:
-  ```bash
-  keytool -genkeypair -v -storepass android -keypass android -keystore ~/.android/debug.keystore -alias AndroidDebugKey -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
-  ```
-  This command will create the `debug.keystore` file at `~/.android/debug.keystore`.
+**Location**: `~/.android/debug.keystore`  
+**Alias**: `AndroidDebugKey`  
+**Store Password**: `android`  
+**Key Password**: `android`
 
-You can obtain these keys by running the following commands from the `mobile/android` directory:
-
+**Getting the SHA keys:**
 ```bash
+cd mobile/android
 ./gradlew :app:signingReport
 ```
-or
-```bash
-./gradlew signingReport
-```
 
-This will output information about your app's signing configurations, including SHA-1 and SHA-256 keys. A sample output looks like this:
-
+Look for the `debug` variant output:
 ```
 Variant: debug
 Config: debug
 Store: /Users/username/.android/debug.keystore
 Alias: AndroidDebugKey
-MD5:  AA:BB:CC:DD:EE:FF:11:22:33:44:55:66:77:88:99:00
 SHA1: 11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44
 SHA-256: AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99
 ```
+
+**Notes:**
+- This template automatically uses the system debug keystore
+- Gradle will automatically generate the debug keystore if it doesn't exist
+- To manually generate: `keytool -genkeypair -v -storepass android -keypass android -keystore ~/.android/debug.keystore -alias AndroidDebugKey -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"`
+
+#### 2. Upload Keystore
+
+Used for release builds that you upload to Google Play Store.
+
+**Getting the SHA keys:**
+```bash
+cd mobile/android
+./gradlew :app:signingReport
+```
+
+Look for the `release` variant output and check which keystore it's using:
+
+**If the release variant is using a separate upload keystore:**
+```
+Variant: release
+Config: release
+Store: /path/to/your/upload-keystore.jks
+Alias: your-key-alias
+SHA1: 22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55
+SHA-256: BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA
+```
+
+**If the release variant is using the debug keystore** (Store: `/Users/username/.android/debug.keystore`), you need to generate a proper release keystore:
+
+```bash
+cd mobile/android/app
+keytool -genkeypair -v -keystore release.keystore -alias my-key-alias -keyalg RSA -keysize 2048 -validity 10000
+```
+
+This will prompt you for:
+- Keystore password (choose a strong password)
+- Key password (can be same as keystore password)
+- Your name, organizational unit, organization, city, state, and country code
+
+**Note**: The `android/app/build.gradle` file automatically uses the release keystore when it's created in the `mobile/android/app/` directory. After generating your release keystore, run `./gradlew :app:signingReport` again to get the new SHA keys.
+
+#### 3. Google App Signing
+
+When you upload your app to Google Play Store, Google may re-sign your APK/AAB with their own App Signing key. This is the SHA key that will be used for distributed builds.
+
+**Getting the SHA keys:**
+1. Go to **Google Play Console → Select App → Release → Setup → App integrity**
+2. Copy the **SHA-1** and **SHA-256** from the "App signing key certificate" section
+3. These are the keys that Google Play uses to sign your distributed app
+
+**Important**: You must add all three sets of SHA keys to your Firebase project to ensure authentication works across all build types and distribution methods.
 
 ### Replace Firebase Configuration Files
 
 **IMPORTANT**: This template does not include Firebase configuration files. You must download the actual Firebase configuration files from the Firebase Console and add them to your project as follows.
 
 #### Android Files to Add:
-1. From your **staging Firebase project** → Project Settings → Your Apps → Android app, download `google-services.json`.
+1. From your Firebase project → Project Settings → Your Apps → Android app, download `google-services.json`.
 2. For local development, place it at: `mobile/android/app/google-services.json`.
 3. For CI, store the file as base64 in `GOOGLE_SERVICES_JSON_B64`; the workflow writes it to `mobile/android/app/google-services.json`.
-4. Repeat for your **production Firebase project** when building production; ensure the correct file is provided (locally or via CI secret) according to the `ANDROID_APPLICATION_ID` you target.
+4. If using separate Firebase projects, ensure the correct file is provided (locally or via CI secret) according to the `ANDROID_APPLICATION_ID` you target.
 
 #### iOS Files to Add:
-1. From your **staging Firebase project** → Project Settings → Your Apps → iOS app, download `GoogleService-Info.plist`.
+1. From your Firebase project → Project Settings → Your Apps → iOS app, download `GoogleService-Info.plist`.
 2. Add it to: `mobile/ios/GoogleService-Info.plist`.
 
 **Notes**:
 - For production iOS builds, you can store the `GoogleService-Info.plist` content as base64 in your CI environment; the workflow writes it to `mobile/ios/GoogleService-Info.plist`.
 - CI may write a minimal placeholder to bypass build errors, but you must replace it with your real file for actual usage.
 
-## 3. Mobile Environment Configuration
+## 4. Mobile Environment Configuration
 
 Copy the example environment file and update it with your configuration:
 
@@ -163,9 +226,9 @@ GOOGLE_REVERSED_CLIENT_ID=com.googleusercontent.apps.your-client-id
 - Replace `your-web-client-id.apps.googleusercontent.com` with your actual Google Web Client ID from Firebase Console
 - Replace `com.googleusercontent.apps.your-client-id` with your actual Google Reversed Client ID from Firebase Console
 - Update app identifiers (`ANDROID_APPLICATION_ID`, `IOS_BUNDLE_ID`) to match your actual app bundle/package names
-- Set `API_URL` to your actual backend endpoint
+- Set `GRAPHQL_API_URL` to your actual backend endpoint
 
-## 4. Install Dependencies & Run
+## 5. Install Dependencies & Run
 
 ```bash
 npm install --legacy-peer-deps
@@ -175,7 +238,7 @@ npm run ios     # For iOS
 npm run android # For Android
 ```
 
-## 5. Project Cleanup System
+## 6. Project Cleanup System
 
 This template includes a comprehensive cleanup system to help manage build artifacts, caches, and temporary files. The cleanup script provides multiple cleaning levels and platform-specific options.
 
@@ -231,9 +294,11 @@ The cleanup script includes several safety features:
 - ✅ Help documentation
 - ✅ Platform-specific options
 
+---
+
 # Backend API Setup
 
-## 1. Copy API Environment File
+## 7. Copy API Environment File
 
 The API includes an example environment file with all required configuration variables:
 
@@ -241,7 +306,7 @@ The API includes an example environment file with all required configuration var
 cp api/.env.example api/.env
 ```
 
-## 2. Update API Environment Variables
+## 8. Update API Environment Variables
 
 Edit `api/.env` and update the following variables:
 
@@ -262,7 +327,7 @@ IOS_APP_STORE_URL=
 ANDROID_PLAY_STORE_URL=
 ```
 
-## 3. Start the API Server
+## 9. Start the API Server
 
 ```bash
 cd api
@@ -271,7 +336,7 @@ npx prisma migrate dev
 npm run dev
 ```
 
-## 4. Promote a Super Admin (optional)
+## 10. Promote a Super Admin (optional)
 
 Grant `SUPER_ADMIN` to an existing user (the user must have logged in at least once so they exist in the DB):
 
@@ -282,7 +347,7 @@ SEED_SUPER_ADMIN_EMAIL="admin@example.com" npm run prisma:seed
 
 You can re-run the command with a different email to grant additional super admins.
 
-## 5. Theme System (Optional)
+## 11. Theme System (Optional)
 
 The app includes a scalable theme system that supports multiple themes with automatic discovery. For detailed information about:
 
@@ -293,7 +358,41 @@ The app includes a scalable theme system that supports multiple themes with auto
 
 See: [Theme System Documentation](./mobile/theme.md)
 
-## 6. GitHub Actions CI/CD Setup
+## 12. First Android Build Upload (Required)
+
+**⚠️ Important Google Play Store Limitation**: Fastlane can only upload to Google Play Store if there has been at least one manual upload of your app to the store first. This is a Google Play Console requirement, not a Fastlane limitation. You must manually upload your first AAB through the Google Play Console before automated uploads via Fastlane will work.
+
+### Building Your First AAB File
+
+To create your first AAB file for manual upload:
+
+1. **Use GitHub Actions Android Build**:
+   - Go to your repository → Actions → Android Build
+   - Click "Run workflow"
+   - Configure the following options:
+     - **Lane**: `build`
+     - **Google Play track for beta lane**: `internal`
+     - **Release status**: `draft`
+     - **Android build type**: `release`
+     - **Packaging format**: `AAB`
+     - **Build Number**: Leave empty for auto-increment
+
+2. **Download the AAB File**:
+   - Once the build completes, go to the workflow run
+   - Download the `android-artifacts` artifact
+   - Extract the `.aab` file from the downloaded archive
+
+3. **Upload to Google Play Console**:
+   - Go to Google Play Console → Your App → Release → Production (or Internal testing)
+   - Click "Create new release"
+   - Upload the `.aab` file
+   - Complete the release process
+
+4. **Enable Automated Uploads**:
+   - After the first manual upload, Fastlane will be able to upload subsequent builds automatically
+   - You can now use the `beta` lane in GitHub Actions for automated uploads
+
+## 13. GitHub Actions CI/CD Setup
 
 This template includes comprehensive GitHub Actions workflows for automated building, testing, and deployment. The CI/CD system supports both iOS and Android builds with flexible configuration options.
 
@@ -312,22 +411,40 @@ This template includes comprehensive GitHub Actions workflows for automated buil
 #### 2. **iOS Build Workflow** (`.github/workflows/ios.yml`)
 - **Triggers**: Manual dispatch only
 - **Purpose**: Build and deploy iOS apps
+- **Available Lanes**:
+  - `build`: Dual-mode builds (simulator debug or signed release)
+  - `beta`: TestFlight uploads with automatic build number management
+- **Build Modes**:
+  - `auto`: Automatically selects simulator or release based on lane
+  - `simulator`: Creates debug builds for testing
+  - `release`: Creates signed release builds
 - **Features**:
-  - Dual-mode builds (simulator debug or signed release)
-  - TestFlight uploads
-  - Automatic build number management
   - Flexible signing options (App Store Connect API or Fastlane Match)
+  - Automatic build number management
+  - TestFlight uploads
 
 #### 3. **Android Build Workflow** (`.github/workflows/android.yml`)
 - **Triggers**: Manual dispatch only
 - **Purpose**: Build and deploy Android apps
+- **Available Lanes**:
+  - `build`: Creates APK or AAB files for manual distribution
+  - `beta`: Uploads to Google Play Store with selectable track
+- **Build Types**:
+  - `debug`: Development builds
+  - `release`: Production builds
+- **Packaging Formats**:
+  - `APK`: Direct installation files
+  - `AAB`: Android App Bundles for Play Store
+- **Google Play Tracks**:
+  - `internal`: Internal testing
+  - `alpha`: Alpha testing
+  - `beta`: Beta testing
+  - `production`: Production releases
 - **Features**:
   - Flavorless builds (env-driven package name and Firebase file)
-  - Google Play Store uploads with selectable track (internal/alpha/beta/production)
   - Automatic version code management
   - Flexible keystore handling
-
-**⚠️ Important Google Play Store Limitation**: Fastlane can only upload to Google Play Store if there has been at least one manual upload of your app to the store first. This is a Google Play Console requirement, not a Fastlane limitation. You must manually upload your first APK/AAB through the Google Play Console before automated uploads via Fastlane will work. See [this GitHub issue](https://github.com/fastlane/fastlane/issues/21749) for more details.
+  - Selectable release status (draft/completed)
 
 ### Setting Up GitHub Actions
 
@@ -366,6 +483,8 @@ Go to your repository → Settings → Secrets and variables → Actions, and ad
    - **Track**: `internal` (default), `alpha`, `beta`, or `production`
    - **Release Status**: `draft` or `completed`
    - **Build Number**: Leave empty for auto-increment
+
+**⚠️ First Build Requirement**: Before using the `beta` lane for automated Play Store uploads, you must manually upload your first AAB file. See [First Android Build Upload (Required)](#12-first-android-build-upload-required) for detailed instructions.
 
 #### 3. **Build Outputs**
 
