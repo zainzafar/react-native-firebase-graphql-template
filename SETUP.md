@@ -38,6 +38,8 @@ You'll need to create two separate Android apps in Google Play Console:
 
 **Important**: Google Play Console doesn't ask for package names upfront. The package name is automatically detected from your first uploaded AAB file. Make sure your `ANDROID_APPLICATION_ID` in your `.env` file matches what you want to use.
 
+**App Data Safety Policy**: Google Play Store requires you to declare how your app collects and uses data. Since this template includes a debug screen that collects device information, you must add an App Data Safety policy that describes the use of Device or other IDs. Go to Google Play Console → Your App → Monitor and Improve → Policy and Programs → App Content → Data safety → Add data type → Device or other IDs → Select "Collected" and provide details about how device information is used for debugging purposes.
+
 ## 3. Firebase Project Setup
 
 This template supports flexible Firebase project configurations. You can choose between two approaches:
