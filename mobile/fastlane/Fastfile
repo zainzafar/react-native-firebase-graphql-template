@@ -205,14 +205,11 @@ platform :ios do
     match(api_key: get_app_store_connect_api_key, readonly: true, type: 'appstore')
   end
 
-  desc 'Create/repair production signing (App Store)'
-  lane :certificates_production do
-    match(api_key: get_app_store_connect_api_key, type: 'appstore', app_identifier: [ENV['IOS_BUNDLE_ID']])
-  end
-
-  desc 'Create/repair development signing'
-  lane :certificates_staging do
-    match(api_key: get_app_store_connect_api_key, type: 'development', app_identifier: [ENV['IOS_BUNDLE_ID_STAGING'] || ENV['IOS_BUNDLE_ID']])
+  desc 'Generate certificates (App Store)'
+  lane :generate_certificates do
+    ['appstore', 'development', 'adhoc'].each do |type|
+      match(api_key: get_app_store_connect_api_key, type: type, app_identifier: [ENV['IOS_BUNDLE_ID']])
+    end
   end
 
   desc 'Nuke all certificates & profiles for this app (use carefully)'

@@ -39,21 +39,13 @@ Upload to TestFlight (build requires signing; upload requires App Store Connect 
 
 Sync certificates in CI (read-only match)
 
-### ios certificates_production
+### ios generate_certificates
 
 ```sh
-[bundle exec] fastlane ios certificates_production
+[bundle exec] fastlane ios generate_certificates
 ```
 
-Create/repair production signing (App Store)
-
-### ios certificates_staging
-
-```sh
-[bundle exec] fastlane ios certificates_staging
-```
-
-Create/repair development signing
+Generate certificates (App Store)
 
 ### ios nuke_certificates
 
