@@ -20,6 +20,18 @@ if (!graphqlUrl) {
 }
 const httpLink = new HttpLink({ uri: graphqlUrl });
 
+// Generate request ID once per operation and make it available to all links
+const requestIdLink = new SetContextLink(async (prevContext, _operation) => {
+  return {
+    ...prevContext,
+    headers: {
+      ...prevContext.headers,
+      // Generate request ID early so it's available to logging link
+      'x-request-id': uuidv4.v4(),
+    },
+  };
+});
+
 const authLink = new SetContextLink(async (prevContext, _operation) => {
   try {
     const token = await getEffectiveToken();
@@ -160,7 +172,8 @@ const buildFragmentsMap = (definitions: DocumentNode['definitions']): Record<str
 // Development logging link - only active in __DEV__ mode
 const devLoggingLink = new ApolloLink((operation, forward) => {
   if (__DEV__) {
-    const operationId = uuidv4.v4()
+    // Use the same request ID that will be sent to the server
+    const operationId = operation.getContext().headers?.['x-request-id'] || uuidv4.v4();
     const startTime = Date.now();
     const operationType = operation.query.definitions[0]?.kind === 'OperationDefinition' 
       ? operation.query.definitions[0].operation 
@@ -226,7 +239,7 @@ const devLoggingLink = new ApolloLink((operation, forward) => {
 });
 
 export const apolloClient = new ApolloClient({
-  link: ApolloLink.from([devLoggingLink, errorLink, authLink, httpLink]),
+  link: ApolloLink.from([requestIdLink, devLoggingLink, errorLink, authLink, httpLink]),
   cache: new InMemoryCache({
     typePolicies: {
       Query: {
