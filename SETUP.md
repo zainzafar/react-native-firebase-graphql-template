@@ -163,7 +163,7 @@ This will prompt you for:
 When you upload your app to Google Play Store, Google may re-sign your APK/AAB with their own App Signing key. This is the SHA key that will be used for distributed builds.
 
 **Getting the SHA keys:**
-1. Go to **Google Play Console → Select App → Release → Setup → App integrity**
+1. Go to **Google Play Console → Select App → Test and Release → App integrity → Play app signing → settings**
 2. Copy the **SHA-1** and **SHA-256** from the "App signing key certificate" section
 3. These are the keys that Google Play uses to sign your distributed app
 
