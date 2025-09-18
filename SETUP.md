@@ -57,7 +57,13 @@ Create one Firebase project and add multiple apps with descriptive names:
    - Add iOS app with bundle identifier from your production App Store Connect app (name it "Your App (Production)")
    - Add Android app with package name from your `.env` file (name it "Your App (Production)")
    - You can skip the SHA-1 certificate step for now - you'll add these later
-4. **Add Web App**: Add one web app to this project
+4. **Enable Authentication**:
+   - Open your Firebase project
+   - Go to **Build** → **Authentication**
+   - Click **Get started**
+   - Go to the **Sign-in method** tab
+   - Enable **Google** as a sign-in provider
+   - This will automatically reveal the Web SDK configuration you need for your mobile app
 
 ### Option B: Separate Firebase Projects (For Complete Separation)
 
@@ -67,7 +73,7 @@ If you prefer complete separation between staging and production environments:
    - Add iOS app using the bundle identifier from your staging App Store Connect app
    - Add Android app using the package name from your `.env` file
    - You can skip the SHA-1 certificate step for now - you'll add these later
-   - Add Web app to this project
+   - Enable Authentication: Go to **Build** → **Authentication** → **Get started** → **Sign-in method** → Enable **Google**
    - Use this project for development and staging builds
 
 2. **Production Project**: Create your second Firebase project for production environment
@@ -75,8 +81,19 @@ If you prefer complete separation between staging and production environments:
    - Add Android app using the package name from your `.env` file
    - You can skip the SHA-1 certificate step for now - you'll add these later
    - **Note**: For production builds, you'll also need to upload your upload signing key to your CI/CD system
-   - Add Web app to this project
+   - Enable Authentication: Go to **Build** → **Authentication** → **Get started** → **Sign-in method** → Enable **Google**
    - Use this project for production builds only
+
+### Disable Email Enumeration Protection
+
+**Important for Mobile Apps**: Since this template uses a unified sign-up/login flow, you need to disable email enumeration protection in Firebase Authentication:
+
+1. Go to [Firebase Console → Authentication → Settings](https://console.firebase.google.com/project/[PROJECT_ID]/authentication/settings)
+2. Navigate to the **User actions** tab
+3. **Uncheck "Email enumeration protection"**
+4. Click **Save**
+
+This allows users to sign in with either existing or new email addresses without Firebase revealing whether an email is already registered, which is essential for unified authentication flows.
 
 ### Getting SHA Keys for Android
 
