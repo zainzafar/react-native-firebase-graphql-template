@@ -20,9 +20,9 @@ export function Card({ children, style }: { children: React.ReactNode; style?: V
   return <View style={[{ backgroundColor: colors.card, borderColor: colors.cardBorder, borderRadius: borderRadius.xl }, styles.card, style]}>{children}</View>;
 }
 
-export function Heading({ children }: { children: React.ReactNode }) {
+export function Heading({ children, style }: { children: React.ReactNode; style?: TextStyle | TextStyle[] }) {
   const { colors } = useTheme();
-  return <Text style={[{ color: colors.text }, styles.heading]}>{children}</Text>;
+  return <Text style={[{ color: colors.text }, styles.heading, style]}>{children}</Text>;
 }
 
 export function Body({ children, style }: { children: React.ReactNode; style?: TextStyle | TextStyle[] }) {
@@ -40,15 +40,17 @@ type InputProps = {
   textContentType?: 'none' | 'URL' | 'addressCity' | 'addressCityAndState' | 'addressState' | 'countryName' | 'creditCardNumber' | 'emailAddress' | 'familyName' | 'fullStreetAddress' | 'givenName' | 'jobTitle' | 'location' | 'middleName' | 'name' | 'namePrefix' | 'nameSuffix' | 'nickname' | 'organizationName' | 'postalCode' | 'streetAddressLine1' | 'streetAddressLine2' | 'sublocality' | 'telephoneNumber' | 'username' | 'password' | 'newPassword' | 'oneTimeCode';
   autoComplete?: 'off' | 'username' | 'password' | 'email' | 'name' | 'tel' | 'street-address' | 'postal-code' | 'cc-number' | 'cc-csc' | 'cc-exp' | 'cc-exp-month' | 'cc-exp-year' | 'new-password' | 'given-name' | 'family-name' | 'sms-otp';
   editable?: boolean;
+  style?: TextStyle | TextStyle[];
 };
 
 export function Input(props: InputProps) {
   const { colors, borderRadius } = useTheme();
+  const { style, ...otherProps } = props;
   return (
     <TextInput
-      {...props}
+      {...otherProps}
       placeholderTextColor={colors.mutedText}
-      style={[{ color: colors.text, borderColor: colors.border, borderRadius: borderRadius.md }, styles.input]}
+      style={[{ color: colors.text, borderColor: colors.border, borderRadius: borderRadius.md }, styles.input, style]}
       autoCorrect={false}
       spellCheck={false}
     />
