@@ -30,12 +30,29 @@ target 'app' do
   pod 'PlistToJsonConverter', :path => './PlistToJsonConverter'
 
   post_install do |installer|
-    # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
     react_native_post_install(
       installer,
       config[:reactNativePath],
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
+
+    # Temporary workaround for Xcode + use_frameworks! builds:
+    # React Native Firebase (RNFBApp) includes non-modular React headers
+    # (e.g. RCTConvert.h) inside framework modules, which Xcode treats as
+    # a hard error (-Werror=non-modular-include-in-framework-module).
+    # This relaxes that check for Pods frameworks.
+    # TODO: Remove once RN / RNFirebase fully support modular headers
+    # or if use_frameworks! is removed.
+    installer.pods_project.targets.each do |t|
+      t.build_configurations.each do |config|
+        # The key one for your error
+        config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+  
+        # Avoid turning it into a hard failure
+        config.build_settings['CLANG_WARN_NON_MODULAR_INCLUDE_IN_FRAMEWORK_MODULE'] = 'NO'
+        config.build_settings['GCC_TREAT_WARNINGS_AS_ERRORS'] = 'NO'
+      end
+    end
   end
 end
